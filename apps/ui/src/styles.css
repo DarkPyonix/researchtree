@@ -412,6 +412,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .label3d.on-path { border-color: var(--accent); }
 .label3d.selected { background: var(--accent-2); color: #fff; z-index: 2; }
 .label3d.selected .label3d-sub { color: rgba(255, 255, 255, 0.85); }
+/* Selected chips are red: keep the name white even for rejected experiments (muted grey otherwise). */
+.label3d.selected .label3d-name { color: #fff; }
 .label3d.dim { opacity: 0.3; }
 
 /* ---------- detail panel ---------- */
