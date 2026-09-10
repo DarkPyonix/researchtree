@@ -1,0 +1,9 @@
+**
+!package.json
+!README.md
+!LICENSE
+!icon.png
+!dist/extension.js
+!media/main.js
+!media/main.css
+!media/fonts/**

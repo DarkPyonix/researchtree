@@ -1,0 +1,75 @@
+{
+  "name": "researchtree",
+  "publisher": "darkpyonix",
+  "displayName": "ResearchTree",
+  "icon": "icon.png",
+  "description": "Every branch is an experiment, every PR is its lab note. See your research as a tree of experiment branches and PRs right inside VS Code.",
+  "version": "0.0.1",
+  "license": "Apache-2.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DarkPyonix/researchtree.git",
+    "directory": "apps/extension"
+  },
+  "bugs": "https://github.com/DarkPyonix/researchtree/issues",
+  "homepage": "https://github.com/DarkPyonix/researchtree#readme",
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "research",
+    "experiment",
+    "git",
+    "pull request",
+    "machine learning"
+  ],
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "./dist/extension.js",
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "researchtree.open",
+        "title": "Open Tree",
+        "category": "ResearchTree",
+        "icon": "$(git-branch)"
+      },
+      {
+        "command": "researchtree.signOut",
+        "title": "Sign Out",
+        "category": "ResearchTree"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "npm run build:webview && npm run build:ext",
+    "build:webview": "npm run build:extension -w @researchtree/ui",
+    "build:ext": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --format=cjs --platform=node --target=node20 --external:vscode --sourcemap",
+    "watch": "npm run build:ext -- --watch",
+    "watch:webview": "npm exec -w @researchtree/ui -- vite build --mode extension --watch",
+    "vscode:prepublish": "node -e \"require('fs').copyFileSync('../../LICENSE','LICENSE')\" && npm run build",
+    "package": "vsce package --no-dependencies",
+    "test": "cd ../.. && vitest run --config tests/vitest.config.ts extension"
+  },
+  "dependencies": {
+    "@researchtree/core": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "@types/vscode": "~1.90.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.21.5"
+  }
+}

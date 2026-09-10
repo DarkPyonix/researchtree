@@ -1,0 +1,2 @@
+# Shell scripts must keep LF line endings so bash can run them on every platform.
+*.sh text eol=lf
