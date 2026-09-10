@@ -18,3 +18,8 @@ async function main() {
 }
 
 void main();
+
+// Installed-app support (see pwa/sw.js). Production builds only: the dev server has no sw.js.
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => void navigator.serviceWorker.register("./sw.js").catch(() => undefined));
+}
