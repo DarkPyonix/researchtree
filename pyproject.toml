@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "researchtree"
-version = "1.0.0"
+version = "1.1.0"
 description = "Visualize your research as a growing tree of experiments, built on Git branches and pull requests."
 readme = "README.md"
 license = "Apache-2.0"
