@@ -8,7 +8,7 @@ TypeScript로 만든 뷰어 하나를 세 가지 호스트에 싣는다. 뷰어�
 
 ```
                      ┌─────────────── viewer (TS SPA) ───────────────┐
-                     │  UI (d3 / three.js) ── core (tree, prbody)    │
+                     │  UI (three.js) ── core (tree, prbody)         │
                      │                 │                             │
                      │           Host interface                      │
                      └───────┬─────────────┬─────────────┬───────────┘
@@ -47,11 +47,12 @@ researchtree/                         # github.com/DarkPyonix/researchtree
 ├─ tsconfig.base.json
 ├─ docs/
 ├─ apps/
-│  ├─ core/                           # TS 공용 로직: Host 인터페이스, GitHub 클라이언트, prbody, tree, 확장 메시지 타입
+│  ├─ core/                           # TS 공용 로직: Host 인터페이스, GitHub 클라이언트, prbody, tree, i18n(ko/en), 확장 메시지 타입
 │  ├─ ui/                             # 브라우저 쪽 전부: 화면, 호스트, 진입점, 빌드
 │  │  └─ src/
 │  │     ├─ app.ts · screens.ts · panel/ · views/ · styles.css …
-│  │     ├─ hosts/                    # web.ts · local.ts · extension.ts · demo.ts (+ demo-prs.json)
+│  │     ├─ views/                    # tree3d.ts (three.js 섬, 입체·평면 보기) · layout.ts (시간축 배치) · view.ts (뷰 인터페이스)
+│  │     ├─ hosts/                    # web.ts · local.ts · extension.ts
 │  │     └─ main.web.ts · main.local.ts · main.extension.ts
 │  ├─ extension/                      # VS Code 확장 (확장 호스트: extension, rpc, git)
 │  ├─ proxy/                          # Cloudflare Worker (OAuth 토큰 교환)
@@ -65,7 +66,7 @@ researchtree/                         # github.com/DarkPyonix/researchtree
    ├─ vitest.config.ts · tsconfig.json
    ├─ core/ · extension/ · proxy/     # vitest
    ├─ researchtree/                   # pytest (github/ · experiment/ · server/)
-   └─ fixtures/prbody-cases.json      # TS·Python이 함께 쓰는 PR 본문 케이스
+   └─ fixtures/                       # prbody-cases.json (TS·Python 공통) · prs-sample.json (트리 규칙 테스트)
 ```
 
 - 뷰어는 `apps/ui` 하나에서 세 번 빌드한다.
@@ -130,7 +131,9 @@ export interface Host {
 }
 ```
 
-부모, 상태, 표시 대상을 정하는 규칙은 [CONVENTIONS.md](CONVENTIONS.md)를 따른다. 루트 노드는 PR이 없는 가상 노드다.
+부모, 상태, 표시 대상을 정하는 규칙은 [CONVENTIONS.md](CONVENTIONS.md)를 따른다. 루트 노드는 PR이 없는 가상 노드이고, 버전 태그가 있으면 첫 버전을 뜻한다.
+
+버전 태그는 `GET /repos/{o}/{r}/tags`와 태그 커밋의 날짜(`GET /commits/{sha}`)로 읽어 `buildTree(prs, repo, config, tags)`에 넘긴다. 두 번째 버전부터는 `tree.versions`의 `VersionNode`(`research@v2`)가 되고, 트리 안에서 실험 노드와 같은 부모/자식 관계를 갖는다. 뷰는 `childrenOf`·`parentOf`로 두 종류를 함께 다룬다.
 
 ## 5. 호스트별 구현
 
@@ -212,6 +215,15 @@ GitHub의 OAuth App PKCE 지원 현황을 구현 시점에 확인한다. 지원�
 - head가 `experiment/`로 시작하고 base가 `research` 또는 `experiment/*`인 PR만 남긴다. YAML `parent`가 있으면 base 조건은 예외로 둔다. `main`, `develop` 등은 모델에 넣지 않는다.
 - PR 목록은 `GET /repos/{o}/{r}/pulls?state=all&per_page=100`으로 받고 페이지네이션한다. 호출 수가 문제가 되면 GraphQL로 바꾸는 것을 검토한다.
 
+### 6.1.1 Python 트리와 에이전트 기억 (`researchtree/memory/`)
+
+- `build.py`: `tree.ts`의 `buildTree`를 줄 단위로 옮긴 것. 시각은 aware `datetime`으로 비교한다. `tests/fixtures/tree-sample.json`(PR, 태그, 활동) → `tree-expected.json`을 TS 테스트(`tests/core/tree-fixture.test.ts`)와 Python 테스트(`tests/researchtree/memory/test_build.py`)가 함께 검사한다. 규칙을 바꾸면 픽스처를 `RT_UPDATE_FIXTURES=1 npm test`로 다시 만들고 Python을 맞춘다.
+- `model.py`: `Research`, `Version`, `Experiment`, `Experiments`. 탐색(`parent`, `children`, `ancestors`, `path`, `version`), 필드, 섹션 파싱, 부모 대비 `delta`/`improved`(메트릭 방향은 뷰어와 같은 이름 규칙), `describe()`, `to_dict()`.
+- `source.py`: GitHub 읽기. PR(페이지네이션), 버전 태그와 커밋 날짜, GraphQL 활동(첫·마지막 커밋). 커밋·코멘트·파일은 실험별로 처음 부를 때 읽고 객체 수명 동안 캐시한다. 모든 호출은 `github/api.py`의 경로 검사를 거친다.
+- `rules.py`: `Alert`와 기본 규칙 함수. 규칙은 `(Research) -> Iterable[Alert]`.
+- `manifest.py`: 요약 텍스트. 섬별 실험 수와 방향을 아는 지표의 최고값, 진행 중 실험, info를 뺀 경고, 다음 단계 안내.
+- 진입점: `researchtree.load()` / `from_data()`, CLI `researchtree memory`.
+
 ### 6.2 PR 본문의 무손실 재작성 (`core/src/prbody.ts` / `researchtree/experiment/body.py`)
 
 - 본문에서 첫 번째 ` ```yaml ` 펜스 블록을 찾아 파싱하고, 앞뒤 텍스트는 그대로 둔다.
@@ -228,9 +240,11 @@ GitHub의 OAuth App PKCE 지원 현황을 구현 시점에 확인한다. 지원�
 
 ### 6.4 프론트엔드
 
-- 2D 레이아웃은 `d3-hierarchy`의 `tree()`로 만들고, 링크는 `linkHorizontal`로 그린다.
 - 상태는 작은 전역 store 하나로 관리하고 URL 쿼리와 동기화한다. vscode 호스트에서는 `storage`와 동기화한다. 프레임워크 없이 시작하고, 패널 UI가 복잡해지면 Preact나 Svelte 도입을 검토한다.
-- 3D 모드는 같은 레이아웃 좌표를 3D로 투영해서 만든다. 뷰를 전환할 때 선택 상태를 유지하기 위해서다.
+- 화면은 `views/tree3d.ts`(`Tree3D`) 하나이고 `views/view.ts`의 인터페이스를 구현한다. 배치는 시간축 배치(`views/layout.ts`의 `placeTree`: `d3-hierarchy` tidy tree로 행을 정하고 가로는 실험 시작 시각에 선형, 열 간격은 `LAYOUT_COL`)를 쓴다. 다른 섬에 놓이는 이웃 행은 간격을 넓히고(separation 2.6), 새 버전으로 넘어가는 자식은 열 1.5개 너비의 물길을 두며, 자식은 부모보다 최소 간격만큼 오른쪽으로 민다. 날짜↔x 변환(`dateToX`/`xToDate`)은 노드의 (시각, x)를 지나는 단조 구간 선형 함수(pool-adjacent-violators)라서, 밀린 노드가 있어도 연도·계절 눈금이 노드 날짜와 맞는다. 시각은 core가 GraphQL로 읽은 브랜치 첫·마지막 커밋 날짜(`listPullActivity`)와 YAML `started`/`ended`로 정한다.
+- 평면 보기는 별도 렌더러 없이 같은 장면을 쓴다. 카메라가 위에서 내려다보는 시점으로 돌고, 식물을 납작하게 누르고, 땅·물·나루터·나룻배·장식을 숨기고, 바다를 건너는 구간은 평면에서만 보이는 점선 길 타일로 잇는다. 평면에서는 회전을 막고 이동과 확대만 허용한다. 전환해도 선택 상태가 유지된다.
+- WebGL을 쓸 수 없으면 트리를 그릴 수 없다는 안내를 보여준다. 대체 화면은 없다.
+- 3D는 직교 카메라와 OrbitControls, 인스턴싱한 복셀 타일로 그린다. research 버전(루트 v1 포함)마다 섬을 하나씩 두고, 각 노드는 부모를 따라 올라가 가장 가까운 버전(또는 루트)의 섬에 속한다. 섬 사이는 넓은 바다다. 섬을 떠나는 길은 기둥 위 나무 나루터로 끝나고, 바다 가운데에는 돛과 가지 색 깃발을 단 나룻배를 띄워 살짝 흔든다. 섬 모양과 장식은 레포 이름을 시드로 한 난수로 만들어 매번 같다. 라벨은 3D 좌표를 화면에 투영한 HTML 칩이다.
 - VS Code 테마와 어울리도록 색은 CSS 변수로 정의한다. vscode 호스트에서는 `--vscode-*` 변수에 연결한다.
 
 ## 7. 빌드와 배포

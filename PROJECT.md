@@ -19,6 +19,14 @@ ResearchTree는 이 문제를 다음 규칙으로 푼다.
 
 뷰어는 이 PR들을 읽어 트리로 그린다. 노드를 클릭하면 실험 결과를 보여주고, 그 자리에서 PR을 수정할 수 있다.
 
+## 오픈 사이언스
+
+실험 기록이 전부 레포 안에 있다. 시도마다의 코드, 가설, 메트릭, 채택하거나 기각한 이유가 브랜치와 PR로 남는다. 레포를 공개하면 최종 결과뿐 아니라 거기에 이른 과정 전체가 공개된다. 논문에서 흔히 빠지는 실패한 실험과 버린 아이디어도 포함된다. 누구든 브랜치를 체크아웃해 실험 하나를 재현하거나, 부모 실험과 비교하거나, 거기서 이어서 연구할 수 있다. 이 연구 방식은 실험 기록을 완전히 공개할 수 있게 해서 투명하고 재현 가능한 연구, 즉 오픈 사이언스에 기여한다.
+
+## 에이전트 기억
+
+같은 기록을 코딩 에이전트도 읽는다. `researchtree` 패키지의 `rt.load()`가 PR 트리를 타입이 있는 Python 객체(버전 → 실험 → 본문·커밋)로 돌려주고, 에이전트는 짧은 요약에서 시작해 필요한 곳만 펼쳐 보며 코드로 모으고 규칙을 검사한다. 마크다운 메모 파일을 다시 읽는 방식보다 한 단계 구조화된 기억이다. User as Code(arXiv:2606.16707)의 아이디어를 연구 기록에 옮겼다.
+
 ## 첫 사용처
 
 Moshi / PersonaPlex 기반 음성 모델 학습 연구에서 쓴다. 팀이 함께 학습 코드를 완성한 뒤, 각자 학습 가정을 바꿔 보는 실험부터 ResearchTree로 기록한다. 지도교수님께 이 방식으로 연구를 기록하겠다고 공유할 예정이다.
@@ -54,7 +62,7 @@ main, develop, 기타          ← 연구 외 용도. 트리에 표시하지 않
 | 부분 | 기술 | 역할 |
 |---|---|---|
 | 코어 (`apps/core/`) | TypeScript | 트리 구성, PR 본문 파싱, GitHub 클라이언트, `Host` 인터페이스 |
-| 뷰어 (`apps/ui/`) | TypeScript, Vite, d3 (2D), three.js (3D) | 화면과 호스트(web·local·vscode·demo). 중앙 웹, 로컬 실행, VS Code용으로 각각 빌드한다 |
+| 뷰어 (`apps/ui/`) | TypeScript, Vite, three.js, d3-hierarchy (배치) | 3D 섬 화면(평면 보기 포함), 호스트(web·local·extension). 중앙 웹, 로컬 실행, VS Code용으로 각각 빌드한다 |
 | 인증 프록시 (`apps/proxy/`) | Cloudflare Worker (TS) | 중앙 웹의 OAuth 토큰 교환만 담당한다 |
 | VS Code 확장 (`apps/extension/`) | TypeScript | 뷰어를 Webview에 싣고 VS Code GitHub 인증과 git을 연결한다 |
 | Python 패키지 (`apps/researchtree/`, 루트 `pyproject.toml`) | Python ≥ 3.11 | `researchtree serve`(로컬 실행)와 `rt.log()`(학습 연동) |

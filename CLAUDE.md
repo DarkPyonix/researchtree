@@ -5,7 +5,7 @@ Rules for working in this repository. Project overview: [PROJECT.md](PROJECT.md)
 ## Language
 
 - **Code comments and docstrings: English only.**
-- User-facing text (UI, CLI output, error messages shown to users): Korean.
+- User-facing text in the viewer and the VS Code extension (UI, toasts, error messages shown to users) goes through the i18n table (`t()` in `apps/core/src/i18n/`) with both a Korean and an English entry; never hard-code it. The Python CLI output is still Korean for now.
 - Documents under `docs/` and `PROJECT.md`: Korean.
 - Commit messages: English (see [Git](#git)).
 
@@ -13,10 +13,10 @@ Rules for working in this repository. Project overview: [PROJECT.md](PROJECT.md)
 
 Details: [docs/CONVENTIONS.md](docs/CONVENTIONS.md). Do not change these without updating that document first.
 
-- Root branch is `research`. Experiment branches are `experiment/<name>`.
+- Root branch is `research`, versioned with tags `research/v1`, `research/v2`, … (prefixed with the root branch name so they never clash with release tags like `v1` on `main`; bare `vN` tags are ignored); an adopted experiment merged into research gets the next tag. Experiment branches are `experiment/<name>`; research-rooted ones record `parent: research@vN`.
 - `main`, `develop` and every other branch are never shown in the tree.
 - One experiment = one branch = one PR. The PR body's first ```` ```yaml ```` block holds `parent`, `hypothesis`, `change`, `metrics`, `wandb`, `status`, `tags`.
-- Parent: YAML `parent` first, then PR `base.ref`. Status: YAML `status` first, then merged → adopted, closed → rejected, otherwise running.
+- Parent: YAML `parent` first (`research@vN` hangs off that version), then PR `base.ref` (research → the latest version tagged before the PR opened). Status: YAML `status` first, then merged → adopted, closed → rejected, otherwise running.
 - GitHub is the only data store. No database, no server-side cache.
 
 ## Architecture rules
@@ -24,6 +24,7 @@ Details: [docs/CONVENTIONS.md](docs/CONVENTIONS.md). Do not change these without
 - One TypeScript viewer, three hosts (central web, VS Code extension, local `uv tool` server). Everything host-specific goes through the `Host` interface in `apps/core/src/host.ts`. Tree logic, PR-body parsing and UI must stay host-agnostic.
 - PR-body rewriting must be lossless: only the YAML block changes, comments and key order are preserved, unknown fields are kept, and a broken YAML block is never overwritten.
 - TypeScript (`apps/core/src/prbody.ts`) and Python (`apps/researchtree/experiment/body.py`) implement the same rules. Both must pass `tests/fixtures/prbody-cases.json`. Change the fixture first, then both implementations.
+- The tree rules likewise live in TypeScript (`apps/core/src/tree.ts`) and Python (`apps/researchtree/memory/build.py`). Both must turn `tests/fixtures/tree-sample.json` into `tree-expected.json`. After an intended rule change, regenerate with `RT_UPDATE_FIXTURES=1 npm test`, then update the Python port.
 
 ## Security rules
 
@@ -43,24 +44,34 @@ Keep the layout flat: one level of products under `apps/`, and `tests/` mirrors 
 | Path | What |
 |---|---|
 | `apps/core` | TS shared logic: Host interface, GitHub client, PR-body parser, tree builder, VS Code message types |
-| `apps/ui` | All browser-side code: UI, hosts (web, local, extension, demo), entries, the Vite build for all three targets |
+| `apps/ui` | All browser-side code: UI, the three.js island view (3D and flat), hosts (web, local, extension), entries, the Vite build for all three targets |
 | `apps/extension` | VS Code extension host (`darkpyonix.researchtree`) |
 | `apps/proxy` | Cloudflare Worker → `https://researchtree.thisisthepy.workers.dev` |
-| `apps/researchtree` | Python package: `github/` (api, auth, tokens), `experiment/` (body, tracking), `server/` (app, handler, static), `cli.py`, `git.py` |
+| `apps/researchtree` | Python package: `github/` (api, auth, tokens), `experiment/` (body, tracking), `memory/` (the PR tree as typed objects for agents: build, model, source, rules, manifest), `server/` (app, handler, static), `cli.py`, `git.py` |
 | `tests/<app>` | Tests for each app; `tests/fixtures` holds data shared by TS and Python |
+| `scripts/` | Repository maintenance scripts (`merge-to-main.sh`) |
 
 ```bash
 npm install                 # from the repo root
 npm test                    # vitest (config: tests/vitest.config.ts)
 npm run typecheck
-npm run dev                 # web dev server on :5173 (open /?demo for fake data)
+npm run dev                 # web dev server on :5173
 npm run build               # web + local + extension builds (all from apps/ui)
 npm run package:extension   # .vsix
 uv run pytest               # Python tests
 uv build                    # Python wheel (run `npm run build:local` first, or the build hook does it)
+npm run docs:build          # guide (builds the season gallery first)
+scripts/merge-to-main.sh    # develop -> main, dropping develop-only docs (add --push to push)
 ```
 
 Before finishing a change: run the tests and typecheck for every package you touched.
+
+## Documentation layout
+
+- `docs/` on `develop` holds internal design docs (DIRECTION, CONVENTIONS, FEATURE, IMPLEMENTATION, ROADMAP, references).
+- **On `main`, the root keeps only `README.md` of its markdown files (no `CLAUDE.md`, `PROJECT.md`, ...), and `docs/` keeps only `docs/locale/` and `docs/guide/`; everything else is removed.** Merge `develop` into `main` with `scripts/merge-to-main.sh`, which does this. Therefore `README.md`, `docs/locale/*`, and `docs/guide/*` must never link to other `docs/` files; copy the needed content into the guide instead.
+- `README.md` is the English front page; translations live in `docs/locale/README_<lang>.md` (e.g. `README_ko.md`) and link back to each other.
+- `docs/guide/` is the user/developer guide published on GitHub Pages at `/researchtree/guide/` (the viewer itself is served at `/researchtree/`). Keep it in sync with actual features.
 
 ## Working rules
 
@@ -71,6 +82,7 @@ Before finishing a change: run the tests and typecheck for every package you tou
 
 ## Git
 
+- Development happens on `develop`. Commit directly to the checked-out branch; do not create feature branches unless asked. Check `git branch --show-current` before committing.
 - Commit only when asked.
 - Message format: `Type: Summary` on a single line, e.g. `Feat: Add tree view`, `Docs: Add references`, `Chore: Add js ignores`.
   - Types: `Feat` (new feature), `Fix` (bug fix), `Refactor` (no behavior change), `Test`, `Docs`, `Chore` (tooling, config, dependencies).

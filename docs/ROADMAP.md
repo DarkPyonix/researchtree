@@ -10,15 +10,18 @@
 - [x] npm workspaces 모노레포 골격, 루트 `pyproject.toml` 정리(오타 수정, `[build-system]`, 버전 `0.0.1`)
 - [ ] PyPI 이름 선점 (`uv build && uv publish`)
 
-## P0. 중앙 웹, 읽기 전용 MVP (교수님 데모 최소 조건)
+## P0. 중앙 웹, 읽기 전용 MVP (교수님 시연 최소 조건)
 
 - [x] `core`: `Host` 인터페이스, `github.ts`, `prbody.ts`, `tree.ts` (+ 공유 fixture 테스트)
 - [x] `proxy`: `/token` 엔드포인트 구현과 테스트
 - [ ] `proxy` 배포 (OAuth App 등록 후)
 - [x] 웹 호스트: OAuth 웹 흐름, PAT 로그인, 토큰 저장과 로그아웃 (실제 OAuth App으로는 미검증)
-- [x] 데모 모드 (`?demo`, 가짜 연구 레포)
+- [x] 3D 연구의 섬 (기본 화면, 버전마다 섬 하나) + 평면 보기 전환 (같은 장면을 눌러 내리기/솟아오르기)
+- [x] research 버전 태그로 본선을 그리기 (v1 → 채택 실험 → v2 …)
+- [x] 글꼴 번들 (Pretendard + Fraunces + JetBrains Mono)
+- [ ] 실제 연구 기록(Haan)을 `DarkPyonix/researchtree-test`에 재구성해서 실데이터로 검증
 - [x] 레포 선택, `?repo=&node=` 공유 링크
-- [x] 2D 트리, 상세 패널(가설·결론/메트릭/커밋), 경고 배지, "GitHub에서 열기"
+- [x] 상세 패널(가설·결론/메트릭/커밋), 경고 배지, "GitHub에서 열기"
 - [x] CSP와 마크다운 sanitize 적용
 - [ ] Pages 자동 배포 (GitHub Actions 워크플로)
 - [ ] 실제 연구 레포에서 가짜 실험 PR 몇 개로 검증
@@ -27,7 +30,8 @@
 
 - [ ] 뷰어 안 PR 편집, 채택/기각 버튼, 충돌 감지 (core API는 있음, UI 미구현)
 - [ ] 새 실험 만들기 UI (core `createExperiment`는 있음)
-- [x] 상태 레이어, 라벨 메트릭, 자식 실험 칩, 세대 네비게이터, 키보드 이동
+- [x] 상태 레이어, 섬별 라벨 메트릭, 자식 실험 칩, 세대 네비게이터, 키보드 이동
+- [x] 한국어/영어 UI (기본은 브라우저·VS Code 언어, 설정에서 변경)
 - [ ] 메트릭 색칠, 검색, 미니맵
 - [ ] 타임라인 재생, 투어 모드
 - [x] **VS Code 확장**: Webview 패널, 내장 GitHub 인증, 워크스페이스 레포 자동 선택, 체크아웃, diff, `.vsix` 패키징 (실제 VS Code에서는 미검증)
@@ -37,7 +41,7 @@
 
 ## P2. 발표와 확장
 
-- [ ] 3D 모드 ("성장하는 트리")
+- [ ] 3D 연출 확장 (타임라인과 투어 결합, 섬 테마)
 - [x] 학습 연동: `rt.log` / `rt.set` / `rt.conclude`
 - [x] `researchtree open`
 - [ ] 탭이 활성화될 때 자동 갱신
