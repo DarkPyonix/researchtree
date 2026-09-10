@@ -36,6 +36,8 @@
 > [!NOTE]
 > **Available now:** the [hosted viewer](https://darkpyonix.github.io/researchtree/), the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree), and the [Python package](https://pypi.org/project/researchtree/) (see [Install](#-install)). An Open VSX listing is coming.
 >
+> **See it on a demo project:** [researchtree-demo](https://darkpyonix.github.io/researchtree/?repo=DarkPyonix/researchtree-demo), a year of made-up text-to-speech research with five versions, competing hypotheses side by side, and intent and spec documents that evolve with the evidence ([repository](https://github.com/DarkPyonix/researchtree-demo)).
+>
 > The viewer and the VS Code extension speak Korean and English: they follow your browser (or VS Code) language, and you can switch in **Settings**. The Python CLI output is still Korean only.
 
 ---
