@@ -16,7 +16,7 @@ DEVICE_CODE_URL = "https://github.com/login/device/code"
 TOKEN_URL = "https://github.com/login/oauth/access_token"
 SCOPE = "repo"
 # DarkPyonix OAuth App client ID (public value). Fill in once the app is registered with Device Flow enabled.
-DEFAULT_CLIENT_ID = ""
+DEFAULT_CLIENT_ID = "Ov23liWqlCFuKF2A3ZbE"  # public client ID of the DarkPyonix ResearchTree OAuth App
 
 
 class AuthError(Exception):
