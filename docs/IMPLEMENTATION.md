@@ -241,7 +241,7 @@ GitHub의 OAuth App PKCE 지원 현황을 구현 시점에 확인한다. 지원�
 ### 6.4 프론트엔드
 
 - 상태는 작은 전역 store 하나로 관리하고 URL 쿼리와 동기화한다. vscode 호스트에서는 `storage`와 동기화한다. 프레임워크 없이 시작하고, 패널 UI가 복잡해지면 Preact나 Svelte 도입을 검토한다.
-- 화면은 `views/tree3d.ts`(`Tree3D`) 하나이고 `views/view.ts`의 인터페이스를 구현한다. 배치는 시간축 배치(`views/layout.ts`의 `placeTree`: `d3-hierarchy` tidy tree로 행을 정하고 가로는 실험 시작 시각에 선형, 열 간격은 `LAYOUT_COL`)를 쓴다. 다른 섬에 놓이는 이웃 행은 간격을 넓히고(separation 2.6), 새 버전으로 넘어가는 자식은 열 1.5개 너비의 물길을 두며, 자식은 부모보다 최소 간격만큼 오른쪽으로 민다. 날짜↔x 변환(`dateToX`/`xToDate`)은 노드의 (시각, x)를 지나는 단조 구간 선형 함수(pool-adjacent-violators)라서, 밀린 노드가 있어도 연도·계절 눈금이 노드 날짜와 맞는다. 시각은 core가 GraphQL로 읽은 브랜치 첫·마지막 커밋 날짜(`listPullActivity`)와 YAML `started`/`ended`로 정한다.
+- 화면은 `views/tree3d.ts`(`Tree3D`) 하나이고 `views/view.ts`의 인터페이스를 구현한다. 배치는 `views/layout.ts`의 `placeTree`다. `d3-hierarchy` tidy tree로 행을 정하고(행 간격 `ROW_STEP` 16, 다른 섬의 이웃 행은 separation 2.6), 가로는 부모 → 자식마다 같은 간격(`LAYOUT_COL`의 1.3배, 새 버전 섬으로 넘어가면 1.8배)이다. 날짜는 위치를 정하지 않는다. 날짜↔x 변환(`dateToX`/`xToDate`)은 노드의 (시각, x)를 지나는 단조 구간 선형 함수(pool-adjacent-violators)라서, 밀린 노드가 있어도 연도·계절 눈금이 노드 날짜와 맞는다. 시각은 core가 GraphQL로 읽은 브랜치 첫·마지막 커밋 날짜(`listPullActivity`)와 YAML `started`/`ended`로 정한다.
 - 평면 보기는 별도 렌더러 없이 같은 장면을 쓴다. 카메라가 위에서 내려다보는 시점으로 돌고, 식물을 납작하게 누르고, 땅·물·나루터·나룻배·장식을 숨기고, 바다를 건너는 구간은 평면에서만 보이는 점선 길 타일로 잇는다. 평면에서는 회전을 막고 이동과 확대만 허용한다. 전환해도 선택 상태가 유지된다.
 - WebGL을 쓸 수 없으면 트리를 그릴 수 없다는 안내를 보여준다. 대체 화면은 없다.
 - 3D는 직교 카메라와 OrbitControls, 인스턴싱한 복셀 타일로 그린다. research 버전(루트 v1 포함)마다 섬을 하나씩 두고, 각 노드는 부모를 따라 올라가 가장 가까운 버전(또는 루트)의 섬에 속한다. 섬 사이는 넓은 바다다. 섬을 떠나는 길은 기둥 위 나무 나루터로 끝나고, 바다 가운데에는 돛과 가지 색 깃발을 단 나룻배를 띄워 살짝 흔든다. 섬 모양과 장식은 레포 이름을 시드로 한 난수로 만들어 매번 같다. 라벨은 3D 좌표를 화면에 투영한 HTML 칩이다.
