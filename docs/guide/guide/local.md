@@ -4,21 +4,12 @@
 
 ## 설치
 
-::: warning PyPI 공개 전
-`uv tool install researchtree`(또는 일회성 `uvx researchtree serve`) 명령어는 PyPI 배포가 완료된 뒤 사용할 수 있어요. 지금은 GitHub 저장소에서 직접 설치해 주세요.
-:::
-
 ```bash
-# PyPI 공개 후
-uv tool install researchtree
-
-# 지금: GitHub에서 설치
-pip install git+https://github.com/DarkPyonix/researchtree
-# 또는
-uv tool install git+https://github.com/DarkPyonix/researchtree
+uv tool install researchtree    # 또는 pip install researchtree
+uvx researchtree serve          # 설치 없이 한 번만 실행
 ```
 
-Git에서 직접 설치할 때는 wheel 빌드 훅이 뷰어를 함께 빌드해요. 이때 Node.js와 npm이 필요하며, 환경에 없으면 뷰어 없이 설치됩니다. 그래도 학습 스크립트용 `rt.log()` 같은 기능은 정상 동작하고, `researchtree serve` 실행 시에만 뷰어 빌드 안내 메시지가 나타나요. OS 키체인에 토큰을 안전하게 보관하고 싶다면 선택 의존성인 `keyring`을 함께 설치해 주세요 (`pip install "researchtree[keyring]"`).
+레포의 최신 개발 버전은 `uv tool install git+https://github.com/DarkPyonix/researchtree`로 설치해요. Git에서 직접 설치할 때는 wheel 빌드 훅이 뷰어를 함께 빌드해요. 이때 Node.js와 npm이 필요하며, 환경에 없으면 뷰어 없이 설치됩니다. 그래도 학습 스크립트용 `rt.log()` 같은 기능은 정상 동작하고, `researchtree serve` 실행 시에만 뷰어 빌드 안내 메시지가 나타나요. OS 키체인에 토큰을 안전하게 보관하고 싶다면 선택 의존성인 `keyring`을 함께 설치해 주세요 (`pip install "researchtree[keyring]"`).
 
 ## 명령
 

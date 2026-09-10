@@ -35,8 +35,7 @@
 </p>
 
 > [!NOTE]
-> **ResearchTree는 정식 출시 전입니다.** [중앙 웹 뷰어](https://darkpyonix.github.io/researchtree/)는 GitHub 로그인과 함께 지금 쓸 수 있습니다.
-> **PyPI 패키지**와 **VS Code Marketplace** 등록은 계획만 있고 아직 공개되지 않았습니다. 지금은 git에서 설치하세요([아래](#-git에서-설치) 참고).
+> **지금 쓸 수 있는 것:** [중앙 웹 뷰어](https://darkpyonix.github.io/researchtree/), [VS Code 확장](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree), [Python 패키지](https://pypi.org/project/researchtree/)([설치](#-설치) 참고). Open VSX 등록은 곧 할 예정입니다.
 >
 > 뷰어와 VS Code 확장은 한국어와 영어를 지원합니다. 기본은 브라우저(또는 VS Code) 언어이고 **설정**에서 바꿀 수 있습니다. Python CLI 출력은 아직 한국어만 나옵니다.
 
@@ -243,7 +242,7 @@ researchtree release --yes  # 보관 머지(브랜치의 커밋을 revert하고 
 | **로그인** | GitHub 또는 PAT | VS Code 내장 GitHub 계정 | Device Flow 또는 `RESEARCHTREE_TOKEN` |
 | **레포 선택** | `?repo=` 또는 선택 화면 | 워크스페이스의 `origin` remote | 현재 디렉토리의 remote 또는 `--repo` |
 | **추가 기능** | 공유 링크 | 브랜치 체크아웃, 부모 대비 diff | 중앙 서버를 전혀 거치지 않음 |
-| **상태** | 운영 중 | `.vsix` 빌드 가능, Marketplace 등록 예정 | git 설치로 동작, PyPI 예정 |
+| **상태** | 운영 중 | VS Code Marketplace에 공개 | PyPI에 공개 |
 
 <details>
 <summary><b>🌐 중앙 웹</b></summary>
@@ -263,12 +262,7 @@ researchtree release --yes  # 보관 머지(브랜치의 커밋을 revert하고 
 
 명령 팔레트에서 <b><code>ResearchTree: Open Tree</code></b>를 실행합니다. 레포는 워크스페이스의 git remote로 정해지고, 로그인은 VS Code의 GitHub 계정을 쓰므로 처음 한 번 *허용*만 누르면 됩니다. VS Code 안에서는 실험 브랜치를 로컬에 체크아웃하고, 부모 대비 diff를 diff 에디터로 열 수도 있습니다.
 
-Marketplace 출시 전에 써 보려면 `.vsix`를 직접 빌드하세요.
-
-```bash
-npm install
-npm run package:extension   # 이후: 확장 → … → VSIX에서 설치
-```
+[VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree)에서 설치하거나 `code --install-extension darkpyonix.researchtree`를 실행하세요.
 
 </details>
 
@@ -280,7 +274,7 @@ npm run package:extension   # 이후: 확장 → … → VSIX에서 설치
 셀프 호스팅 방식입니다. 중앙 사이트와 인증 프록시가 필요 없습니다. 빌드된 뷰어가 wheel 안에 들어 있어서 사용자 머신에 Node도 필요 없습니다.
 
 ```bash
-uv tool install researchtree        # PyPI 공개 후. 지금은 "git에서 설치" 참고
+uv tool install researchtree
 researchtree serve                  # 브라우저에서 http://127.0.0.1:7337 을 연다
 ```
 
@@ -342,17 +336,16 @@ research.check()                              # 결정적 규칙: 멈춘 실험,
 > [!NOTE]
 > [User as Code](https://arxiv.org/abs/2606.16707)(Li, 2026)에서 아이디어를 얻었어요. 이 논문은 에이전트 기억을 타입이 있는 Python 상태와 실행 가능한 규칙으로 둬요. 여기서는 PR이 지우지 않는 로그이고 YAML 블록이 이미 타입 상태라서, 따로 구조화하는 단계가 필요 없어요. 저장소는 여전히 GitHub 하나예요.
 
-## 📦 git에서 설치
-
-Python 패키지는 레포에서 바로 설치할 수 있습니다. 필요하면 빌드 훅이 뷰어를 빌드하므로, 소스에서 설치할 때는 Node와 npm이 있어야 합니다.
+## 📦 설치
 
 ```bash
-pip install git+https://github.com/DarkPyonix/researchtree
-# 또는 독립 CLI로
-uv tool install git+https://github.com/DarkPyonix/researchtree
+pip install researchtree            # 학습 프로젝트에 (또는 uv add researchtree)
+uv tool install researchtree        # 또는 독립 CLI로
 ```
 
-선택: `pip install "researchtree[keyring] @ git+https://github.com/DarkPyonix/researchtree"`로 설치하면 토큰을 파일 대신 OS 키체인에 저장합니다.
+선택: `pip install "researchtree[keyring]"`로 설치하면 토큰을 파일 대신 OS 키체인에 저장합니다.
+
+레포의 최신 개발 버전은 `pip install git+https://github.com/DarkPyonix/researchtree`로 설치합니다. 빌드 훅이 뷰어를 빌드하므로 Node와 npm이 있어야 합니다.
 
 ## 🔒 보안과 개인정보
 

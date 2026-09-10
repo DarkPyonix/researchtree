@@ -62,9 +62,8 @@ main, develop, 기타             ← 연구 외 용도. 트리에 표시하지 
 
 ## 현재 상태
 
-::: warning 출시 전 (pre-release)
-- **VS Code 확장**: 마켓플레이스나 Open VSX에는 아직 등록되지 않았어요. 소스코드에서 `.vsix` 파일을 직접 빌드해 설치할 수 있습니다.
-- **Python 패키지**: 아직 PyPI에 배포되지 않아 `pip install git+https://github.com/DarkPyonix/researchtree` 명령어로 설치해야 해요.
+::: warning 아직 없는 것
+- **Open VSX**: VS Code 확장은 VS Code Marketplace에만 올라가 있어요. Open VSX 등록은 곧 할 예정이에요.
 - 새 실험 생성, 타임라인 재생, 투어 모드, 검색, 미니맵은 아직 지원하지 않아요. 새 실험은 GitHub에서 브랜치와 PR을 만들어 시작해 주세요.
 :::
 

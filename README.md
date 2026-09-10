@@ -34,8 +34,7 @@
 </p>
 
 > [!NOTE]
-> **ResearchTree is pre-release.** The [hosted viewer](https://darkpyonix.github.io/researchtree/) is live with Sign in with GitHub.
-> The **PyPI package** and the **VS Code Marketplace** listing are planned but not published. Install them from git for now (see [below](#-install-from-git)).
+> **Available now:** the [hosted viewer](https://darkpyonix.github.io/researchtree/), the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree), and the [Python package](https://pypi.org/project/researchtree/) (see [Install](#-install)). An Open VSX listing is coming.
 >
 > The viewer and the VS Code extension speak Korean and English: they follow your browser (or VS Code) language, and you can switch in **Settings**. The Python CLI output is still Korean only.
 
@@ -242,7 +241,7 @@ One viewer, three hosts. Pick whichever fits your setup.
 | **Sign in** | GitHub or a PAT | VS Code's built-in GitHub account | Device Flow or `RESEARCHTREE_TOKEN` |
 | **Repository** | `?repo=` or the picker | Workspace `origin` remote | Current directory's remote or `--repo` |
 | **Extras** | Share links | Checkout a branch, diff vs. parent | Nothing goes through a central server |
-| **Status** | Live | Builds as `.vsix`; Marketplace listing planned | Works from git; PyPI planned |
+| **Status** | Live | On the VS Code Marketplace | On PyPI |
 
 <details>
 <summary><b>🌐 Hosted web</b></summary>
@@ -262,12 +261,7 @@ To limit access to chosen repositories, open **Sign in with a personal access to
 
 Run **`ResearchTree: Open Tree`** from the command palette. The repository comes from your workspace's git remote, and sign-in uses VS Code's GitHub account, so you only click *Allow* once. Inside VS Code you can also check out an experiment branch locally and open its diff against the parent in the diff editor.
 
-To try it before the Marketplace release, build the `.vsix` yourself:
-
-```bash
-npm install
-npm run package:extension   # then: Extensions → … → Install from VSIX
-```
+Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree), or run `code --install-extension darkpyonix.researchtree`.
 
 </details>
 
@@ -279,7 +273,7 @@ npm run package:extension   # then: Extensions → … → Install from VSIX
 A self-hosted option. It needs no central site and no auth proxy, and your machine doesn't need Node, because the built viewer ships inside the wheel.
 
 ```bash
-uv tool install researchtree        # once published on PyPI; see "Install from git" for now
+uv tool install researchtree
 researchtree serve                  # opens http://127.0.0.1:7337 in your browser
 ```
 
@@ -342,17 +336,16 @@ From a terminal: `researchtree memory`, `researchtree memory v3`, `researchtree 
 > [!NOTE]
 > Inspired by [User as Code](https://arxiv.org/abs/2606.16707) (Li, 2026), which keeps agent memory as typed Python state plus executable rules. Here the pull requests are the append-only log and the YAML block is already the typed state, so no separate structuring step is needed. GitHub stays the only data store.
 
-## 📦 Install from git
-
-The Python package installs straight from the repository. The build hook compiles the viewer if needed, so installing from source requires Node and npm.
+## 📦 Install
 
 ```bash
-pip install git+https://github.com/DarkPyonix/researchtree
-# or, as a standalone CLI
-uv tool install git+https://github.com/DarkPyonix/researchtree
+pip install researchtree            # into a training project (or: uv add researchtree)
+uv tool install researchtree        # or as a standalone CLI
 ```
 
-Optional: `pip install "researchtree[keyring] @ git+https://github.com/DarkPyonix/researchtree"` stores the token in the OS keyring instead of a file.
+Optional: `pip install "researchtree[keyring]"` stores the token in the OS keyring instead of a file.
+
+To install the latest development version from the repository, use `pip install git+https://github.com/DarkPyonix/researchtree`. The build hook compiles the viewer, so this needs Node and npm.
 
 ## 🔒 Security & privacy
 
