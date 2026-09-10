@@ -78,6 +78,8 @@ html, body {
   color: var(--ink);
   font: 14px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
+  /* No grey-blue flash when a button or label is tapped on phones. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 #app { height: 100%; }
@@ -293,7 +295,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .canvas.is-3d { background: var(--bg); }
 
 /* The card hugs its content (and grows with it) instead of a fixed width. */
-.brand-stack { position: absolute; top: 16px; left: 16px; max-width: min(520px, calc(100% - 32px)); z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; pointer-events: none; }
+.brand-stack { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; max-width: min(520px, calc(100% - 32px)); z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; pointer-events: none; }
 .brand-stack > * { pointer-events: auto; }
 .brand { padding: 18px 20px 16px; }
 /* Year and season under the middle of the viewport, right below the brand card. */
@@ -314,7 +316,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .chip.layer[aria-pressed="false"] .chip-dot { box-shadow: none; background: var(--line); }
 
 /* Above the detail panel so the account menu opens over it. */
-.toolbar { position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 8px; z-index: 6; }
+.toolbar { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; display: flex; align-items: center; gap: 8px; z-index: 6; }
 .toolbar .btn { box-shadow: var(--shadow); }
 .avatar { width: 22px; height: 22px; border-radius: 50%; }
 .user-menu { position: relative; }
@@ -336,12 +338,12 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .menu-item:hover { background: var(--card-sunken); }
 .menu-sep { border: 0; border-top: 1px solid var(--line, rgba(0, 0, 0, 0.08)); margin: 4px 2px; }
 
-.hint { position: absolute; left: 18px; bottom: 16px; font-size: 11.5px; color: var(--muted); z-index: 1; pointer-events: none; }
+.hint { position: absolute; left: 18px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font-size: 11.5px; color: var(--muted); z-index: 1; pointer-events: none; }
 
 .gens {
   position: absolute;
   left: 50%;
-  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   display: flex;
   align-items: center;
@@ -382,7 +384,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .toast {
   position: absolute;
   left: 50%;
-  bottom: 84px;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   transform: translate(-50%, 10px);
   padding: 9px 14px;
   border-radius: 10px;
@@ -399,6 +401,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 /* ---------- 3D island ---------- */
 
 .tree3d { position: absolute; inset: 0; overflow: hidden; }
+/* The map and its floating controls are not text: a long press must not select labels (the panel stays selectable). */
+.tree3d, .brand-time, .gens, .toolbar, .hint { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .tree3d-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 .labels3d { position: absolute; inset: 0; pointer-events: none; }
 .label3d {
@@ -464,9 +468,9 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 .panel {
   position: absolute;
-  top: 64px;
+  top: calc(64px + env(safe-area-inset-top, 0px));
   right: 16px;
-  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   width: var(--panel-w, 400px);
   display: flex;
   flex-direction: column;
@@ -595,7 +599,7 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   .brand-stack { width: auto; right: 16px; max-width: none; align-items: stretch; }
   .brand { padding: 14px 16px; }
   .brand-title .count { font-size: 32px; }
-  .toolbar { top: auto; bottom: 72px; right: 16px; }
+  .toolbar { top: auto; bottom: calc(72px + env(safe-area-inset-bottom, 0px)); right: 16px; }
   /* The toolbar sits at the bottom here, so the account menu opens upward. */
   .menu { top: auto; bottom: calc(100% + 6px); }
   .menu::before { top: auto; bottom: -8px; }
@@ -603,7 +607,7 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   .hint { display: none; }
   /* Bottom sheet: the whole sheet scrolls (the header would otherwise leave no room for the content),
      and the tab bar, with its close button, sticks to the top. */
-  .panel { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; height: 70%; overflow-y: auto; overscroll-behavior: contain; }
+  .panel { top: auto; left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); width: auto; height: 70%; overflow-y: auto; overscroll-behavior: contain; }
   .panel-body { flex: none; overflow: visible; }
   /* Stuck at the top, the bar keeps the same 22px gap as on its sides; the negative margin tucks the
      extra padding into the header's bottom padding so the unscrolled layout does not move. */
