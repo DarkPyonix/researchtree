@@ -34,10 +34,8 @@
 </p>
 
 > [!NOTE]
-> **ResearchTree is pre-release.** The viewer, the VS Code extension, and the Python package all work from source today.
-> Not yet available:
-> - **Sign in with GitHub** on the hosted site. It is waiting on the OAuth App and the auth proxy deployment. Until then, sign in with a personal access token (PAT).
-> - The **PyPI package**, the **VS Code Marketplace** listing, and the **GitHub Pages** site are planned but not published. Install from git for now (see [below](#-install-from-git)).
+> **ResearchTree is pre-release.** The [hosted viewer](https://darkpyonix.github.io/researchtree/) is live with Sign in with GitHub.
+> The **PyPI package** and the **VS Code Marketplace** listing are planned but not published. Install them from git for now (see [below](#-install-from-git)).
 >
 > The viewer and the VS Code extension speak Korean and English: they follow your browser (or VS Code) language, and you can switch in **Settings**. The Python CLI output is still Korean only.
 
@@ -241,10 +239,10 @@ One viewer, three hosts. Pick whichever fits your setup.
 |---|---|---|---|
 | **Install** | Nothing | `darkpyonix.researchtree` | `uv tool install researchtree` |
 | **Open** | `https://darkpyonix.github.io/researchtree/` | `ResearchTree: Open Tree` | `researchtree serve` |
-| **Sign in** | GitHub *(coming)* or a PAT | VS Code's built-in GitHub account | Device Flow *(coming)* or `RESEARCHTREE_TOKEN` |
+| **Sign in** | GitHub or a PAT | VS Code's built-in GitHub account | Device Flow or `RESEARCHTREE_TOKEN` |
 | **Repository** | `?repo=` or the picker | Workspace `origin` remote | Current directory's remote or `--repo` |
 | **Extras** | Share links | Checkout a branch, diff vs. parent | Nothing goes through a central server |
-| **Status** | Site not published yet | Builds as `.vsix`; Marketplace listing planned | Works from git; PyPI planned |
+| **Status** | Live | Builds as `.vsix`; Marketplace listing planned | Works from git; PyPI planned |
 
 <details>
 <summary><b>🌐 Hosted web</b></summary>
@@ -253,7 +251,7 @@ One viewer, three hosts. Pick whichever fits your setup.
 
 Open the site, sign in, pick a repository. The repository list shows repositories you can access that have a `research` branch (or your configured root branch).
 
-Until the OAuth App is live, open **Sign in with a personal access token (PAT)** on the sign-in screen. For a fine-grained token, grant the target repository **Pull requests (read/write)** and **Contents (read)**. The token is stored only in that browser.
+To limit access to chosen repositories, open **Sign in with a personal access token (PAT)** on the sign-in screen instead. For a fine-grained token, grant the target repository **Pull requests (read/write)** and **Contents (read)**. The token is stored only in that browser.
 
 </details>
 
@@ -291,7 +289,7 @@ researchtree serve                  # opens http://127.0.0.1:7337 in your browse
 | `researchtree login` / `logout` | Device Flow sign-in from the terminal (for headless GPU boxes) / delete the stored token |
 | `researchtree open [--repo owner/name]` | Open the current repository in the hosted viewer |
 
-Until the OAuth App (and its Device Flow client ID) is set up, pass a token through the environment:
+On a machine without a browser, you can also pass a token through the environment:
 
 ```bash
 export RESEARCHTREE_TOKEN=github_pat_...

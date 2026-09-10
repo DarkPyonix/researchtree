@@ -44,15 +44,13 @@ researchtree serve
 
 로컬 페이지에 처음 접속한 뒤 "GitHub로 로그인"을 누르면 Device Flow 코드가 발급돼요. `github.com/login/device`에서 코드를 입력하고 승인하면 자동으로 트리 화면으로 넘어갑니다. 터미널에서는 `researchtree login` 명령어로 동일한 흐름을 진행할 수 있어요.
 
-::: warning Device Flow 준비 중
-Device Flow 로그인은 DarkPyonix OAuth App 등록이 완료된 뒤 동작해요. 그전까지는 아래 두 가지 방법 중 하나를 이용해 주세요.
-
-- `RESEARCHTREE_TOKEN` 환경변수에 [개인 액세스 토큰](/guide/web#개인-액세스-토큰-pat-으로-로그인)을 넣고 실행합니다. 이 방법은 지금 바로 쓸 수 있어요.
+::: tip 다른 로그인 방법
+- 브라우저를 쓸 수 없는 서버라면 `RESEARCHTREE_TOKEN` 환경변수에 [개인 액세스 토큰](/guide/web#개인-액세스-토큰-pat-으로-로그인)을 넣고 실행합니다.
   ```bash
   export RESEARCHTREE_TOKEN=github_pat_...
   researchtree serve
   ```
-- 직접 등록한 OAuth App(Device Flow 활성화)의 client ID를 `RESEARCHTREE_CLIENT_ID`에 넣습니다.
+- 직접 등록한 OAuth App(Device Flow 활성화)을 쓰려면 그 client ID를 `RESEARCHTREE_CLIENT_ID`에 넣습니다.
 :::
 
 ## 토큰 저장 위치

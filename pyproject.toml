@@ -54,7 +54,8 @@ artifacts = ["apps/researchtree/server/static/**"]
 path = "build.py"
 
 [tool.hatch.build.targets.sdist]
-include = ["apps/researchtree", "tests/researchtree", "tests/fixtures", "build.py", "LICENSE"]
+include = ["apps/researchtree", "tests/researchtree", "tests/fixtures", "build.py", "/LICENSE"]
+exclude = ["apps/extension"]
 artifacts = ["apps/researchtree/server/static/**"]
 
 [tool.pytest.ini_options]

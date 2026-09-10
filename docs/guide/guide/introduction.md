@@ -63,10 +63,9 @@ main, develop, 기타             ← 연구 외 용도. 트리에 표시하지 
 ## 현재 상태
 
 ::: warning 출시 전 (pre-release)
-- **중앙 웹**: GitHub Pages 배포와 "GitHub로 로그인"(OAuth App + 인증 프록시 `https://researchtree.thisisthepy.workers.dev`)은 준비 중이에요. 대신 개인 액세스 토큰(PAT)을 이용한 로그인은 바로 동작합니다.
 - **VS Code 확장**: 마켓플레이스나 Open VSX에는 아직 등록되지 않았어요. 소스코드에서 `.vsix` 파일을 직접 빌드해 설치할 수 있습니다.
 - **Python 패키지**: 아직 PyPI에 배포되지 않아 `pip install git+https://github.com/DarkPyonix/researchtree` 명령어로 설치해야 해요.
-- 뷰어 내 PR 편집, 채택/기각 버튼, 새 실험 생성, 타임라인 재생, 투어 모드, 검색, 미니맵은 아직 지원하지 않아요. 현재 뷰어는 읽기 전용이며, PR 수정은 GitHub에서 직접 하거나 `rt.log()`로 진행해 주세요.
+- 새 실험 생성, 타임라인 재생, 투어 모드, 검색, 미니맵은 아직 지원하지 않아요. 새 실험은 GitHub에서 브랜치와 PR을 만들어 시작해 주세요.
 :::
 
 ## 다음 단계

@@ -2,6 +2,7 @@
  * ResearchTree auth proxy.
  * GitHub's token endpoint does not support CORS, so the browser cannot call it directly.
  * This Worker only exchanges an OAuth authorization code for a token. It never stores or logs tokens.
+ * It also acknowledges GitHub Marketplace webhooks (POST /marketplace) and discards them.
  */
 export interface Env {
   GITHUB_CLIENT_ID: string;
@@ -24,6 +25,12 @@ function json(data: unknown, status: number, headers: Record<string, string>): R
 }
 
 export async function handle(req: Request, env: Env, fetchImpl: typeof fetch = fetch): Promise<Response> {
+  // GitHub Marketplace webhook: ResearchTree is free and keeps no accounts, so events are
+  // acknowledged without reading, storing or logging the payload. Server-to-server, so no Origin.
+  if (req.method === "POST" && new URL(req.url).pathname === "/marketplace") {
+    return new Response(null, { status: 204 });
+  }
+
   const origin = req.headers.get("Origin") ?? "";
   if (!allowedOrigins(env).includes(origin)) {
     return new Response("forbidden", { status: 403 });
