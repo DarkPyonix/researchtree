@@ -1,0 +1,68 @@
+name: Release
+
+# Push a tag like v1.0.0 on main to publish the Python package to PyPI and the
+# VS Code extension to the Visual Studio Marketplace and Open VSX.
+# The tag must match the versions in pyproject.toml and apps/extension/package.json.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag matches package versions
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          py=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)
+          ext=$(node -p "require('./apps/extension/package.json').version")
+          echo "tag=$tag pyproject=$py extension=$ext"
+          [ "$tag" = "$py" ] && [ "$tag" = "$ext" ]
+
+  pypi:
+    needs: check
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      # PyPI trusted publishing: no API token is stored in the repository.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build the viewer bundled in the wheel
+        run: npm run build:local
+      - uses: astral-sh/setup-uv@v10
+      - run: uv build
+      - run: uv publish --trusted-publishing always
+
+  extension:
+    needs: check
+    runs-on: ubuntu-latest
+    environment: marketplace
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run package:extension
+      - name: Publish to the Visual Studio Marketplace
+        working-directory: apps/extension
+        run: npx vsce publish --no-dependencies --packagePath researchtree-*.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      - name: Publish to Open VSX
+        working-directory: apps/extension
+        run: npx ovsx publish researchtree-*.vsix
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
