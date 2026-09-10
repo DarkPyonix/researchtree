@@ -333,6 +333,12 @@ research.check()                              # deterministic rules: stale runs,
 
 From a terminal: `researchtree memory`, `researchtree memory v3`, `researchtree memory duet-mix`, `--check`, `--json`.
 
+To teach a coding agent the whole workflow (branch and PR conventions, the PR body, `rt.log`, this memory API, `researchtree release`), install the bundled skill into your repository:
+
+```bash
+researchtree skill install    # writes SKILL.md to .claude/skills/researchtree/ and/or .agents/skills/researchtree/
+```
+
 > [!NOTE]
 > Inspired by [User as Code](https://arxiv.org/abs/2606.16707) (Li, 2026), which keeps agent memory as typed Python state plus executable rules. Here the pull requests are the append-only log and the YAML block is already the typed state, so no separate structuring step is needed. GitHub stays the only data store.
 

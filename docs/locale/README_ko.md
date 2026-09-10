@@ -333,6 +333,12 @@ research.check()                              # 결정적 규칙: 멈춘 실험,
 
 터미널에서는 `researchtree memory`, `researchtree memory v3`, `researchtree memory duet-mix`, `--check`, `--json`.
 
+코딩 에이전트에게 작업 방식 전체(브랜치와 PR 규칙, PR 본문, `rt.log`, 이 기억 API, `researchtree release`)를 알려주려면 패키지에 든 스킬을 레포에 설치하세요.
+
+```bash
+researchtree skill install    # .claude/skills/researchtree/ 와 .agents/skills/researchtree/ 에 SKILL.md를 씁니다
+```
+
 > [!NOTE]
 > [User as Code](https://arxiv.org/abs/2606.16707)(Li, 2026)에서 아이디어를 얻었어요. 이 논문은 에이전트 기억을 타입이 있는 Python 상태와 실행 가능한 규칙으로 둬요. 여기서는 PR이 지우지 않는 로그이고 YAML 블록이 이미 타입 상태라서, 따로 구조화하는 단계가 필요 없어요. 저장소는 여전히 GitHub 하나예요.
 

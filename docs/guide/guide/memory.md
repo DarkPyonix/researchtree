@@ -132,6 +132,20 @@ researchtree memory --json > tree.json
 
 에이전트에게 작업을 맡길 때 `researchtree memory` 출력을 첫 문맥으로 주고, 더 필요한 건 Python으로 직접 찾게 하면 돼요.
 
+## 에이전트 스킬 설치
+
+Claude Code나 Codex 같은 코딩 에이전트가 ResearchTree 규칙을 알고 움직이도록, 패키지에 스킬 파일(`SKILL.md`, 영어)이 들어 있어요. 사람이 읽을 수 있게 쓰는 규칙(맨 앞에 두었어요), 의도·스펙·근거 문서를 나눠 쓰는 법, 실험마다 `git worktree`로 작업 폴더를 나누는 법, 실험 브랜치와 PR을 만드는 법, PR 본문 형식, `rt.log()`로 기록하는 법, 이 페이지의 기억 API, `researchtree release`로 버전을 내는 법, 에이전트가 하면 안 되는 일을 담았어요.
+
+```bash
+researchtree skill install                  # 레포 루트의 .claude/skills, .agents/skills 중 이미 있는 곳에 설치
+researchtree skill install --target claude  # .claude/skills/researchtree/SKILL.md 에만 (agents, all 도 가능)
+researchtree skill show                     # 내용 출력
+```
+
+- 레포 안 어느 폴더에서 실행해도 레포 루트에 설치해요. 두 폴더가 모두 없으면 둘 다 만들어요.
+- 패키지를 업데이트한 뒤 다시 실행하면 새 내용으로 갱신해요. 이미 같으면 그대로 둬요.
+- 설치된 파일을 커밋해 두면 팀의 모든 에이전트가 같은 규칙을 써요.
+
 ## 오프라인
 
 이미 받아 둔 GitHub 응답으로도 만들 수 있어요. 테스트나 노트북에서 쓰기 좋아요.

@@ -48,7 +48,7 @@ Keep the layout flat: one level of products under `apps/`, and `tests/` mirrors 
 | `apps/ui` | All browser-side code: UI, the three.js island view (3D and flat), hosts (web, local, extension), entries, the Vite build for all three targets |
 | `apps/extension` | VS Code extension host (`darkpyonix.researchtree`) |
 | `apps/proxy` | Cloudflare Worker → `https://researchtree.thisisthepy.workers.dev` |
-| `apps/researchtree` | Python package: `github/` (api, auth, tokens), `experiment/` (body, tracking), `memory/` (the PR tree as typed objects for agents: build, model, source, rules, manifest, spec), `server/` (app, handler, static), `cli.py`, `git.py` |
+| `apps/researchtree` | Python package: `github/` (api, auth, tokens), `experiment/` (body, tracking), `memory/` (the PR tree as typed objects for agents: build, model, source, rules, manifest, spec), `server/` (app, handler, static), `skills/researchtree/SKILL.md` (the agent skill, installed by `researchtree skill install` via `skill.py`), `cli.py`, `git.py` |
 | `tests/<app>` | Tests for each app; `tests/fixtures` holds data shared by TS and Python |
 | `scripts/` | Repository maintenance scripts (`merge-to-main.sh`) |
 

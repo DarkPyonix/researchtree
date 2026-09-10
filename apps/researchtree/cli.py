@@ -1,4 +1,4 @@
-"""Command line entry point: serve / login / logout / open / memory / release / spec."""
+"""Command line entry point: serve / login / logout / open / memory / release / spec / skill."""
 
 from __future__ import annotations
 
@@ -237,6 +237,31 @@ def cmd_spec(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_skill_install(args: argparse.Namespace) -> int:
+    """Install the bundled SKILL.md into this repository's .claude/skills and/or .agents/skills."""
+    from pathlib import Path
+
+    from . import skill
+
+    top = git.toplevel(args.path)
+    if top is None and args.path is None:
+        print("git 저장소 안에서 실행하거나 --path로 설치할 폴더를 지정하세요.", file=sys.stderr)
+        return 1
+    root = Path(top or args.path)
+    targets = list(skill.TARGETS) if args.target == "all" else [args.target] if args.target else skill.default_targets(root)
+    labels = {"installed": "설치", "updated": "갱신", "unchanged": "이미 최신"}
+    for path, result in skill.install(root, targets):
+        print(f"{labels[result]}: {path.relative_to(root).as_posix()}")
+    return 0
+
+
+def cmd_skill_show(_: argparse.Namespace) -> int:
+    from . import skill
+
+    sys.stdout.write(skill.text())
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="researchtree", description="Git 브랜치와 PR로 만드는 실험 트리 뷰어")
     p.add_argument("--version", action="version", version=f"researchtree {__version__}")
@@ -282,6 +307,14 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--out", metavar="FILE", help="출력을 파일로 저장한다")
     sp.set_defaults(func=cmd_spec)
 
+    sk = sub.add_parser("skill", help="코딩 에이전트용 ResearchTree 스킬(SKILL.md)을 설치한다")
+    sks = sk.add_subparsers(dest="skill_command", metavar="<command>")
+    si = sks.add_parser("install", help="현재 레포의 .claude/skills, .agents/skills에 설치한다 (이미 있는 폴더 기준, 둘 다 없으면 둘 다)")
+    si.add_argument("--target", choices=["claude", "agents", "all"], help="설치 위치 (기본: 레포에 있는 폴더)")
+    si.add_argument("--path", help="git 저장소 대신 이 폴더에 설치한다")
+    si.set_defaults(func=cmd_skill_install)
+    sks.add_parser("show", help="스킬 내용을 출력한다").set_defaults(func=cmd_skill_show)
+    sk.set_defaults(func=lambda _: (sk.print_help(), 1)[1])
     return p
 
 
