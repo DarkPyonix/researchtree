@@ -48,6 +48,9 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     environment: marketplace
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -56,13 +59,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run package:extension
+      # Each store is skipped while its token is missing; the .vsix can also be uploaded by hand
+      # at https://marketplace.visualstudio.com/manage.
       - name: Publish to the Visual Studio Marketplace
+        if: env.VSCE_PAT != ''
         working-directory: apps/extension
         run: npx vsce publish --no-dependencies --packagePath researchtree-*.vsix
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
       - name: Publish to Open VSX
+        if: env.OVSX_PAT != ''
         working-directory: apps/extension
         run: npx ovsx publish researchtree-*.vsix
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: vsix
+          path: apps/extension/researchtree-*.vsix

@@ -23,6 +23,7 @@ git tag -a v1.0.0 -m "v1.0.0" && git push origin v1.0.0
 
 - **PyPI**: [pypi.org](https://pypi.org/manage/account/publishing/)의 **Publishing → Add a new pending publisher**에서 GitHub를 고르고 PyPI 프로젝트 `researchtree`, owner `DarkPyonix`, repository `researchtree`, workflow `release.yml`, environment `pypi`를 등록해요. Trusted Publishing이라 API 토큰을 저장하지 않습니다.
 - **VS Code Marketplace**: [퍼블리셔 관리 페이지](https://marketplace.visualstudio.com/manage)에서 퍼블리셔 `darkpyonix`를 만들고, Azure DevOps에서 **Marketplace (Manage)** 권한과 **All accessible organizations** 범위로 Personal Access Token을 발급해요.
+  Azure DevOps를 쓸 수 없으면 토큰 없이 두고, 워크플로가 남긴 `vsix` 아티팩트나 `npm run package:extension`으로 만든 파일을 같은 관리 페이지에서 **New extension → Visual Studio Code**로 직접 올려요. 토큰이 없는 스토어는 워크플로가 건너뜁니다.
 - **Open VSX**: [open-vsx.org](https://open-vsx.org)에 GitHub로 로그인해 Eclipse 계정을 연결하고 **Publisher Agreement**에 서명한 뒤, 액세스 토큰을 만들고 네임스페이스를 한 번 만들어요(`npx ovsx create-namespace darkpyonix -p <토큰>`).
 - 레포 **Settings → Environments**에 `pypi`와 `marketplace` 환경을 만들고, `marketplace`에 secret `VSCE_PAT`(Marketplace 토큰)와 `OVSX_PAT`(Open VSX 토큰)를 넣어요.
 
