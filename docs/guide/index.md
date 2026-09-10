@@ -30,11 +30,11 @@ features:
     details: PR 본문 맨 위 YAML 블록에 가설, 변경점, 메트릭을 적습니다. 머지는 채택, close는 기각입니다.
     link: /rules/pull-requests
     linkText: PR 형식
-  - icon: 🧭
-    title: 세 가지로 열기
-    details: 설치 없는 중앙 웹, VS Code 확장, 로컬 실행(uv tool). 어디서 열어도 같은 뷰어입니다.
-    link: /guide/web
-    linkText: 여는 방법
+  - icon: 📐
+    title: 의도와 스펙이 함께 자랍니다
+    details: 왜 하는지는 INTENT.md에, 지금의 설계는 SPEC.md에 적습니다. 설계를 바꾸는 실험이 자기 브랜치에서 스펙을 고치므로, 버전마다 채택된 설계만 모입니다.
+    link: /rules/spec
+    linkText: 의도와 스펙
   - icon: 🔭
     title: 오픈 사이언스
     details: 실패한 실험과 버린 아이디어까지 레포 안에 남습니다. 레포를 공개하면 연구 과정 전체가 공개됩니다.

@@ -443,7 +443,6 @@ html:not(.dark) .vp-doc .vp-code span { filter: saturate(0.85); }
 /* ---------- home ---------- */
 
 .VPHome { padding-bottom: 24px; }
-.VPHome .vp-doc .custom-block.warning { margin-top: 48px; }
 
 .VPHero .name {
   font-family: var(--rt-display);
@@ -541,7 +540,8 @@ html:not(.dark) .vp-doc .vp-code span { filter: saturate(0.85); }
 
 /* Home body (markdown under the hero). */
 .VPHome .vp-doc { max-width: 1152px; margin: 0 auto; }
-.VPHome .vp-doc .custom-block { max-width: 820px; margin: 0 auto; }
+/* Any notice under the feature cards (tip, warning, ...) keeps clear of them. */
+.VPHome .vp-doc .custom-block { max-width: 820px; margin: 48px auto 0; }
 
 .rt-showcase {
   margin: 72px auto 0;
