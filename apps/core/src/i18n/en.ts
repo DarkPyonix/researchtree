@@ -257,7 +257,7 @@ export const en: Record<MessageKey, string> = {
   "spec.none": "This version has no spec file ({path}). Change the path with spec in the repo's .researchtree.yml.",
   "spec.modeFull": "Full",
   "spec.modeSummary": "Summary",
-  "spec.modeChanges": "Changes in this version",
+  "spec.modeChanges": "Changes",
   "spec.modes": "Spec view",
   "spec.added": "Added",
   "spec.changed": "Changed",

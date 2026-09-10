@@ -255,7 +255,7 @@ export const ko = {
   "spec.none": "이 버전에는 스펙 파일({path})이 없어요. 레포의 .researchtree.yml에서 spec 경로를 바꿀 수 있어요.",
   "spec.modeFull": "전체",
   "spec.modeSummary": "요약",
-  "spec.modeChanges": "이 버전의 변경",
+  "spec.modeChanges": "변경",
   "spec.modes": "스펙 보기 방식",
   "spec.added": "추가",
   "spec.changed": "수정",
