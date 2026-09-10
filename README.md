@@ -344,9 +344,15 @@ researchtree skill install    # writes SKILL.md to .claude/skills/researchtree/ 
 > [!NOTE]
 > Inspired by [User as Code](https://arxiv.org/abs/2606.16707) (Li, 2026), which keeps agent memory as typed Python state plus executable rules. Here the pull requests are the append-only log and the YAML block is already the typed state, so no separate structuring step is needed. GitHub stays the only data store.
 
-### Intent and spec documents
+### Intent- and spec-driven development
 
-Keep **why** (`INTENT.md`: goals, claims with ids like `N1`, non-goals), **what the system is now** (`SPEC.md`: decisions only, one feature per section, each opening with a one-line `>` summary) and **evidence** (PR bodies) apart. An experiment that changes the design edits `SPEC.md` on its own branch, so each version's spec holds only adopted designs, and experiments list the claims they test with `claims: [N1]`.
+ResearchTree adapts **spec-driven development (SDD)** to research. In SDD the spec is the single source of truth and the code follows it; in research you do not know the outcome in advance, so here **a spec change is a hypothesis**, and the experiment's verdict decides whether it enters the spec. An intent layer sits on top: the claims the design is meant to prove.
+
+1. **Intent**: `INTENT.md` states the goals and the claims (`N1`, `N2`, …) and what is out of scope.
+2. **Spec**: `SPEC.md` holds the current design only, decisions not derivations, one feature per section, each opening with a one-line `>` summary.
+3. **Experiment**: a branch that changes the design edits `SPEC.md` first and then the code, in one PR that lists the claims it tests (`claims: [N1]`).
+4. **Verdict**: adopted, the spec change goes into `research`; rejected, it stays as a proposal. Each `research/vN` tag is a spec made only of adopted designs.
+5. **Evidence**: measurements and reasoning stay in the PR body; the spec links to them.
 
 ```bash
 researchtree spec --summary     # the latest design on one page

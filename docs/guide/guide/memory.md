@@ -79,9 +79,9 @@ max(research.experiments, key=lambda e: e.ended - e.started)
 [n.name for n in research["duet-mix"].path]
 ```
 
-## 의도와 스펙
+## 의도·스펙 기반 개발
 
-실험 기록과 함께, 레포의 의도 문서(`INTENT.md`)와 스펙 문서(`SPEC.md`)도 버전별로 읽을 수 있어요. 문서를 쓰는 규칙과 경로 설정은 [의도와 스펙 문서](/rules/spec)에 있어요.
+실험 기록과 함께, 레포의 의도 문서(`INTENT.md`)와 스펙 문서(`SPEC.md`)도 버전별로 읽을 수 있어요. 개발 방식과 문서 쓰는 규칙, 경로 설정은 [의도·스펙 기반 개발](/rules/spec)에 있어요.
 
 ```python
 spec = research.spec()                     # 최신 버전의 스펙 (research.version("v3").spec() 도 같아요)

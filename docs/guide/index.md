@@ -31,10 +31,10 @@ features:
     link: /rules/pull-requests
     linkText: PR 형식
   - icon: 📐
-    title: 의도와 스펙이 함께 자랍니다
-    details: 왜 하는지는 INTENT.md에, 지금의 설계는 SPEC.md에 적습니다. 설계를 바꾸는 실험이 자기 브랜치에서 스펙을 고치므로, 버전마다 채택된 설계만 모입니다.
+    title: 의도·스펙 기반 개발
+    details: 스펙 기반 개발(SDD)을 연구에 맞게 바꿨습니다. 스펙 변경이 곧 가설이고, 실험의 채택·기각이 그 변경을 스펙에 넣을지 정합니다. 의도 문서의 주장까지 실험과 이어집니다.
     link: /rules/spec
-    linkText: 의도와 스펙
+    linkText: 의도·스펙 기반 개발
   - icon: 🔭
     title: 오픈 사이언스
     details: 실패한 실험과 버린 아이디어까지 레포 안에 남습니다. 레포를 공개하면 연구 과정 전체가 공개됩니다.
