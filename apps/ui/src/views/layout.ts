@@ -131,10 +131,9 @@ function timeOf(tree: ResearchTree, id: string): number | undefined {
 export function placeTree(tree: ResearchTree, col: number): Placement {
   const layout = d3tree<Datum>()
     .nodeSize([1, 1])
-    // Neighbours on different islands (research versions) get extra room for the water between them.
-    .separation((a, b) => (islandOf(tree, a.data.id) !== islandOf(tree, b.data.id) ? 2.6 : a.parent === b.parent ? 1 : 1.4))(
-      hierarchy<Datum>(hierarchyData(tree)),
-    );
+    // Every fork is one row apart, whoever the neighbours are (islands are kept apart along x instead),
+    // so branching distances look the same everywhere.
+    .separation(() => 1)(hierarchy<Datum>(hierarchyData(tree)));
   const pts = layout.descendants();
 
   const times = pts.map((p) => (p.depth === 0 ? undefined : timeOf(tree, p.data.id))).filter((t): t is number => t !== undefined && !Number.isNaN(t));
