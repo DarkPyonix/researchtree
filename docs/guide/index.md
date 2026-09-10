@@ -43,7 +43,7 @@ features:
 ---
 
 ::: warning 출시 전 단계
-ResearchTree는 아직 정식 배포 전이에요. PyPI 패키지, VS Code Marketplace 확장, GitHub Pages 뷰어는 아직 공개되지 않았고, 중앙 웹의 "GitHub로 로그인"은 OAuth App과 인증 프록시가 배포된 뒤 동작합니다. 지금은 개인 액세스 토큰(PAT) 로그인과 소스에서 직접 빌드하는 방식을 쓸 수 있어요. 자세한 내용은 [시작하기](/guide/introduction)를 참고해 주세요.
+[중앙 웹](https://darkpyonix.github.io/researchtree/)은 지금 바로 GitHub 로그인으로 쓸 수 있어요. PyPI 패키지와 VS Code Marketplace 확장은 아직 공개되지 않아 소스에서 설치해야 해요. 자세한 내용은 [시작하기](/guide/introduction)를 참고해 주세요.
 :::
 
 <div class="rt-showcase">

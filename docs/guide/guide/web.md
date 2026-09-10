@@ -6,10 +6,6 @@
 https://darkpyonix.github.io/researchtree/
 ```
 
-::: warning 아직 배포 전
-GitHub Pages 배포는 현재 준비 중이에요. 정식 공개 전까지는 [개발 서버](/dev/contributing#개발-환경)(`npm run dev`, `http://localhost:5173`)를 실행해 같은 화면을 띄워볼 수 있습니다.
-:::
-
 ## 로그인
 
 ![로그인 화면](/images/readme/ko/sign-in.png)
@@ -20,13 +16,11 @@ GitHub Pages 배포는 현재 준비 중이에요. 정식 공개 전까지는 [�
 
 "GitHub로 로그인"을 누르면 GitHub 인가 페이지로 이동해요. 권한을 승인하고 돌아오면 보려던 화면(레포, 노드)으로 바로 연결됩니다. 요청 권한(scope)은 `repo`로, 비공개 레포의 PR 데이터를 불러오기 위해 필요해요.
 
-::: warning 준비 중
-이 버튼은 DarkPyonix OAuth App과 인증 프록시(`https://researchtree.thisisthepy.workers.dev`)가 배포된 뒤에 동작해요. 현재 빌드에 OAuth App client ID가 없으면 버튼이 비활성화되고 "OAuth App client ID가 설정되지 않았습니다" 안내가 표시됩니다. 그전까지는 아래 PAT 로그인을 이용해 주세요.
-:::
+인가 코드를 토큰으로 바꾸는 과정은 인증 프록시(`https://researchtree.thisisthepy.workers.dev`)가 맡아요. 프록시는 아무것도 저장하지 않아요 ([보안과 개인정보](/guide/security#인증-프록시)).
 
 ### 개인 액세스 토큰(PAT)으로 로그인
 
-로그인 화면의 "개인 액세스 토큰(PAT)으로 로그인"을 펼치고 발급받은 토큰을 붙여 넣습니다. 지금 바로 동작하는 방법이에요.
+로그인 화면의 "개인 액세스 토큰(PAT)으로 로그인"을 펼치고 발급받은 토큰을 붙여 넣습니다. 특정 레포에만 권한을 주고 싶을 때 좋아요.
 
 1. GitHub **Settings → Developer settings → Personal access tokens**에서 토큰을 만듭니다.
 2. fine-grained 토큰이라면 대상 레포에 다음 권한을 설정해 주세요.

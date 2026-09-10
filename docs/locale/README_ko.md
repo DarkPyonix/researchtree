@@ -35,10 +35,8 @@
 </p>
 
 > [!NOTE]
-> **ResearchTree는 정식 출시 전입니다.** 뷰어, VS Code 확장, Python 패키지는 지금 소스에서 바로 동작합니다.
-> 아직 쓸 수 없는 것:
-> - 중앙 웹의 **GitHub 로그인**. OAuth App 등록과 인증 프록시 배포를 기다리고 있습니다. 그전까지는 개인 액세스 토큰(PAT)으로 로그인하세요.
-> - **PyPI 패키지**, **VS Code Marketplace** 등록, **GitHub Pages** 사이트는 계획만 있고 아직 공개되지 않았습니다. 지금은 git에서 설치하세요([아래](#-git에서-설치) 참고).
+> **ResearchTree는 정식 출시 전입니다.** [중앙 웹 뷰어](https://darkpyonix.github.io/researchtree/)는 GitHub 로그인과 함께 지금 쓸 수 있습니다.
+> **PyPI 패키지**와 **VS Code Marketplace** 등록은 계획만 있고 아직 공개되지 않았습니다. 지금은 git에서 설치하세요([아래](#-git에서-설치) 참고).
 >
 > 뷰어와 VS Code 확장은 한국어와 영어를 지원합니다. 기본은 브라우저(또는 VS Code) 언어이고 **설정**에서 바꿀 수 있습니다. Python CLI 출력은 아직 한국어만 나옵니다.
 
@@ -242,10 +240,10 @@ researchtree release --yes  # 보관 머지(브랜치의 커밋을 revert하고 
 |---|---|---|---|
 | **설치** | 없음 | `darkpyonix.researchtree` | `uv tool install researchtree` |
 | **열기** | `https://darkpyonix.github.io/researchtree/` | `ResearchTree: Open Tree` | `researchtree serve` |
-| **로그인** | GitHub *(예정)* 또는 PAT | VS Code 내장 GitHub 계정 | Device Flow *(예정)* 또는 `RESEARCHTREE_TOKEN` |
+| **로그인** | GitHub 또는 PAT | VS Code 내장 GitHub 계정 | Device Flow 또는 `RESEARCHTREE_TOKEN` |
 | **레포 선택** | `?repo=` 또는 선택 화면 | 워크스페이스의 `origin` remote | 현재 디렉토리의 remote 또는 `--repo` |
 | **추가 기능** | 공유 링크 | 브랜치 체크아웃, 부모 대비 diff | 중앙 서버를 전혀 거치지 않음 |
-| **상태** | 사이트 미공개 | `.vsix` 빌드 가능, Marketplace 등록 예정 | git 설치로 동작, PyPI 예정 |
+| **상태** | 운영 중 | `.vsix` 빌드 가능, Marketplace 등록 예정 | git 설치로 동작, PyPI 예정 |
 
 <details>
 <summary><b>🌐 중앙 웹</b></summary>
@@ -254,7 +252,7 @@ researchtree release --yes  # 보관 머지(브랜치의 커밋을 revert하고 
 
 사이트에 접속해 로그인하고 레포를 고릅니다. 레포 목록에는 접근할 수 있는 레포 가운데 `research` 브랜치(또는 설정한 루트 브랜치)가 있는 레포가 나옵니다.
 
-OAuth App이 준비되기 전에는 로그인 화면에서 **개인 액세스 토큰(PAT)으로 로그인**을 여세요. fine-grained 토큰이면 대상 레포에 **Pull requests(읽기/쓰기)**, **Contents(읽기)** 권한을 주세요. 토큰은 그 브라우저에만 저장됩니다.
+고른 레포에만 권한을 주고 싶다면 로그인 화면에서 **개인 액세스 토큰(PAT)으로 로그인**을 여세요. fine-grained 토큰이면 대상 레포에 **Pull requests(읽기/쓰기)**, **Contents(읽기)** 권한을 주세요. 토큰은 그 브라우저에만 저장됩니다.
 
 </details>
 
@@ -292,7 +290,7 @@ researchtree serve                  # 브라우저에서 http://127.0.0.1:7337 �
 | `researchtree login` / `logout` | 터미널에서 Device Flow로 로그인(브라우저 없는 GPU 서버용) / 저장된 토큰 삭제 |
 | `researchtree open [--repo owner/name]` | 현재 레포를 중앙 웹 뷰어에서 엽니다 |
 
-OAuth App(과 Device Flow client ID)이 준비되기 전에는 환경변수로 토큰을 넘기세요.
+브라우저가 없는 머신에서는 환경변수로 토큰을 넘길 수도 있습니다.
 
 ```bash
 export RESEARCHTREE_TOKEN=github_pat_...
