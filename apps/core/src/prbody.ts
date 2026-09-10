@@ -1,4 +1,5 @@
 import { isMap, parseDocument, Document, YAMLMap } from "yaml";
+import { t } from "./i18n";
 import { STATUSES, type ExperimentMeta, type NodeWarning, type Status } from "./types";
 
 /** First ```yaml fenced block in the body. Opening and closing fences must each be on their own line. */
@@ -167,11 +168,11 @@ export function updateMeta(body: string | null | undefined, patch: MetaPatch): s
 
   const doc: Document = loc ? parseDocument(loc.yaml) : new Document({});
   if (loc && doc.errors.length > 0) {
-    throw new PrBodyError("PR 본문의 YAML 블록을 파싱할 수 없어 수정하지 않았습니다.");
+    throw new PrBodyError(t("prbody.parseError"));
   }
   if (doc.contents == null) doc.contents = new YAMLMap();
   if (!isMap(doc.contents)) {
-    throw new PrBodyError("PR 본문의 YAML 블록이 key: value 형식이 아닙니다.");
+    throw new PrBodyError(t("prbody.notMap"));
   }
 
   for (const [key, value] of Object.entries(patch)) {
@@ -206,21 +207,35 @@ export function replaceMarkdown(body: string | null | undefined, markdown: strin
   return md ? `${block}\n\n${md}\n` : `${block}\n`;
 }
 
-/** Create or replace the `## 결론` (conclusion) section. */
-export function setConclusion(body: string | null | undefined, conclusion: string, heading = "결론"): string {
-  const parsed = parseBody(body);
-  const md = parsed.markdown;
-  const sectionRe = new RegExp(`^##[ \\t]+${escapeRe(heading)}[ \\t]*\\r?\\n[\\s\\S]*?(?=^##[ \\t]|$(?![\\s\\S]))`, "m");
-  const section = `## ${heading}\n${conclusion.trim()}\n\n`;
-  const next = sectionRe.test(md) ? md.replace(sectionRe, section) : `${section}${md}`;
+/**
+ * Headings that mark the conclusion section, in any case: `## 결론` or `## Conclusion(s)`. They are
+ * part of the PR-body convention shared with the Python implementation (not UI text).
+ */
+const CONCLUSION_RE = /^##[ \t]+(결론|conclusions?)[ \t]*\r?\n([\s\S]*?)(?=^##[ \t]|$(?![\s\S]))/im;
+
+/**
+ * Create or replace the conclusion section. An existing `## 결론` / `## Conclusion` section keeps its
+ * heading and only its text changes; otherwise a new section with `heading` goes first.
+ */
+export function setConclusion(body: string | null | undefined, conclusion: string, heading: string | null = "결론"): string {
+  const md = parseBody(body).markdown;
+  const m = CONCLUSION_RE.exec(md);
+  const next = m
+    ? md.slice(0, m.index) + `## ${m[1]}\n${conclusion.trim()}\n\n` + md.slice(m.index + m[0].length)
+    : `## ${heading ?? "결론"}\n${conclusion.trim()}\n\n${md}`;
   return replaceMarkdown(body, next);
 }
 
-function escapeRe(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/** Text of the conclusion section (`## 결론` or `## Conclusion`), or null when there is none. */
+export function getConclusion(body: string | null | undefined): string | null {
+  const m = CONCLUSION_RE.exec(parseBody(body).markdown);
+  return m ? m[2]!.trim() : null;
 }
 
-/** Body template for a new experiment PR. */
+/**
+ * Body template for a new experiment PR. The `## 결론` heading is part of the PR-body convention shared
+ * with the Python implementation (not UI text), so it is not translated.
+ */
 export function bodyTemplate(opts: { parent: string; hypothesis: string; change?: string }): string {
   const doc = new Document({
     parent: opts.parent,

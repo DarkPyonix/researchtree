@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import cases from "../fixtures/prbody-cases.json";
-import { bodyTemplate, parseBody, PrBodyError, replaceMarkdown, setConclusion, updateMeta, type MetaPatch } from "../../apps/core/src";
+import { bodyTemplate, getConclusion, parseBody, PrBodyError, replaceMarkdown, setConclusion, updateMeta, type MetaPatch } from "../../apps/core/src";
 
 describe("parseBody (공유 fixture)", () => {
   for (const c of cases.parse) {
@@ -17,6 +17,15 @@ describe("updateMeta (공유 fixture)", () => {
   for (const c of cases.update) {
     it(c.name, () => {
       expect(updateMeta(c.body, c.patch as MetaPatch)).toBe(c.expected);
+    });
+  }
+});
+
+describe("setConclusion / getConclusion (공유 fixture)", () => {
+  for (const c of cases.conclusion) {
+    it(c.name, () => {
+      expect(setConclusion(c.body, c.text, c.heading)).toBe(c.expected);
+      expect(getConclusion(c.body)).toBe(c.get);
     });
   }
 });

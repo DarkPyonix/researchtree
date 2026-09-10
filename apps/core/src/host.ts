@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import type { GitHubUser } from "./types";
 
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT";
@@ -31,7 +32,9 @@ export interface HostCapabilities {
 }
 
 export interface Host {
-  kind: "web" | "extension" | "local" | "demo";
+  kind: "web" | "extension" | "local";
+  /** Environment languages for the automatic locale. Defaults to `navigator.languages` when absent. */
+  languages?: readonly string[];
   auth: {
     current(): Promise<GitHubUser | null>;
     /** Start sign-in. May never resolve when the page navigates away (web host). */
@@ -64,7 +67,7 @@ export class HttpError extends Error {
 /** Hosts call this before sending a request so the token can never reach another domain. */
 export function assertApiPath(path: string): void {
   if (!path.startsWith("/") || path.startsWith("//") || /^\/*[a-z]+:/i.test(path) || path.includes("\\")) {
-    throw new Error(`허용되지 않는 GitHub API 경로: ${path}`);
+    throw new Error(t("github.invalidPath", { path }));
   }
 }
 

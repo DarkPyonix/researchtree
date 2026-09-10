@@ -1,0 +1,239 @@
+{
+  "rootVersion": "v1",
+  "rootChildren": [
+    "experiment/baseline-moshi",
+    "experiment/data-dedup",
+    "experiment/sampling-temp"
+  ],
+  "nodes": {
+    "experiment/baseline-moshi": {
+      "parent": "research",
+      "status": "adopted",
+      "version": "v1",
+      "produces": "research@v3",
+      "depth": 1,
+      "orphan": false,
+      "warnings": [],
+      "children": [
+        "experiment/depth-lr-half",
+        "experiment/depth-lr-warmup",
+        "experiment/text-token-delay"
+      ],
+      "started": 1785153600000,
+      "lastWork": 1785781800000
+    },
+    "experiment/data-dedup": {
+      "parent": "research",
+      "status": "adopted",
+      "version": "v1",
+      "produces": "research@v2",
+      "depth": 1,
+      "orphan": false,
+      "warnings": [],
+      "children": [
+        "experiment/fork-a",
+        "experiment/fork-b",
+        "experiment/data-dedup-aggressive"
+      ],
+      "started": 1785304800000,
+      "lastWork": 1785654000000
+    },
+    "experiment/data-dedup-aggressive": {
+      "parent": "experiment/data-dedup",
+      "status": "rejected",
+      "version": null,
+      "produces": null,
+      "depth": 2,
+      "orphan": false,
+      "warnings": [],
+      "children": [],
+      "started": 1785722400000,
+      "lastWork": 1785981600000
+    },
+    "experiment/depth-lr-half": {
+      "parent": "experiment/baseline-moshi",
+      "status": "rejected",
+      "version": null,
+      "produces": null,
+      "depth": 2,
+      "orphan": false,
+      "warnings": [],
+      "children": [],
+      "started": 1785899400000,
+      "lastWork": 1786273200000
+    },
+    "experiment/depth-lr-warmup": {
+      "parent": "experiment/baseline-moshi",
+      "status": "adopted",
+      "version": null,
+      "produces": null,
+      "depth": 2,
+      "orphan": false,
+      "warnings": [],
+      "children": [
+        "research@v3",
+        "experiment/warmup-4k",
+        "experiment/warmup-cosine",
+        "experiment/mimi-freeze"
+      ],
+      "started": 1785993600000,
+      "lastWork": 1786609800000
+    },
+    "experiment/fork-a": {
+      "parent": "experiment/data-dedup",
+      "status": "adopted",
+      "version": null,
+      "produces": null,
+      "depth": 2,
+      "orphan": false,
+      "warnings": [],
+      "children": [],
+      "started": 1785373200000,
+      "lastWork": 1785459600000
+    },
+    "experiment/fork-b": {
+      "parent": "experiment/data-dedup",
+      "status": "adopted",
+      "version": null,
+      "produces": null,
+      "depth": 2,
+      "orphan": false,
+      "warnings": [],
+      "children": [
+        "research@v2"
+      ],
+      "started": 1785376800000,
+      "lastWork": 1785463200000
+    },
+    "experiment/mimi-freeze": {
+      "parent": "experiment/depth-lr-warmup",
+      "status": "running",
+      "version": null,
+      "produces": null,
+      "depth": 3,
+      "orphan": false,
+      "warnings": [],
+      "children": [],
+      "started": 1787205600000,
+      "lastWork": 1788919200000
+    },
+    "experiment/persona-lora": {
+      "parent": "experiment/persona-prompt",
+      "status": "rejected",
+      "version": null,
+      "produces": null,
+      "depth": 5,
+      "orphan": false,
+      "warnings": [],
+      "children": [],
+      "started": 1787623200000,
+      "lastWork": 1788055200000
+    },
+    "experiment/persona-prompt": {
+      "parent": "research@v3",
+      "status": "running",
+      "version": "v3",
+      "produces": null,
+      "depth": 4,
+      "orphan": false,
+      "warnings": [],
+      "children": [
+        "experiment/persona-lora",
+        "experiment/persona-voice-embed"
+      ],
+      "started": 1787360400000,
+      "lastWork": 1788757200000
+    },
+    "experiment/persona-voice-embed": {
+      "parent": "experiment/persona-prompt",
+      "status": "running",
+      "version": null,
+      "produces": null,
+      "depth": 5,
+      "orphan": false,
+      "warnings": [],
+      "children": [],
+      "started": 1788318000000,
+      "lastWork": 1788940800000
+    },
+    "experiment/sampling-temp": {
+      "parent": "research",
+      "status": "running",
+      "version": null,
+      "produces": null,
+      "depth": 1,
+      "orphan": true,
+      "warnings": [
+        "orphan"
+      ],
+      "children": [],
+      "started": 1786320000000,
+      "lastWork": 1786320000000
+    },
+    "experiment/text-token-delay": {
+      "parent": "experiment/baseline-moshi",
+      "status": "running",
+      "version": null,
+      "produces": null,
+      "depth": 2,
+      "orphan": false,
+      "warnings": [],
+      "children": [],
+      "started": 1786158000000,
+      "lastWork": 1788598800000
+    },
+    "experiment/warmup-4k": {
+      "parent": "experiment/depth-lr-warmup",
+      "status": "rejected",
+      "version": null,
+      "produces": null,
+      "depth": 3,
+      "orphan": false,
+      "warnings": [],
+      "children": [],
+      "started": 1786669200000,
+      "lastWork": 1787047200000
+    },
+    "experiment/warmup-cosine": {
+      "parent": "experiment/depth-lr-warmup",
+      "status": "running",
+      "version": null,
+      "produces": null,
+      "depth": 3,
+      "orphan": false,
+      "warnings": [],
+      "children": [],
+      "started": 1786766400000,
+      "lastWork": 1788868800000
+    }
+  },
+  "versions": {
+    "research@v2": {
+      "name": "v2",
+      "parent": "experiment/fork-b",
+      "mergedFrom": [
+        "experiment/data-dedup"
+      ],
+      "grownFrom": [
+        "experiment/fork-a",
+        "experiment/fork-b"
+      ],
+      "children": [],
+      "depth": 3
+    },
+    "research@v3": {
+      "name": "v3",
+      "parent": "experiment/depth-lr-warmup",
+      "mergedFrom": [
+        "experiment/baseline-moshi"
+      ],
+      "grownFrom": [
+        "experiment/depth-lr-warmup"
+      ],
+      "children": [
+        "experiment/persona-prompt"
+      ],
+      "depth": 3
+    }
+  }
+}

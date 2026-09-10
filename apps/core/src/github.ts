@@ -1,5 +1,6 @@
 import { HttpError, type GitHubRequest, type GitHubResponse, type Host } from "./host";
-import type { Commit, GitHubUser, PullRequest } from "./types";
+import { parseVersionTag } from "./tree";
+import type { Commit, GitHubUser, PullActivity, PullComment, PullFile, PullRequest, VersionTag } from "./types";
 
 const API = "https://api.github.com";
 
@@ -62,7 +63,8 @@ export class GitHubClient {
 
     const etag = res.headers["etag"];
     if (key && etag) this.cache.set(key, { etag, data: res.data, headers: res.headers });
-    if (req.method !== "GET") this.cache.clear();
+    // Writes invalidate cached reads; GraphQL queries are reads even though they are POSTs.
+    if (req.method !== "GET" && req.path !== "/graphql") this.cache.clear();
     return { data: res.data as T, headers: res.headers };
   }
 
@@ -94,8 +96,93 @@ export class GitHubClient {
     });
   }
 
+  /** Research version tags of a root branch (`research/v1`, `research/v2`, ...) with each tagged commit's date. */
+  async listVersionTags(repo: string, root: string): Promise<VersionTag[]> {
+    const tags = await this.paginate<{ name: string; commit: { sha: string } }>({
+      method: "GET",
+      path: `/repos/${repo}/tags`,
+      query: { per_page: 100 },
+    });
+    const versions = tags.filter((t) => parseVersionTag(root, t.name) !== null);
+    return Promise.all(
+      versions.map(async (t) => {
+        const c = await this.call<{ commit: { committer: { date: string } | null; author: { date: string } | null } }>({
+          method: "GET",
+          path: `/repos/${repo}/commits/${t.commit.sha}`,
+        });
+        const date = c.data.commit.committer?.date ?? c.data.commit.author?.date ?? "";
+        return { name: t.name, sha: t.commit.sha, date };
+      }),
+    );
+  }
+
+  /** First commit (authored) and last commit (committed) date of every PR's branch, via one GraphQL query per 100 PRs. */
+  async listPullActivity(repo: string): Promise<Map<number, PullActivity>> {
+    const [owner, name] = repo.split("/");
+    const query = `query($owner: String!, $name: String!, $cursor: String) {
+      repository(owner: $owner, name: $name) {
+        pullRequests(first: 100, after: $cursor) {
+          pageInfo { hasNextPage endCursor }
+          nodes {
+            number
+            first: commits(first: 1) { nodes { commit { authoredDate } } }
+            last: commits(last: 1) { nodes { commit { committedDate } } }
+          }
+        }
+      }
+    }`;
+    type Page = {
+      data?: {
+        repository: {
+          pullRequests: {
+            pageInfo: { hasNextPage: boolean; endCursor: string | null };
+            nodes: {
+              number: number;
+              first: { nodes: { commit: { authoredDate: string } }[] };
+              last: { nodes: { commit: { committedDate: string } }[] };
+            }[];
+          };
+        } | null;
+      };
+      errors?: { message: string }[];
+    };
+    const out = new Map<number, PullActivity>();
+    let cursor: string | null = null;
+    for (let page = 0; page < 20; page++) {
+      const res: { data: Page } = await this.call<Page>({ method: "POST", path: "/graphql", body: { query, variables: { owner, name, cursor } } });
+      const body: Page = res.data;
+      if (body.errors?.length) throw new Error(`GitHub GraphQL: ${body.errors[0]!.message}`);
+      const prs: NonNullable<NonNullable<Page["data"]>["repository"]>["pullRequests"] | undefined = body.data?.repository?.pullRequests;
+      if (!prs) break;
+      for (const n of prs.nodes) {
+        out.set(n.number, { first: n.first.nodes[0]?.commit.authoredDate, last: n.last.nodes[0]?.commit.committedDate });
+      }
+      if (!prs.pageInfo.hasNextPage) break;
+      cursor = prs.pageInfo.endCursor;
+    }
+    return out;
+  }
+
   listCommits(repo: string, number: number): Promise<Commit[]> {
     return this.paginate<Commit>({ method: "GET", path: `/repos/${repo}/pulls/${number}/commits`, query: { per_page: 100 } }, 3);
+  }
+
+  /** Conversation comments and inline review comments of a PR, oldest first. */
+  async listPullComments(repo: string, number: number): Promise<PullComment[]> {
+    const [issue, review] = await Promise.all([
+      this.paginate<PullComment>({ method: "GET", path: `/repos/${repo}/issues/${number}/comments`, query: { per_page: 100 } }, 5),
+      this.paginate<PullComment>({ method: "GET", path: `/repos/${repo}/pulls/${number}/comments`, query: { per_page: 100 } }, 5),
+    ]);
+    return [...issue, ...review].sort((a, b) => a.created_at.localeCompare(b.created_at));
+  }
+
+  addPullComment(repo: string, number: number, body: string): Promise<PullComment> {
+    return this.call<PullComment>({ method: "POST", path: `/repos/${repo}/issues/${number}/comments`, body: { body } }).then((r) => r.data);
+  }
+
+  /** "Files changed" of a PR (GitHub lists at most 3000 files). */
+  listPullFiles(repo: string, number: number): Promise<PullFile[]> {
+    return this.paginate<PullFile>({ method: "GET", path: `/repos/${repo}/pulls/${number}/files`, query: { per_page: 100 } }, 30);
   }
 
   updatePullBody(repo: string, number: number, body: string): Promise<PullRequest> {

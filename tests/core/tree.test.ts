@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import demo from "../../apps/ui/src/hosts/demo-prs.json";
-import { buildTree, metricKeys, pathTo, type PullRequest } from "../../apps/core/src";
+import sample from "../fixtures/prs-sample.json";
+import { buildTree, displayName, metricKeys, normalizeTreeConfig, parentMetrics, pathTo, seasonOf, type PullRequest } from "../../apps/core/src";
 
-const prs = demo as PullRequest[];
+const prs = sample as PullRequest[];
 const tree = buildTree(prs, "darkpyonix/moshi-research-demo");
 
 function pr(partial: Omit<Partial<PullRequest>, "head" | "base"> & { head: string; base: string; n: number }): PullRequest {
@@ -22,7 +22,7 @@ function pr(partial: Omit<Partial<PullRequest>, "head" | "base"> & { head: strin
   };
 }
 
-describe("buildTree (demo fixture)", () => {
+describe("buildTree (sample fixture)", () => {
   it("research와 experiment/* 외의 PR은 숨긴다", () => {
     expect(tree.nodes.has("develop")).toBe(false);
     expect(tree.nodes.has("experiment/hotfix-logging")).toBe(false);
@@ -106,5 +106,106 @@ describe("buildTree (엣지 케이스)", () => {
   it("루트와 접두사를 바꿀 수 있다", () => {
     const t = buildTree([pr({ n: 1, head: "exp/a", base: "lab" })], "o/r", { root: "lab", prefix: "exp/" });
     expect(t.rootChildren).toEqual(["exp/a"]);
+  });
+});
+
+describe("buildTree (research versions)", () => {
+  const tags = [
+    { name: "research/v1", sha: "s1", date: "2026-01-01T00:00:00Z" },
+    { name: "research/v2", sha: "m2", date: "2026-01-10T00:00:00Z" },
+    { name: "research/v3", sha: "m3", date: "2026-01-20T00:00:00Z" },
+    // Release tags on main are not research versions.
+    { name: "v9", sha: "rel", date: "2026-01-05T00:00:00Z" },
+  ];
+  const merged = (n: number, head: string, at: string, sha: string, parent = "research@v1") =>
+    ({ ...pr({ n, head, base: "research", body: `\`\`\`yaml\nparent: ${parent}\nhypothesis: h\n\`\`\`` }), state: "closed", merged_at: at, merge_commit_sha: sha }) as PullRequest;
+
+  const t = buildTree(
+    [
+      merged(1, "experiment/a", "2026-01-09T00:00:00Z", "m2"),
+      pr({ n: 2, head: "experiment/b", base: "research", body: "```yaml\nparent: research@v1\nhypothesis: h\n```" }),
+      merged(3, "experiment/c", "2026-01-19T00:00:00Z", "zzz", "research@v2"),
+      { ...pr({ n: 4, head: "experiment/d", base: "research" }), created_at: "2026-01-15T00:00:00Z" },
+      pr({ n: 5, head: "experiment/e", base: "research", body: "```yaml\nparent: research@v9\nhypothesis: h\n```" }),
+    ],
+    "o/r",
+    undefined,
+    tags,
+  );
+
+  it("첫 버전은 루트이고 나머지는 버전 노드가 된다", () => {
+    expect(t.rootVersion).toBe("v1");
+    expect([...t.versions.keys()]).toEqual(["research@v2", "research@v3"]);
+  });
+
+  it("research@vN으로 시작한 실험은 그 버전에 붙는다", () => {
+    expect(t.nodes.get("experiment/a")!.parent).toBe("research");
+    expect(t.nodes.get("experiment/c")!.parent).toBe("research@v2");
+    expect(t.nodes.get("experiment/c")!.version).toBe("v2");
+  });
+
+  it("parent가 없으면 PR을 연 시점의 최신 버전으로 추론한다", () => {
+    expect(t.nodes.get("experiment/d")!.parent).toBe("research@v2");
+  });
+
+  it("머지 커밋이 태그와 같으면 그 버전을, 아니면 머지 이후 첫 버전을 만든다", () => {
+    expect(t.nodes.get("experiment/a")!.produces).toBe("research@v2");
+    expect(t.versions.get("research@v2")!.parent).toBe("experiment/a");
+    expect(t.nodes.get("experiment/c")!.produces).toBe("research@v3");
+    expect(t.versions.get("research@v3")!.parent).toBe("experiment/c");
+  });
+
+  it("본선이 v1 → a → v2 → c → v3 로 이어진다", () => {
+    expect(pathTo(t, "research@v3")).toEqual(["experiment/a", "research@v2", "experiment/c", "research@v3"]);
+    expect(t.versions.get("research@v3")!.depth).toBe(4);
+  });
+
+  it("없는 버전을 가리키면 경고와 함께 루트에 붙는다", () => {
+    const e = t.nodes.get("experiment/e")!;
+    expect(e.parent).toBe("research");
+    expect(e.warnings).toContain("unknown-version");
+  });
+
+  it("버전 노드의 메트릭은 마지막으로 합쳐진 실험을 따른다", () => {
+    expect(parentMetrics(t, "experiment/d")).toEqual(t.nodes.get("experiment/a")!.meta.metrics);
+  });
+});
+
+describe("normalizeTreeConfig", () => {
+  it("접두사 끝에 / 를 붙이고 기본값을 채운다", () => {
+    expect(normalizeTreeConfig({ root: "main-research", prefix: "exp" })).toEqual({ root: "main-research", prefix: "exp/" });
+    expect(normalizeTreeConfig({})).toEqual({ root: "research", prefix: "experiment/" });
+  });
+
+  it("잘못된 이름을 거부한다", () => {
+    expect(normalizeTreeConfig({ root: "a..b" })).toHaveProperty("error");
+    expect(normalizeTreeConfig({ root: "exp/x", prefix: "exp/" })).toHaveProperty("error");
+  });
+
+  it("설정한 이름으로 트리를 만든다", () => {
+    const t = buildTree([pr({ n: 1, head: "exp/a", base: "lab" })], "o/r", { root: "lab", prefix: "exp/" });
+    expect(t.prefix).toBe("exp/");
+    expect(displayName(t, "exp/a")).toBe("a");
+  });
+});
+
+describe("시간과 계절", () => {
+  it("seasonOf는 북반구 기준 계절을 돌려준다", () => {
+    expect(seasonOf("2026-04-10T00:00:00Z")).toBe("spring");
+    expect(seasonOf("2026-07-10T00:00:00Z")).toBe("summer");
+    expect(seasonOf("2026-10-10T00:00:00Z")).toBe("autumn");
+    expect(seasonOf("2026-01-10T00:00:00Z")).toBe("winter");
+  });
+
+  it("YAML started/ended > 커밋 날짜 > PR 날짜 순으로 쓴다", () => {
+    const a = pr({ n: 1, head: "experiment/a", base: "research", body: "```yaml\nhypothesis: h\nstarted: 2025-03-02\nended: 2025-11-20\n```" });
+    const b = pr({ n: 2, head: "experiment/b", base: "research" });
+    const c = pr({ n: 3, head: "experiment/c", base: "research" });
+    const t = buildTree([a, b, c], "o/r", undefined, [], new Map([[2, { first: "2025-06-01T00:00:00Z", last: "2025-12-24T00:00:00Z" }]]));
+    expect(t.nodes.get("experiment/a")!.startedAt).toBe("2025-03-02T00:00:00.000Z");
+    expect(seasonOf(t.nodes.get("experiment/a")!.lastWorkAt)).toBe("autumn");
+    expect(t.nodes.get("experiment/b")!.startedAt).toBe("2025-06-01T00:00:00Z");
+    expect(seasonOf(t.nodes.get("experiment/b")!.lastWorkAt)).toBe("winter");
+    expect(t.nodes.get("experiment/c")!.startedAt).toBe(c.created_at);
   });
 });

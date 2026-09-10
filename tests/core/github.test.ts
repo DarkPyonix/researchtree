@@ -4,7 +4,7 @@ import { assertApiPath, GitHubClient, HttpError, nextPage, parseRepo, repoFromRe
 function fakeHost(handler: (req: GitHubRequest) => GitHubResponse): Host & { calls: GitHubRequest[] } {
   const calls: GitHubRequest[] = [];
   return {
-    kind: "demo",
+    kind: "web",
     calls,
     auth: {
       current: async () => null,
