@@ -1,56 +1,11 @@
 import type { GitHubClient, GitHubUser, Host, LocalePreference, TreeConfig } from "@researchtree/core";
 import { DEFAULT_TREE_CONFIG, LOCALE_NAMES, LOCALES, normalizeTreeConfig, parseRepo, t } from "@researchtree/core";
+import logoUrl from "./assets/logo.svg";
 import { clear, h, icon, type Child } from "./dom";
 
-function logo(size = 44): SVGSVGElement {
-  const ns = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(ns, "svg");
-  svg.setAttribute("viewBox", "0 0 48 48");
-  svg.setAttribute("width", String(size));
-  svg.setAttribute("height", String(size));
-  svg.setAttribute("aria-hidden", "true");
-  const paths: [string, string][] = [
-    ["M9 24c8 0 8-13 18-13", "#c8553d"],
-    ["M9 24h18", "#e09f3e"],
-    ["M9 24c8 0 8 13 18 13", "#3d7a6b"],
-    ["M27 11c5 0 5-4 10-4", "#c8553d"],
-    ["M27 37c5 0 5 5 10 5", "#3d7a6b"],
-  ];
-  for (const [d, c] of paths) {
-    const p = document.createElementNS(ns, "path");
-    p.setAttribute("d", d);
-    p.setAttribute("fill", "none");
-    p.setAttribute("stroke", c);
-    p.setAttribute("stroke-width", "3");
-    p.setAttribute("stroke-linecap", "round");
-    svg.appendChild(p);
-  }
-  const dots: [number, number, string, boolean][] = [
-    [27, 11, "#c8553d", true],
-    [27, 24, "#e09f3e", false],
-    [27, 37, "#3d7a6b", true],
-    [37, 7, "#c8553d", false],
-    [37, 42, "#3d7a6b", true],
-  ];
-  for (const [cx, cy, c, filled] of dots) {
-    const e = document.createElementNS(ns, "circle");
-    e.setAttribute("cx", String(cx));
-    e.setAttribute("cy", String(cy));
-    e.setAttribute("r", "3.6");
-    e.setAttribute("fill", filled ? c : "#fffdf9");
-    e.setAttribute("stroke", c);
-    e.setAttribute("stroke-width", "2.4");
-    svg.appendChild(e);
-  }
-  const root = document.createElementNS(ns, "circle");
-  root.setAttribute("cx", "9");
-  root.setAttribute("cy", "24");
-  root.setAttribute("r", "4.5");
-  root.setAttribute("fill", "#fffdf9");
-  root.setAttribute("stroke", "#1d2a30");
-  root.setAttribute("stroke-width", "3");
-  svg.appendChild(root);
-  return svg;
+/** The ResearchTree logo: the voxel research tree from the 3D view (same as docs/guide/public/logo.svg). */
+function logo(size = 56): HTMLElement {
+  return h("img", { src: logoUrl, width: String(size), height: String(size), alt: "" });
 }
 
 function screen(...children: Child[]): HTMLElement {

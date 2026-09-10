@@ -31,7 +31,7 @@
 </p>
 
 <p align="center">
-  <img src="../guide/public/images/readme/island.png" alt="ResearchTree 연구의 섬: 실험은 식물로, research 버전은 돌 기념탑으로 그려진 복셀 섬" width="880">
+  <img src="../guide/public/images/readme/ko/island.png" alt="ResearchTree 연구의 섬: 실험은 식물로, research 버전은 돌 기념탑으로 그려진 복셀 섬" width="880">
 </p>
 
 > [!NOTE]
@@ -66,16 +66,16 @@ ResearchTree는 이미 익숙한 몇 가지 규칙으로 이 문제를 풉니다
 
 <table>
   <tr>
-    <td width="50%"><img src="../guide/public/images/readme/version-panel.png" alt="research 버전을 연 버전 패널"></td>
-    <td width="50%"><img src="../guide/public/images/readme/press-down.png" alt="카메라가 위로 돌며 섬이 평평하게 눌려 내려가는 전환 중간 모습"></td>
+    <td width="50%"><img src="../guide/public/images/readme/ko/version-panel.png" alt="research 버전을 연 버전 패널"></td>
+    <td width="50%"><img src="../guide/public/images/readme/ko/press-down.png" alt="카메라가 위로 돌며 섬이 평평하게 눌려 내려가는 전환 중간 모습"></td>
   </tr>
   <tr>
     <td align="center"><b>버전 패널</b>: 태그 날짜, 합쳐진 실험, 메트릭, 그 버전에서 뻗은 실험</td>
     <td align="center"><b>눌러 내리기 전환</b>: 카메라가 위에서 내려다보며 섬들이 평평해집니다</td>
   </tr>
   <tr>
-    <td width="50%"><img src="../guide/public/images/readme/flat-tree.png" alt="평면 보기: 점무늬 배경 위에 흙길, 눌린 식물, 버전 돌, 라벨 칩만 남은 모습"></td>
-    <td width="50%"><img src="../guide/public/images/readme/sign-in.png" alt="로그인 화면"></td>
+    <td width="50%"><img src="../guide/public/images/readme/ko/flat-tree.png" alt="평면 보기: 점무늬 배경 위에 흙길, 눌린 식물, 버전 돌, 라벨 칩만 남은 모습"></td>
+    <td width="50%"><img src="../guide/public/images/readme/ko/sign-in.png" alt="로그인 화면"></td>
   </tr>
   <tr>
     <td align="center"><b>평면 보기</b>: 같은 장면을 위에서 보고 길과 텃밭, 돌만 남깁니다</td>
