@@ -6,7 +6,8 @@
     "apps/core",
     "apps/ui",
     "apps/extension",
-    "apps/proxy"
+    "apps/proxy",
+    "docs/guide"
   ],
   "scripts": {
     "dev": "npm run dev -w @researchtree/ui",
@@ -15,6 +16,9 @@
     "build:local": "npm run build:local -w @researchtree/ui",
     "build:extension": "npm run build -w researchtree",
     "package:extension": "npm run package -w researchtree",
+    "build:gallery": "npm run build:gallery -w @researchtree/ui",
+    "docs:dev": "npm run build:gallery && npm run dev -w @researchtree/guide",
+    "docs:build": "npm run build:gallery && npm run build -w @researchtree/guide",
     "test": "vitest run --config tests/vitest.config.ts",
     "test:py": "uv run pytest",
     "typecheck": "tsc -p apps/core && tsc -p apps/ui && tsc -p apps/proxy && tsc -p apps/extension && tsc -p tests"

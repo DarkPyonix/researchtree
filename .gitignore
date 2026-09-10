@@ -400,3 +400,6 @@ __marimo__/
 
 # Viewer bundle built into the Python package (shipped in wheels, not in git)
 apps/researchtree/server/static/
+
+# Season gallery built into the guide (npm run build:gallery)
+docs/guide/public/gallery/
