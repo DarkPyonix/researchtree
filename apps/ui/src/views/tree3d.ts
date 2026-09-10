@@ -1192,7 +1192,13 @@ export class Tree3D implements TreeViewApi {
     const unitsPerPx = FRUSTUM / zoom / h;
     const ox = (i.left - i.right) / 2;
     const oy = (i.top - i.bottom) / 2;
-    const target = center.clone().addScaledVector(right, -ox * unitsPerPx).addScaledVector(camUp, oy * unitsPerPx);
+    // Shift the target so the nodes sit in the middle of the uncovered area (left of the side panel,
+    // above the bottom sheet). The vertical shift moves along the ground: moving along camUp would
+    // push the target below the ground on a tilted camera, and clamping it back would undo the shift.
+    const target = center.clone().addScaledVector(right, -ox * unitsPerPx);
+    const ground = camUp.clone().setY(0);
+    const k = ground.length();
+    if (k > 0.2) target.addScaledVector(ground.normalize(), (oy * unitsPerPx) / k);
     target.y = Math.max(0, target.y);
     return { target, zoom };
   }
