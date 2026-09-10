@@ -1,0 +1,5 @@
+dist/
+media/
+*.vsix
+# Copied from the repo root at package time
+LICENSE
