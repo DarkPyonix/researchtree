@@ -12,8 +12,8 @@ from typing import Any, Callable
 
 from . import api, tokens
 
-DEVICE_CODE_URL = "https://api.com/login/device/code"
-TOKEN_URL = "https://api.com/login/oauth/access_token"
+DEVICE_CODE_URL = "https://github.com/login/device/code"
+TOKEN_URL = "https://github.com/login/oauth/access_token"
 SCOPE = "repo"
 # DarkPyonix OAuth App client ID (public value). Fill in once the app is registered with Device Flow enabled.
 DEFAULT_CLIENT_ID = ""
@@ -87,7 +87,7 @@ class DeviceFlow:
         code = DeviceCode(
             device_code=data["device_code"],
             user_code=data["user_code"],
-            verification_uri=data.get("verification_uri", "https://api.com/login/device"),
+            verification_uri=data.get("verification_uri", "https://github.com/login/device"),
             expires_in=int(data.get("expires_in", 900)),
             interval=int(data.get("interval", 5)),
         )

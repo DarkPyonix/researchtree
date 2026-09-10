@@ -166,7 +166,7 @@ def test_device_flow_endpoints(running, monkeypatch):
 
     def post(url, data):
         if url == auth.DEVICE_CODE_URL:
-            return {"device_code": "d", "user_code": "WXYZ-0000", "verification_uri": "https://api.com/login/device",
+            return {"device_code": "d", "user_code": "WXYZ-0000", "verification_uri": "https://github.com/login/device",
                     "expires_in": 900, "interval": 0}
         return responses.pop(0)
 
