@@ -65,6 +65,20 @@ describe("proxy", () => {
     expect((await handle(post({ code: "a" }, ORIGIN, "/other"), env, github({}))).status).toBe(404);
   });
 
+  it("Marketplace 웹훅은 Origin 없이 받고 아무것도 하지 않는다", async () => {
+    const f = github({});
+    const req = new Request("https://researchtree.thisisthepy.workers.dev/marketplace", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "payload=%7B%7D",
+    });
+    const res = await handle(req, env, f);
+    expect(res.status).toBe(204);
+    expect(await res.text()).toBe("");
+    expect(f).not.toHaveBeenCalled();
+    expect((await handle(new Request("https://x/marketplace"), env, f)).status).toBe(403);
+  });
+
   it("secret이 없으면 500", async () => {
     const res = await handle(post({ code: "a" }), { ...env, GITHUB_CLIENT_SECRET: "" }, github({}));
     expect(res.status).toBe(500);
