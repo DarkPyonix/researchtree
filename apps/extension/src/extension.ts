@@ -76,6 +76,7 @@ export function activate(context: vscode.ExtensionContext): void {
       localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "media")],
     });
     panel = p;
+    p.iconPath = vscode.Uri.joinPath(context.extensionUri, "icon.png");
     p.webview.html = webviewHtml(p.webview, context.extensionUri);
     const subs: vscode.Disposable[] = [];
     subs.push(
