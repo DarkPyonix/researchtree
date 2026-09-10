@@ -23,3 +23,9 @@
 - Project [Page](https://www.threads.com/@grokonaut/post/DcgPjNVjTKu?xmt=AQG084CNw-qBiw0H1wqRb2qMBQiN_W3sEuesmYb5-4DDf-D8PsPs451wdb_Bwzp8Dqf4zDyf&slof=1)
 - Demo View
     ![View](qr_tree_demo.mp4)
+
+
+## User as Code Agent Memory
+- Paper [Page](https://arxiv.org/abs/2606.16707)
+- Project [Page](https://github.com/19PINE-AI/user-as-code)
+- Demo [Page](https://01.me/research/user-as-code/)
