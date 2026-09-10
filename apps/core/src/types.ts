@@ -16,7 +16,7 @@ export interface PullRequest {
   body: string | null;
   user: { login: string; avatar_url?: string } | null;
   head: { ref: string; sha: string };
-  base: { ref: string };
+  base: { ref: string; sha?: string };
   merge_commit_sha?: string | null;
 }
 

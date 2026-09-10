@@ -118,6 +118,25 @@ def test_execute_archives_and_deletes(repo) -> None:
     assert "Chore: Archive experiment/b" in log and 'Revert "b2"' in log and 'Revert "b1"' in log
 
 
+def test_execute_refuses_branches_held_by_other_worktrees(repo, tmp_path: Path) -> None:
+    """A finished branch still checked out in another worktree blocks the release before any change."""
+    work: Path = repo["work"]
+    other = tmp_path / "wt-b"
+    sh(work, "worktree", "add", str(other), "experiment/b")
+    g = release.Git(str(work))
+    g.run("fetch", "origin", "--prune")
+    exists, merged = release.remote_checks(g, "origin", "research")
+    steps = release.plan(repo["research"], exists=exists, merged=merged)
+    head = sh(work, "rev-parse", "research")
+
+    with pytest.raises(release.ReleaseError, match="experiment/b: git worktree remove"):
+        release.execute(repo["research"], steps, "v2", git=g, log=lambda _: None)
+    assert sh(work, "rev-parse", "research") == head and not sh(work, "tag", "--list", "research/v2")
+
+    sh(work, "worktree", "remove", str(other))
+    assert release.execute(repo["research"], steps, "v2", git=g, log=lambda _: None) == "research/v2"
+
+
 def test_execute_refuses_dirty_tree(repo) -> None:
     (repo["work"] / "dirty.txt").write_text("x", encoding="utf-8")
     g = release.Git(str(repo["work"]))

@@ -2,6 +2,11 @@ import { childrenOf, parentOf, t, type ResearchTree, type Season, type TreeNode,
 import { hierarchy, tree as d3tree } from "d3-hierarchy";
 import { BRANCH_COLORS } from "../theme";
 
+/** The root as a version node, so it can open the version panel (it is the first research version). */
+export function rootVersion(tree: ResearchTree): VersionNode {
+  return { id: tree.root, name: tree.rootVersion ?? "", sha: "", date: "", parent: "", mergedFrom: [], grownFrom: [], children: tree.rootChildren, depth: 0 };
+}
+
 /** Color of the research trunk (root and version milestones). */
 export const TRUNK_COLOR = "#1f3b46";
 

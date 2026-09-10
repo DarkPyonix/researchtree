@@ -2,11 +2,14 @@ import "./styles.css";
 import {
   buildTree,
   childrenOf,
+  DEFAULT_SPEC_PATH,
   DEFAULT_TREE_CONFIG,
   GitHubClient,
   HttpError,
   LOCALE_KEY,
   normalizeTreeConfig,
+  parseRepoConfig,
+  REPO_CONFIG_PATH,
   parentOf,
   parseRepo,
   seasonOf,
@@ -17,14 +20,17 @@ import {
   type ResearchTree,
   type VersionNode,
   type Status,
+  type RepoConfig,
+  type RepoConfigWarning,
   type TreeConfig,
 } from "@researchtree/core";
+import { followColorScheme } from "./colorscheme";
 import { append, clear, h, icon } from "./dom";
 import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
 import { loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
 import { statusLabel } from "./theme";
-import { islandIds, islandMetricKeys, seasonLabel } from "./views/layout";
+import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
 import { Tree3D } from "./views/tree3d";
 import type { ViewOptions } from "./views/view";
 
@@ -45,6 +51,7 @@ const hint = (mode: ViewMode) => t(mode === "3d" ? "hint.3d" : "hint.2d");
 export async function startApp(host: Host, root: HTMLElement): Promise<void> {
   document.body.classList.add(`host-${host.kind}`);
   applyLocale(host);
+  followColorScheme();
   await new App(host, root).boot();
 }
 
@@ -54,11 +61,6 @@ function urlParam(name: string): string | null {
   } catch {
     return null;
   }
-}
-
-/** The root as a version node, so it can open the version panel (it is the first research version). */
-function rootVersion(tree: ResearchTree): VersionNode {
-  return { id: tree.root, name: tree.rootVersion ?? "", sha: "", date: "", parent: "", mergedFrom: [], grownFrom: [], children: tree.rootChildren, depth: 0 };
 }
 
 function errorText(e: unknown): string {
@@ -72,6 +74,8 @@ class App {
   private view: Tree3D | null = null;
   private mode: ViewMode;
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
+  /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
+  private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
   private stage: { canvas: HTMLElement; hint: HTMLElement; options: ViewOptions } | null = null;
   private panel: Panel | null = null;
   private selected: string | null = null;
@@ -195,6 +199,9 @@ class App {
         );
         return;
       }
+      this.repoFile = await this.readRepoFile(repo, root);
+      // The team's file wins over this browser's saved prefix.
+      if (this.repoFile.config.prefix) this.config = { root, prefix: this.repoFile.config.prefix };
       this.tree = await this.loadTree(repo);
     } catch (e) {
       this.handleError(e, repo);
@@ -223,6 +230,12 @@ class App {
     return buildTree(prs, repo, this.config, tags, activity);
   }
 
+  /** `.researchtree.yml` from the root branch. A missing or unreadable file means the defaults. */
+  private async readRepoFile(repo: string, root: string): Promise<{ config: RepoConfig; warnings: RepoConfigWarning[] }> {
+    const text = await this.gh.getFileText(repo, REPO_CONFIG_PATH, root).catch(() => null);
+    return text === null ? { config: {}, warnings: [] } : parseRepoConfig(text);
+  }
+
   /** Branch names for a repo: saved settings, or the defaults (research / experiment/). */
   private repoConfig(repo: string): TreeConfig {
     const saved = this.host.storage.get<Partial<TreeConfig>>(configKey(repo));
@@ -230,10 +243,21 @@ class App {
     return "error" in c ? DEFAULT_TREE_CONFIG : c;
   }
 
+  /** What the repo's `.researchtree.yml` decides, shown in the settings dialog. */
+  private repoFileNotes(repo: string): string[] {
+    if (this.tree?.repo !== repo) return [];
+    const notes: string[] = [];
+    const { config, warnings } = this.repoFile;
+    if (config.prefix) notes.push(t("config.repoFile", { prefix: config.prefix }));
+    if (warnings.length) notes.push(t("config.repoWarnings", { items: warnings.map((w) => ("key" in w ? `${w.key} (${w.code})` : w.code)).join(", ") }));
+    return notes;
+  }
+
   private openSettings(repo: string): void {
     const dialog = settingsDialog({
       repo,
       config: this.repoConfig(repo),
+      notes: this.repoFileNotes(repo),
       locale: localePreference(this.host),
       autoSource: t(this.host.kind === "extension" ? "settings.sourceVscode" : "settings.sourceBrowser"),
       onSave: ({ config, locale }) => {
@@ -314,6 +338,7 @@ class App {
       onUpdated: (message) => this.refresh(message),
       islandMetric: (island) => ({ keys: islandMetricKeys(this.tree!, island), current: this.islandMetrics().get(island) ?? null }),
       onIslandMetric: (island, metric) => this.setIslandMetric(island, metric),
+      specPath: () => this.repoFile.config.spec ?? DEFAULT_SPEC_PATH,
     });
     this.stage = {
       canvas,

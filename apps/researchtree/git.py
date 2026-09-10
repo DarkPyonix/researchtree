@@ -24,6 +24,11 @@ def current_branch(cwd: str | None = None) -> str | None:
     return None if branch in (None, "HEAD") else branch
 
 
+def toplevel(cwd: str | None = None) -> str | None:
+    """Root directory of the working tree, or None outside a git repository."""
+    return _git("rev-parse", "--show-toplevel", cwd=cwd)
+
+
 def parse_remote(url: str) -> str | None:
     m = _REMOTE_RE.search(url.strip())
     return f"{m.group(1)}/{m.group(2)}" if m else None

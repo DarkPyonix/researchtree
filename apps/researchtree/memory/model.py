@@ -13,6 +13,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, Sequence, SupportsIndex, overload
 
 from .build import TreeData, season_of
+from .spec import DEFAULT_INTENT_PATH, DEFAULT_SPEC_PATH, SectionChange, Spec, diff_specs, load_spec, section_history
 
 if TYPE_CHECKING:
     from .source import Source
@@ -253,6 +254,23 @@ class Version(Node):
         return dict(ends[-1].metrics) if ends else {}
 
     @property
+    def ref(self) -> str:
+        """Git ref this version's files are read at: its tag, or the root branch when the repo has no tags."""
+        if self.is_root and not self.research._tree.root_version:
+            return self.research.root_branch
+        return self.tag
+
+    def spec(self) -> Spec | None:
+        """The spec document as it was at this version (includes expanded); None if the repo has none."""
+        return self.research.spec_at(self.ref)
+
+    def spec_changes(self) -> list[SectionChange]:
+        """Spec sections added, changed, renamed or removed since the previous version."""
+        cur = self.spec()
+        prev = self.previous.spec() if self.previous else None
+        return diff_specs(prev.sections if prev else None, cur.sections if cur else [])
+
+    @property
     def tag(self) -> str:
         """Git tag of this version: `research/v2` (namespaced by the root branch)."""
         from .build import version_tag
@@ -466,6 +484,24 @@ class Experiment(Node):
     def files(self) -> list[FileChange]:
         return self.research._source_or_raise().files(self.number)
 
+    @property
+    def claims(self) -> list[str]:
+        """Intent claim ids this experiment tests (YAML `claims:`), e.g. ["N1"]."""
+        raw = self.meta.get("claims")
+        items = raw if isinstance(raw, list) else [raw] if raw not in (None, "") else []
+        return [str(c).strip() for c in items if str(c).strip()]
+
+    def spec_changes(self) -> list[SectionChange]:
+        """Spec sections this experiment's branch adds, changes, renames or removes, compared with the
+        commit it forked from. Rejected experiments show what they proposed."""
+        src = self.research._source_or_raise()
+        pr = src.pull(self.number)
+        head = pr["head"]["sha"]
+        base = src.merge_base(pr["base"]["sha"], head)
+        before = self.research.spec_at(base)
+        after = self.research.spec_at(head)
+        return diff_specs(before.sections if before else None, after.sections if after else [])
+
     # summaries ------------------------------------------------------------------------------------
     def describe(self) -> str:
         """A lab-note card: fields, metrics vs parent, conclusion, where it sits in the tree."""
@@ -529,6 +565,9 @@ class Research:
         for v in tree.versions.values():
             self._versions[v.id] = Version(self, v.id, v.name, v.sha, v.date)
         self._experiments = {i: Experiment(self, i) for i in tree.nodes}
+        # `.researchtree.yml` on the root branch (set by load(); empty when offline or absent)
+        self.config: dict[str, str] = {}
+        self.config_warnings: list[dict[str, str]] = []
 
     # access ---------------------------------------------------------------------------------------
     @property
@@ -598,6 +637,52 @@ class Research:
             keys.extend(k for k in e.metrics if k not in keys)
         return keys
 
+    # intent and spec --------------------------------------------------------------------------------
+    @property
+    def spec_path(self) -> str:
+        return self.config.get("spec", DEFAULT_SPEC_PATH)
+
+    @property
+    def intent_path(self) -> str:
+        return self.config.get("intent", DEFAULT_INTENT_PATH)
+
+    def spec_at(self, ref: str) -> Spec | None:
+        """The spec document at any git ref (branch, tag or commit), includes expanded."""
+        src = self._source_or_raise()
+        spec = load_spec(self.spec_path, lambda p: src.file_text(p, ref))
+        if spec is not None:
+            spec.ref = ref
+        return spec
+
+    def spec(self, version: str | Version | None = None) -> Spec | None:
+        """The spec of a version (default: the latest), i.e. the design as of that version."""
+        v = version if isinstance(version, Version) else self.version(version) if version else self.latest
+        return v.spec()
+
+    def intent(self, version: str | Version | None = None) -> Spec | None:
+        """The intent document (goals, claims, non-goals) at a version (default: the latest)."""
+        v = version if isinstance(version, Version) else self.version(version) if version else self.latest
+        src = self._source_or_raise()
+        doc = load_spec(self.intent_path, lambda p: src.file_text(p, v.ref))
+        if doc is not None:
+            doc.ref = v.ref
+        return doc
+
+    def spec_history(self, key: str) -> list[tuple[Version, str]]:
+        """Versions (oldest first) where a spec section was added, changed, renamed or removed."""
+        specs = [(v, v.spec()) for v in self.versions]
+        by_name = {v.name: v for v, _ in specs}
+        hist = section_history([(v.name, s.sections if s else None) for v, s in specs], key)
+        return [(by_name[h["version"]], h["kind"]) for h in hist]
+
+    def claims(self) -> dict[str, Experiments]:
+        """Experiments per intent claim id, from each PR's YAML `claims:`."""
+        out: dict[str, Experiments] = {}
+        for e in self.experiments:
+            for c in e.claims:
+                out.setdefault(c, Experiments()).append(e)
+        return out
+
     # rules ----------------------------------------------------------------------------------------
     def check(self, rules: Iterable[Callable[[Research], Iterable[Any]]] | None = None) -> list[Any]:
         """Run the built-in rules (or the given ones) and return alerts, most severe first."""
@@ -644,6 +729,7 @@ class Research:
                     "change": e.change,
                     "metrics": e.metrics,
                     "tags": e.tags,
+                    "claims": e.claims,
                     "wandb": e.wandb,
                     "started": e.started.isoformat(),
                     "ended": e.ended.isoformat(),

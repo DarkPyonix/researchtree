@@ -1,10 +1,13 @@
-import { parentMetrics, pathTo, displayName, PrBodyError, replaceMarkdown, STATUSES, t, updateMeta, versionMetrics, versionTag, type PullComment, type PullFile, type GitHubClient, type Host, type ResearchTree, type TreeNode, type VersionNode } from "@researchtree/core";
+import { diffSpecs, parentMetrics, pathTo, displayName, PrBodyError, replaceMarkdown, STATUSES, t, updateMeta, versionMetrics, versionTag, type PullComment, type PullFile, type GitHubClient, type Host, type ResearchTree, type SectionChangeKind, type TreeNode, type VersionNode } from "@researchtree/core";
 import { clear, h, icon } from "../dom";
+import { changeList, fillHistory, fullView, orderedVersions, SpecStore, summaryView, versionRef } from "./spec-view";
 import { renderMarkdown } from "../markdown";
 import { formatDate, formatDelta, formatMetric, metricDirection, statusLabel, warningLabel } from "../theme";
 import { formatVersionDate } from "../views/layout";
 
-type Tab = "summary" | "collab" | "metrics" | "commits" | "files";
+type Tab = "summary" | "collab" | "metrics" | "commits" | "files" | "spec";
+type VersionTab = "overview" | "spec";
+type SpecMode = "full" | "summary" | "changes";
 
 /** Longest patch shown per file before pointing to GitHub. */
 const PATCH_LINES = 400;
@@ -21,11 +24,16 @@ export interface PanelDeps {
   /** Label metric choices for an island (root or version id) and the current pick. */
   islandMetric(island: string): { keys: string[]; current: string | null };
   onIslandMetric(island: string, metric: string | null): void;
+  /** Path of the spec document in this repo (from .researchtree.yml, else SPEC.md). */
+  specPath(): string;
 }
 
 /** Right-hand detail panel, modeled on the reference travel app's info panel. */
 export class Panel {
   private tab: Tab = "summary";
+  private versionTab: VersionTab = "overview";
+  private specMode: SpecMode = "full";
+  private specStore: SpecStore | null = null;
   private node: TreeNode | null = null;
   private version: VersionNode | null = null;
   private tree: ResearchTree | null = null;
@@ -194,15 +202,28 @@ export class Panel {
     );
   }
 
+  private tabBar<T extends string>(tabs: [T, string][], current: T, pick: (key: T) => void): HTMLElement {
+    return h(
+      "div",
+      { class: "tabs", role: "tablist" },
+      tabs.map(([key, label]) =>
+        h("button", { class: "tab", role: "tab", "aria-selected": String(current === key), onclick: () => pick(key) }, label),
+      ),
+    );
+  }
+
+  private store(tree: ResearchTree): SpecStore {
+    const path = this.deps.specPath();
+    if (!this.specStore || this.specStore.repo !== tree.repo || this.specStore.path !== path) this.specStore = new SpecStore(this.deps.gh, tree.repo, path);
+    return this.specStore;
+  }
+
   /** Panel for a research version milestone (or the root, which stands for the first version). */
   private renderVersion(): void {
     const v = this.version!;
     const tree = this.tree!;
     const isRoot = v.id === tree.root;
     clear(this.el);
-    const started = v.children.filter((id) => tree.nodes.has(id));
-    const next = v.children.find((id) => tree.versions.has(id));
-    const metrics = versionMetrics(tree, v.id) ?? {};
 
     const header = h(
       "header",
@@ -224,7 +245,29 @@ export class Panel {
       v.date ? h("p", { class: "panel-sub" }, t("panel.tagged", { date: formatVersionDate(v.date) })) : null,
     );
 
-    const body = h("div", { class: "panel-body" });
+    const tabs = this.tabBar<VersionTab>(
+      [
+        ["overview", t("panel.tabOverview")],
+        ["spec", t("panel.tabSpec")],
+      ],
+      this.versionTab,
+      (key) => {
+        this.versionTab = key;
+        this.renderVersion();
+      },
+    );
+    const body = h("div", { class: "panel-body", role: "tabpanel" });
+    ++this.loadToken;
+    if (this.versionTab === "spec") this.renderVersionSpec(body, v, tree);
+    else this.renderVersionOverview(body, v, tree);
+    this.el.append(header, tabs, body, this.resizer);
+  }
+
+  private renderVersionOverview(body: HTMLElement, v: VersionNode, tree: ResearchTree): void {
+    const isRoot = v.id === tree.root;
+    const started = v.children.filter((id) => tree.nodes.has(id));
+    const next = v.children.find((id) => tree.versions.has(id));
+    const metrics = versionMetrics(tree, v.id) ?? {};
     const choice = this.deps.islandMetric(v.id);
     if (choice.keys.length) {
       const select = h(
@@ -272,7 +315,93 @@ export class Panel {
         h("button", { class: "link-btn", onclick: () => this.deps.host.openExternal(`https://github.com/${tree.repo}/tree/${v.name ? versionTag(tree.root, v.name) : tree.root}`) }, `${t("panel.viewOnGitHub")} `, icon("external", 13)),
       ),
     );
-    this.el.append(header, body, this.resizer);
+  }
+
+  /** The spec as of this version: in full, as a one-page summary, or only what changed since the previous version. */
+  private renderVersionSpec(body: HTMLElement, v: VersionNode, tree: ResearchTree): void {
+    const token = this.loadToken;
+    const store = this.store(tree);
+    const versions = orderedVersions(tree);
+    const i = versions.findIndex((x) => x.id === v.id);
+    const prev = i > 0 ? versions[i - 1]! : null;
+    const modes = this.tabBar<SpecMode>(
+      [
+        ["full", t("spec.modeFull")],
+        ["summary", t("spec.modeSummary")],
+        ["changes", t("spec.modeChanges")],
+      ],
+      this.specMode,
+      (key) => {
+        this.specMode = key;
+        this.renderVersion();
+      },
+    );
+    modes.classList.add("spec-modes");
+    modes.setAttribute("aria-label", t("spec.modes"));
+    const content = h("div", { class: "spec-view" }, h("p", { class: "muted small" }, t("spec.loading")));
+    body.append(h("p", { class: "muted small spec-path" }, h("code", null, store.path), ` · ${versionRef(tree, v)}`), modes, content);
+
+    Promise.all([store.at(versionRef(tree, v)), prev ? store.at(versionRef(tree, prev)) : Promise.resolve(null)])
+      .then(([cur, before]) => {
+        if (token !== this.loadToken) return;
+        clear(content);
+        if (!cur) {
+          content.append(h("p", { class: "muted small" }, t("spec.none", { path: store.path })));
+          return;
+        }
+        if (cur.missing.length) content.append(h("div", { class: "warn-box", role: "note" }, icon("warn", 16), h("span", null, t("spec.missing", { paths: cur.missing.join(", ") }))));
+        const changes = prev ? diffSpecs(before?.sections ?? null, cur.sections) : [];
+        const prevName = prev ? `${tree.root} ${prev.name}` : "";
+        if (this.specMode === "summary") content.append(summaryView(cur));
+        else if (this.specMode === "changes") {
+          if (!prev) content.append(h("p", { class: "muted small" }, t("spec.firstVersion")));
+          else {
+            if (v.mergedFrom.length) content.append(h("div", { class: "section-label" }, t("spec.mergedHere")), this.chipsFor(tree, v.mergedFrom));
+            content.append(h("p", { class: "files-summary" }, changes.length ? t("spec.since", { prev: prevName, n: changes.length }) : t("spec.noChanges", { prev: prevName })));
+            if (changes.length) content.append(changeList(changes));
+          }
+        } else {
+          const marks = new Map<string, SectionChangeKind>(changes.filter((c) => c.after).map((c) => [c.key, c.kind]));
+          content.append(
+            fullView(cur, marks, (key, box) => fillHistory(box, store, tree, key, (ids) => this.chipsFor(tree, ids), (id) => this.deps.onNavigate(id))),
+          );
+        }
+      })
+      .catch((e: unknown) => {
+        if (token !== this.loadToken) return;
+        clear(content);
+        content.append(h("p", { class: "form-error" }, t("spec.failed", { error: this.errorText(e) })));
+      });
+  }
+
+  /** What this experiment's branch changed in the spec, compared with where it forked. */
+  private renderSpec(body: HTMLElement, node: TreeNode, tree: ResearchTree): void {
+    const token = this.loadToken;
+    const store = this.store(tree);
+    const content = h("div", { class: "spec-view" }, h("p", { class: "muted small" }, t("spec.loading")));
+    body.append(content);
+    store
+      .forExperiment(node)
+      .then(({ fork, before, after }) => {
+        if (token !== this.loadToken) return;
+        clear(content);
+        if (!before && !after) {
+          content.append(h("p", { class: "muted small" }, t("spec.expNoFile", { path: store.path })));
+          return;
+        }
+        const changes = diffSpecs(before?.sections ?? null, after?.sections ?? []);
+        if (!changes.length) {
+          content.append(h("p", { class: "muted small" }, t("spec.expNone")));
+          return;
+        }
+        const outcome = node.status === "adopted" ? "spec.expAdopted" : node.status === "rejected" ? "spec.expRejected" : "spec.expRunning";
+        content.append(h("p", { class: "muted small" }, t("spec.expIntro", { sha: fork.slice(0, 7) }), " ", t(outcome)), changeList(changes));
+      })
+      .catch((e: unknown) => {
+        if (token !== this.loadToken) return;
+        clear(content);
+        content.append(h("p", { class: "form-error" }, t("spec.failed", { error: this.errorText(e) })));
+      });
   }
 
   private render(): void {
@@ -308,31 +437,20 @@ export class Panel {
       ),
     );
 
-    const tabs: [Tab, string][] = [
-      ["summary", t("panel.tabSummary")],
-      ["collab", t("panel.tabCollab")],
-      ["metrics", t("panel.tabMetrics")],
-      ["commits", t("panel.tabCommits")],
-      ["files", t("panel.tabFiles")],
-    ];
-    const tabBar = h(
-      "div",
-      { class: "tabs", role: "tablist" },
-      tabs.map(([key, label]) =>
-        h(
-          "button",
-          {
-            class: "tab",
-            role: "tab",
-            "aria-selected": String(this.tab === key),
-            onclick: () => {
-              this.tab = key;
-              this.render();
-            },
-          },
-          label,
-        ),
-      ),
+    const tabBar = this.tabBar<Tab>(
+      [
+        ["summary", t("panel.tabSummary")],
+        ["collab", t("panel.tabCollab")],
+        ["metrics", t("panel.tabMetrics")],
+        ["commits", t("panel.tabCommits")],
+        ["files", t("panel.tabFiles")],
+        ["spec", t("panel.tabSpec")],
+      ],
+      this.tab,
+      (key) => {
+        this.tab = key;
+        this.render();
+      },
     );
 
     const body = h("div", { class: "panel-body", role: "tabpanel" });
@@ -343,6 +461,7 @@ export class Panel {
     } else if (this.tab === "collab") this.renderCollab(body, node, tree);
     else if (this.tab === "metrics") this.renderMetrics(body, node, tree);
     else if (this.tab === "commits") this.renderCommits(body, node, tree);
+    else if (this.tab === "spec") this.renderSpec(body, node, tree);
     else this.renderFiles(body, node, tree);
 
     this.el.append(header, tabBar, body, this.resizer);
@@ -376,6 +495,11 @@ export class Panel {
 
     if (node.meta.tags?.length) {
       body.append(h("div", { class: "tags" }, node.meta.tags.map((tag) => h("span", { class: "tag" }, `#${tag}`))));
+    }
+
+    const claims = claimsOf(node);
+    if (claims.length) {
+      body.append(h("div", { class: "tags" }, h("span", { class: "muted small" }, t("panel.claims")), claims.map((c) => h("span", { class: "tag claim" }, c))));
     }
 
     const actions = h(
@@ -757,4 +881,11 @@ export class Panel {
         list.append(h("p", { class: "form-error" }, t("panel.commitsFailed", { error: this.errorText(e) })));
       });
   }
+}
+
+/** Intent claim ids an experiment tests (YAML `claims:`, a list or a single value). */
+function claimsOf(node: TreeNode): string[] {
+  const raw = node.meta["claims"];
+  const items = Array.isArray(raw) ? raw : raw === undefined || raw === null || raw === "" ? [] : [raw];
+  return items.map((c) => String(c).trim()).filter(Boolean);
 }

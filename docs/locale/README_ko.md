@@ -333,8 +333,26 @@ research.check()                              # 결정적 규칙: 멈춘 실험,
 
 터미널에서는 `researchtree memory`, `researchtree memory v3`, `researchtree memory duet-mix`, `--check`, `--json`.
 
+코딩 에이전트에게 작업 방식 전체(브랜치와 PR 규칙, PR 본문, `rt.log`, 이 기억 API, `researchtree release`)를 알려주려면 패키지에 든 스킬을 레포에 설치하세요.
+
+```bash
+researchtree skill install    # .claude/skills/researchtree/ 와 .agents/skills/researchtree/ 에 SKILL.md를 씁니다
+```
+
 > [!NOTE]
 > [User as Code](https://arxiv.org/abs/2606.16707)(Li, 2026)에서 아이디어를 얻었어요. 이 논문은 에이전트 기억을 타입이 있는 Python 상태와 실행 가능한 규칙으로 둬요. 여기서는 PR이 지우지 않는 로그이고 YAML 블록이 이미 타입 상태라서, 따로 구조화하는 단계가 필요 없어요. 저장소는 여전히 GitHub 하나예요.
+
+### 의도와 스펙 문서
+
+**왜 하는가**(`INTENT.md`: 목표, `N1` 같은 id가 붙은 주장, 하지 않을 것), **지금 시스템이 무엇인가**(`SPEC.md`: 결정만, 섹션 하나에 기능 하나, 섹션마다 `>` 한 줄 요약), **근거**(PR 본문)를 나눠 씁니다. 설계를 바꾸는 실험은 자기 브랜치에서 `SPEC.md`를 고치므로 버전마다 스펙에는 채택된 설계만 남고, 실험은 검증하는 주장을 `claims: [N1]`로 적습니다.
+
+```bash
+researchtree spec --summary     # 최신 설계를 한 페이지로
+researchtree spec --diff        # 직전 버전 대비 바뀐 섹션
+researchtree spec --claims      # 주장별로 검증한 실험
+```
+
+뷰어에서는 버전 패널의 **스펙** 탭이 그 버전의 스펙을 전체, 요약, 직전 버전 대비 변경으로 보여주고 섹션마다 이력을 펼칠 수 있습니다. 실험 패널의 **스펙** 탭은 그 브랜치가 바꾼 섹션을 보여줍니다. 다른 경로는 루트 브랜치의 `.researchtree.yml`에 적습니다(`spec:`, `intent:`, `prefix:`). 자세한 내용은 [가이드](https://darkpyonix.github.io/researchtree/guide/rules/spec)에 있습니다.
 
 ## 📦 설치
 

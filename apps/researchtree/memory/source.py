@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import urllib.parse
 from typing import Any
 
 from ..github import api
@@ -28,7 +30,7 @@ class Source:
     def __init__(self, repo: str, token: str | None) -> None:
         self.repo = repo
         self.token = token
-        self._cache: dict[tuple[str, int], Any] = {}
+        self._cache: dict[tuple[str, Any], Any] = {}
 
     def _get(self, path: str, **query: Any) -> Any:
         return api.call("GET", path, token=self.token, query=query or None)
@@ -115,4 +117,34 @@ class Source:
                 FileChange(path=f["filename"], status=f.get("status", ""), additions=int(f.get("additions", 0)), deletions=int(f.get("deletions", 0)))
                 for f in raw
             ]
+        return self._cache[key]
+
+    # files at a git ref (intent / spec documents) --------------------------------------------------
+    def file_text(self, path: str, ref: str) -> str | None:
+        """A file's text at a branch, tag or commit; None when it does not exist there."""
+        key = ("file", (ref, path))
+        if key not in self._cache:
+            try:
+                data = self._get(f"/repos/{self.repo}/contents/{urllib.parse.quote(path)}", ref=ref)
+            except api.GitHubError as e:
+                if e.status != 404:
+                    raise
+                data = None
+            text = None
+            if isinstance(data, dict) and data.get("type") == "file" and data.get("encoding") == "base64":
+                text = base64.b64decode(data.get("content") or "").decode("utf-8", errors="replace")
+            self._cache[key] = text
+        return self._cache[key]
+
+    def pull(self, number: int) -> dict[str, Any]:
+        key = ("pull", number)
+        if key not in self._cache:
+            self._cache[key] = self._get(f"/repos/{self.repo}/pulls/{number}")
+        return self._cache[key]
+
+    def merge_base(self, base: str, head: str) -> str:
+        """The commit where `head` forked from `base`."""
+        key = ("merge-base", (base, head))
+        if key not in self._cache:
+            self._cache[key] = self._get(f"/repos/{self.repo}/compare/{base}...{head}", per_page=1)["merge_base_commit"]["sha"]
         return self._cache[key]
