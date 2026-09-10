@@ -1,4 +1,4 @@
-"""Command line entry point: serve / login / logout / open / memory / release."""
+"""Command line entry point: serve / login / logout / open / memory / release / spec."""
 
 from __future__ import annotations
 
@@ -145,6 +145,98 @@ def cmd_release(args: argparse.Namespace) -> int:
     return 0
 
 
+_CHANGE_LABELS = {"added": "추가", "changed": "수정", "renamed": "이름 변경", "removed": "삭제"}
+_CLAIM_RE = re.compile(r"^([A-Za-z]+\d+)[.:)]\s*(.+)$")
+
+
+def _section_label(key: str, title: str) -> str:
+    return f"{title or '(머리말)'}  [{key}]" if key else "(머리말)"
+
+
+def _changes_lines(changes: list) -> list[str]:
+    import difflib
+
+    if not changes:
+        return ["바뀐 섹션이 없습니다."]
+    lines: list[str] = []
+    for c in changes:
+        lines.append(f"{_CHANGE_LABELS[c.kind]}: {_section_label(c.key, c.title)}")
+        if c.kind in ("changed", "added", "removed"):
+            before = c.before.body.splitlines() if c.before else []
+            after = c.after.body.splitlines() if c.after else []
+            lines.extend(f"    {line}" for line in list(difflib.unified_diff(before, after, lineterm="", n=1))[2:])
+    return lines
+
+
+def _spec_lines(args: argparse.Namespace, research) -> list[str]:
+    """What `researchtree spec` prints. Raises LookupError for a missing document."""
+    from .memory.spec import check_spec
+
+    version = research.version(args.version) if args.version else research.latest
+    if args.claims:
+        intent = research.intent(version)
+        titles = {m.group(1): m.group(2) for s in (intent.sections if intent else []) if (m := _CLAIM_RE.match(s.title))}
+        claims = research.claims()
+        lines = []
+        for cid in sorted(set(titles) | set(claims)):
+            lines.append(f"{cid}. {titles.get(cid, '(INTENT에 없는 주장)')}")
+            lines.extend(f"    {e.status:<8} {e.name}  {e.hypothesis or ''}" for e in claims.get(cid, []))
+            if cid not in claims:
+                lines.append("    (이 주장을 검증한 실험이 아직 없습니다)")
+        return lines or ["주장이 없습니다. INTENT의 주장 제목(N1. …)이나 PR YAML의 claims를 확인하세요."]
+    if args.experiment:
+        e = research.experiment(args.experiment)
+        return [f"{e.name}: 갈라진 지점 대비 스펙 변경 ({research.spec_path})", *_changes_lines(e.spec_changes())]
+    if args.history:
+        hist = research.spec_history(args.history)
+        if not hist:
+            return [f"'{args.history}' 섹션을 어느 버전에서도 찾지 못했습니다."]
+        return [
+            f"{v.name:<8} {_CHANGE_LABELS[kind]}" + (f"   합쳐진 실험: {', '.join(v.merged.names)}" if v.merged else "") for v, kind in hist
+        ]
+    doc = research.intent(version) if args.intent else version.spec()
+    path = research.intent_path if args.intent else research.spec_path
+    if doc is None:
+        raise LookupError(f"{version.name}에 {path} 파일이 없습니다. (.researchtree.yml의 spec / intent로 경로를 바꿀 수 있습니다)")
+    if args.check:
+        labels = {"missing-include": "include를 읽지 못함", "no-summary": "요약 줄(>) 없음", "too-long": "너무 김"}
+        issues = check_spec(doc.sections, doc.missing)
+        return [
+            f"{labels[i['kind']]}: {i.get('path') or i.get('key')}" + (f" ({i['lines']}줄)" if i["kind"] == "too-long" else "") for i in issues
+        ] or ["문제 없음"]
+    if args.diff is not None:
+        other = research.version(args.diff) if args.diff else version.previous
+        before = other.spec() if other else None
+        return [f"{other.name if other else '(없음)'} → {version.name}  ({path})", *_changes_lines(doc.diff(before))]
+    return [doc.summary()] if args.summary else [doc.text]
+
+
+def cmd_spec(args: argparse.Namespace) -> int:
+    """Print the spec (or intent) of a version, its changes, a section's history, checks or claims."""
+    from . import memory
+    from .github import api
+
+    try:
+        lines = _spec_lines(args, memory.load(args.repo))
+    except KeyError as e:  # unknown version or experiment name
+        print(e.args[0] if e.args else e, file=sys.stderr)
+        return 1
+    except LookupError as e:  # no spec / intent file at that version
+        print(e, file=sys.stderr)
+        return 1
+    except (ValueError, api.GitHubError) as e:
+        print(f"스펙을 읽지 못했습니다: {e}", file=sys.stderr)
+        return 1
+    if args.out:
+        with open(args.out, "w", encoding="utf-8", newline="\n") as f:
+            f.writelines(f"{line}\n" for line in lines)
+        print(f"저장했습니다: {args.out}")
+    else:
+        for line in lines:
+            print(line)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="researchtree", description="Git 브랜치와 PR로 만드는 실험 트리 뷰어")
     p.add_argument("--version", action="version", version=f"researchtree {__version__}")
@@ -176,6 +268,20 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--remote", default="origin", help="git remote (기본 origin)")
     r.add_argument("--yes", action="store_true", help="계획대로 실행한다 (보관 머지, 태그, push, 브랜치 삭제)")
     r.set_defaults(func=cmd_release)
+
+    sp = sub.add_parser("spec", help="버전의 스펙(또는 의도) 문서와 그 변경, 섹션 이력, 주장별 실험을 출력한다")
+    sp.add_argument("version", nargs="?", help="버전 이름 (기본: 최신 버전)")
+    sp.add_argument("--repo", type=_repo_arg, help="레포 (owner/name)")
+    sp.add_argument("--intent", action="store_true", help="스펙 대신 의도 문서(INTENT.md)를 다룬다")
+    sp.add_argument("--summary", action="store_true", help="섹션 제목과 요약 줄만 출력한다")
+    sp.add_argument("--diff", nargs="?", const="", metavar="VERSION", help="다른 버전(기본: 직전 버전) 대비 섹션 변경")
+    sp.add_argument("--check", action="store_true", help="요약 줄 없음, 너무 긴 섹션, 읽지 못한 include를 알려준다")
+    sp.add_argument("--history", metavar="KEY", help="섹션 하나가 추가·수정된 버전들")
+    sp.add_argument("--experiment", metavar="NAME", help="실험 하나가 갈라진 지점 대비 스펙에서 바꾼 섹션")
+    sp.add_argument("--claims", action="store_true", help="의도 문서의 주장별로 그 주장을 검증한 실험")
+    sp.add_argument("--out", metavar="FILE", help="출력을 파일로 저장한다")
+    sp.set_defaults(func=cmd_spec)
+
     return p
 
 

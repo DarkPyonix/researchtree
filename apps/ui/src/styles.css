@@ -659,6 +659,43 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .pl.hunk { color: var(--muted); background: var(--card-sunken); }
 .file-pad { padding: 8px 10px; margin: 0; }
 
+/* ---------- panel: spec ---------- */
+.spec-path { margin: 12px 0 0; }
+.spec-path code { font: 12px var(--mono); color: var(--ink-soft); }
+.tabs.spec-modes { margin: 8px 0 0; }
+.tabs.spec-modes .tab { height: 30px; font-size: 12px; }
+.spec-view { margin-top: 14px; }
+.spec-full { display: grid; gap: 4px; }
+.spec-sec { padding: 6px 0 2px; border-radius: 10px; }
+.spec-sec.changed-added, .spec-sec.changed-changed, .spec-sec.changed-renamed { padding: 6px 10px 2px; margin: 0 -10px; background: color-mix(in srgb, var(--st-running) 7%, transparent); }
+.spec-sec.changed-added { background: var(--add-bg); }
+.spec-head { display: flex; align-items: center; gap: 8px; }
+.spec-title { font-weight: 700; color: var(--ink); line-height: 1.35; }
+.spec-h1 { font: 600 20px/1.25 var(--display); }
+.spec-h2 { font-size: 15.5px; margin-top: 10px; }
+.spec-h3 { font-size: 14px; }
+.spec-h4 { font-size: 13px; color: var(--ink-soft); }
+.spec-history-btn { margin-left: auto; width: 26px; height: 26px; flex: none; }
+.spec-sec .prose { margin-top: 4px; }
+.spec-sec .prose blockquote { margin: 0 0 8px; padding: 2px 0 2px 10px; border-left: 3px solid var(--line); color: var(--ink-soft); font-weight: 500; }
+.spec-badge { flex: none; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: var(--card-sunken); color: var(--ink-soft); }
+.spec-badge.added { background: var(--add-bg); color: var(--add); }
+.spec-badge.changed { background: color-mix(in srgb, var(--st-running) 16%, var(--card)); color: color-mix(in srgb, var(--st-running) 70%, var(--ink)); }
+.spec-badge.renamed { background: color-mix(in srgb, var(--accent) 12%, var(--card)); color: var(--accent); }
+.spec-badge.removed { background: var(--del-bg); color: var(--del); }
+.spec-history { margin: 6px 0 4px; padding: 8px 10px; border-radius: 10px; background: var(--card-sunken); }
+.spec-history .section-label { margin-top: 0; }
+.spec-history-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 3px 0; }
+.spec-changes { display: grid; gap: 8px; margin-top: 8px; }
+.spec-change-title { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.spec-change .pl { white-space: pre-wrap; overflow-wrap: anywhere; }
+.spec-summary { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.spec-summary li { padding-left: calc(var(--lvl) * 16px); display: grid; gap: 1px; }
+.spec-summary-title { font-weight: 700; color: var(--ink); font-size: 13.5px; }
+.spec-summary-text { font-size: 13px; color: var(--ink-soft); }
+.tag.claim { font-weight: 700; background: color-mix(in srgb, var(--accent-2) 12%, var(--card)); color: var(--accent-2); }
+.repo-note { margin: 4px 0 0; }
+
 /* ---------- squircle corners ----------
  * Superellipse corners where the browser supports `corner-shape`; a squircle needs a larger radius
  * to read as a soft square. Other browsers keep the plain rounded corners above. */

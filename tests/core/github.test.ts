@@ -88,4 +88,23 @@ describe("GitHubClient", () => {
     const gh = new GitHubClient(fakeHost(() => ({ status: 404, headers: {}, data: {} })));
     expect(await gh.branchExists("o/r", "research")).toBe(false);
   });
+
+  it("getFileText는 ref에서 파일을 UTF-8로 읽고, 없으면 null", async () => {
+    const text = "# 스펙\n> 요약\n";
+    const content = btoa(String.fromCharCode(...new TextEncoder().encode(text))).replace(/(.{8})/g, "$1\n");
+    const host = fakeHost((req) =>
+      req.path.endsWith("/SPEC.md") ? { status: 200, headers: {}, data: { type: "file", encoding: "base64", content } } : { status: 404, headers: {}, data: {} },
+    );
+    const gh = new GitHubClient(host);
+    expect(await gh.getFileText("o/r", "SPEC.md", "research/v2")).toBe(text);
+    expect(host.calls[0]).toMatchObject({ path: "/repos/o/r/contents/SPEC.md", query: { ref: "research/v2" } });
+    expect(await gh.getFileText("o/r", "docs/missing.md", "research")).toBeNull();
+    expect(host.calls[1]!.path).toBe("/repos/o/r/contents/docs/missing.md");
+  });
+
+  it("mergeBase는 compare의 merge_base_commit을 돌려준다", async () => {
+    const host = fakeHost(() => ({ status: 200, headers: {}, data: { merge_base_commit: { sha: "abc" } } }));
+    expect(await new GitHubClient(host).mergeBase("o/r", "b1", "h2")).toBe("abc");
+    expect(host.calls[0]!.path).toBe("/repos/o/r/compare/b1...h2");
+  });
 });

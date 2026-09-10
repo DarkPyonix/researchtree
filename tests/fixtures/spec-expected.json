@@ -1,0 +1,350 @@
+{
+  "slugify": [
+    "phase-1-text-injection",
+    "영어-및-듀플렉스-능력-보존-전략",
+    "loss-λ-β",
+    "r-부착-기준",
+    "c-cuda",
+    "",
+    "mixed-한글-and-english-2"
+  ],
+  "parse": [
+    {
+      "name": "headings, summaries, nesting and duplicate titles",
+      "sections": [
+        {
+          "key": "",
+          "id": null,
+          "level": 0,
+          "title": "",
+          "summary": null,
+          "body": "Preamble line.",
+          "parent": null
+        },
+        {
+          "key": "training-phases",
+          "id": null,
+          "level": 1,
+          "title": "Training Phases",
+          "summary": "How the model is trained.",
+          "body": "> How the model is trained.",
+          "parent": null
+        },
+        {
+          "key": "phase-1-text-injection",
+          "id": null,
+          "level": 2,
+          "title": "Phase 1: Text Injection",
+          "summary": "Learn the text head with the backbone frozen. Second summary line.",
+          "body": "> Learn the text head with the backbone frozen.\n> Second summary line.\n\n* Goal: text duplex.",
+          "parent": "training-phases"
+        },
+        {
+          "key": "phase-1-text-injection/goal",
+          "id": null,
+          "level": 3,
+          "title": "Goal",
+          "summary": null,
+          "body": "Text only.",
+          "parent": "phase-1-text-injection"
+        },
+        {
+          "key": "phase-2-audio-injection",
+          "id": null,
+          "level": 2,
+          "title": "Phase 2: Audio Injection",
+          "summary": null,
+          "body": "",
+          "parent": "training-phases"
+        },
+        {
+          "key": "phase-2-audio-injection/goal",
+          "id": null,
+          "level": 3,
+          "title": "Goal",
+          "summary": null,
+          "body": "Audio.",
+          "parent": "phase-2-audio-injection"
+        },
+        {
+          "key": "phase-2-audio-injection/goal-2",
+          "id": null,
+          "level": 3,
+          "title": "Goal",
+          "summary": null,
+          "body": "Duplicate title at the same level.",
+          "parent": "phase-2-audio-injection"
+        }
+      ]
+    },
+    {
+      "name": "code fences, ids and Hangul",
+      "sections": [
+        {
+          "key": "학습-과정",
+          "id": null,
+          "level": 1,
+          "title": "학습 과정",
+          "summary": null,
+          "body": "",
+          "parent": null
+        },
+        {
+          "key": "p1-english",
+          "id": "p1-english",
+          "level": 2,
+          "title": "영어 및 듀플렉스 능력 보존 전략",
+          "summary": "신규 행은 영어가 쓰지 않는 부분공간만 읽는다.",
+          "body": "> 신규 행은 영어가 쓰지 않는 부분공간만 읽는다.\n\n```python\n# not a heading\nx = 1\n```",
+          "parent": "학습-과정"
+        },
+        {
+          "key": "p1-projection",
+          "id": "p1-projection",
+          "level": 3,
+          "title": "사영",
+          "summary": null,
+          "body": "본문.\n\n~~~\n## still code\n~~~",
+          "parent": "p1-english"
+        },
+        {
+          "key": "p1-projection/deep",
+          "id": null,
+          "level": 4,
+          "title": "Deep",
+          "summary": null,
+          "body": "text\n#hashtag is not a heading",
+          "parent": "p1-projection"
+        }
+      ]
+    },
+    {
+      "name": "empty and heading only",
+      "sections": [
+        {
+          "key": "section",
+          "id": null,
+          "level": 1,
+          "title": "",
+          "summary": null,
+          "body": "",
+          "parent": null
+        },
+        {
+          "key": "section-2",
+          "id": null,
+          "level": 2,
+          "title": "",
+          "summary": null,
+          "body": "",
+          "parent": "section"
+        },
+        {
+          "key": "trailing-spaces",
+          "id": null,
+          "level": 2,
+          "title": "Trailing spaces",
+          "summary": null,
+          "body": "",
+          "parent": "section"
+        }
+      ]
+    }
+  ],
+  "load": [
+    {
+      "name": "nested includes relative to the including file",
+      "spec": {
+        "title": "Spec",
+        "text": "# Spec\n\n## Model\n> The model.\n\n## Vocoder\n> HiFi-GAN V1.\n\n### Sample rate\n> 22.05 kHz.\n\n## Training\n> How we train.\n",
+        "keys": [
+          "spec",
+          "model",
+          "vocoder",
+          "vocoder/sample-rate",
+          "training"
+        ],
+        "missing": []
+      }
+    },
+    {
+      "name": "missing, cyclic, outside and fenced includes",
+      "spec": {
+        "title": "Spec",
+        "text": "# Spec\n<!-- include: missing.md -->\n## A\n<!-- include: SPEC.md -->\n<!-- include: ../outside.md -->\n```\n<!-- include: a.md -->\n```\n",
+        "keys": [
+          "spec",
+          "a"
+        ],
+        "missing": [
+          "missing.md",
+          "SPEC.md",
+          "../outside.md"
+        ]
+      }
+    },
+    {
+      "name": "no entry file",
+      "spec": null
+    }
+  ],
+  "diff": [
+    {
+      "name": "added, changed, renamed with id, removed, rename without id",
+      "changes": [
+        {
+          "key": "model",
+          "kind": "changed",
+          "title": "Model"
+        },
+        {
+          "key": "loss",
+          "kind": "renamed",
+          "title": "New name"
+        },
+        {
+          "key": "added",
+          "kind": "added",
+          "title": "Added"
+        },
+        {
+          "key": "title-renamed",
+          "kind": "added",
+          "title": "Title renamed"
+        },
+        {
+          "key": "dropped",
+          "kind": "removed",
+          "title": "Dropped"
+        },
+        {
+          "key": "title-only",
+          "kind": "removed",
+          "title": "Title only"
+        }
+      ]
+    },
+    {
+      "name": "no spec before",
+      "changes": [
+        {
+          "key": "spec",
+          "kind": "added",
+          "title": "Spec"
+        },
+        {
+          "key": "model",
+          "kind": "added",
+          "title": "Model"
+        }
+      ]
+    },
+    {
+      "name": "whitespace-only edits are not changes",
+      "changes": []
+    }
+  ],
+  "history": [
+    {
+      "name": "a section added, changed, renamed and removed across versions",
+      "history": [
+        {
+          "version": "v2",
+          "kind": "added"
+        },
+        {
+          "version": "v3",
+          "kind": "changed"
+        },
+        {
+          "version": "v4",
+          "kind": "removed"
+        },
+        {
+          "version": "v5",
+          "kind": "added"
+        },
+        {
+          "version": "v6",
+          "kind": "renamed"
+        }
+      ]
+    }
+  ],
+  "check": [
+    {
+      "name": "missing summaries, long sections and missing includes",
+      "issues": [
+        {
+          "kind": "missing-include",
+          "path": "parts/gone.md"
+        },
+        {
+          "kind": "no-summary",
+          "key": "no-summary"
+        },
+        {
+          "kind": "too-long",
+          "key": "long",
+          "lines": 41
+        }
+      ]
+    }
+  ],
+  "config": [
+    {
+      "name": "full",
+      "config": {
+        "prefix": "exp/",
+        "spec": "SPEC.md",
+        "intent": "INTENT.md"
+      },
+      "warnings": []
+    },
+    {
+      "name": "bad values and unknown keys",
+      "config": {},
+      "warnings": [
+        {
+          "code": "invalid-prefix",
+          "key": "prefix"
+        },
+        {
+          "code": "invalid-path",
+          "key": "spec"
+        },
+        {
+          "code": "invalid-path",
+          "key": "intent"
+        },
+        {
+          "code": "unknown-key",
+          "key": "root"
+        }
+      ]
+    },
+    {
+      "name": "empty file",
+      "config": {},
+      "warnings": []
+    },
+    {
+      "name": "not a mapping",
+      "config": {},
+      "warnings": [
+        {
+          "code": "not-mapping"
+        }
+      ]
+    },
+    {
+      "name": "broken yaml",
+      "config": {},
+      "warnings": [
+        {
+          "code": "invalid-yaml"
+        }
+      ]
+    }
+  ]
+}

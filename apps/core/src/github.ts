@@ -193,6 +193,34 @@ export class GitHubClient {
     return this.call<PullRequest>({ method: "GET", path: `/repos/${repo}/pulls/${number}` }).then((r) => r.data);
   }
 
+  /** A text file at a branch, tag or commit; null when it does not exist there (or is not a file). */
+  async getFileText(repo: string, path: string, ref: string): Promise<string | null> {
+    try {
+      const res = await this.call<{ type?: string; encoding?: string; content?: string }>({
+        method: "GET",
+        path: `/repos/${repo}/contents/${path.split("/").map(encodeURIComponent).join("/")}`,
+        query: { ref },
+      });
+      const d = res.data;
+      if (d.type !== "file" || d.encoding !== "base64" || typeof d.content !== "string") return null;
+      const bin = atob(d.content.replace(/\s/g, ""));
+      return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+    } catch (e) {
+      if (e instanceof HttpError && e.status === 404) return null;
+      throw e;
+    }
+  }
+
+  /** The commit where `head` forked from `base` (both may be SHAs). */
+  async mergeBase(repo: string, base: string, head: string): Promise<string> {
+    const res = await this.call<{ merge_base_commit: { sha: string } }>({
+      method: "GET",
+      path: `/repos/${repo}/compare/${base}...${head}`,
+      query: { per_page: 1 },
+    });
+    return res.data.merge_base_commit.sha;
+  }
+
   async branchExists(repo: string, branch: string): Promise<boolean> {
     try {
       await this.call({ method: "GET", path: `/repos/${repo}/branches/${encodeURIComponent(branch)}` });

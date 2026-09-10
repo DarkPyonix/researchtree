@@ -228,6 +228,8 @@ export function repoPicker(opts: {
 export function settingsDialog(opts: {
   repo: string;
   config: TreeConfig;
+  /** Lines about the repo's `.researchtree.yml` (what it sets, what was ignored). */
+  notes?: string[];
   locale: LocalePreference;
   /** Where the automatic language comes from, e.g. "browser language". */
   autoSource: string;
@@ -280,6 +282,7 @@ export function settingsDialog(opts: {
     h("p", { class: "muted small" }, t("settings.languageNote")),
     h("div", { class: "section-label" }, t("settings.branchTitle")),
     h("p", { class: "screen-body" }, t("settings.branchBody")),
+    (opts.notes ?? []).map((note) => h("p", { class: "muted small repo-note" }, note)),
     h("label", { class: "field" }, h("span", null, t("settings.rootBranch")), root),
     h("label", { class: "field" }, h("span", null, t("settings.prefix")), prefix),
     preview,

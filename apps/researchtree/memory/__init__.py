@@ -20,6 +20,7 @@ from .build import DEFAULT_PREFIX, DEFAULT_ROOT, build_tree
 from .model import Comment, Commit, Experiment, Experiments, FileChange, Research, Version, metric_direction
 from .rules import Alert
 from .source import Source
+from .spec import REPO_CONFIG_PATH, Section, SectionChange, Spec, parse_repo_config
 
 
 def load(
@@ -32,18 +33,27 @@ def load(
 ) -> Research:
     """Read a repo's research tree from GitHub.
 
-    `repo` defaults to RESEARCHTREE_REPO, then the current directory's `origin`. `root` and `prefix`
-    default to RESEARCHTREE_ROOT / RESEARCHTREE_PREFIX, then `research` / `experiment/`. The token
-    comes from `researchtree login` or RESEARCHTREE_TOKEN; public repos also work without one.
+    `repo` defaults to RESEARCHTREE_REPO, then the current directory's `origin`. `root` defaults to
+    RESEARCHTREE_ROOT, then `research`. `prefix` defaults to RESEARCHTREE_PREFIX, then the repo's
+    `.researchtree.yml` on the root branch, then `experiment/`. The token comes from
+    `researchtree login` or RESEARCHTREE_TOKEN; public repos also work without one.
     """
     repo = repo or os.environ.get("RESEARCHTREE_REPO") or git.origin_repo()
     if not repo:
         raise ValueError("no repo given and no GitHub `origin` remote here; pass load('owner/name')")
     root = root or os.environ.get("RESEARCHTREE_ROOT", "").strip() or DEFAULT_ROOT
-    prefix = prefix or os.environ.get("RESEARCHTREE_PREFIX", "").strip() or DEFAULT_PREFIX
+    src = Source(repo, token if token is not None else tokens.load_token())
+    config: dict[str, str] = {}
+    warnings: list[dict[str, str]] = []
+    try:
+        text = src.file_text(REPO_CONFIG_PATH, root)
+        if text is not None:
+            config, warnings = parse_repo_config(text)
+    except Exception:  # no access to the file (or no root branch yet): run on the defaults
+        pass
+    prefix = prefix or os.environ.get("RESEARCHTREE_PREFIX", "").strip() or config.get("prefix") or DEFAULT_PREFIX
     if not prefix.endswith("/"):
         prefix += "/"
-    src = Source(repo, token if token is not None else tokens.load_token())
     prs = src.pulls()
     try:
         tags = src.version_tags(root)
@@ -55,7 +65,9 @@ def load(
             acts = src.activity()
         except Exception:  # GraphQL needs a token; fall back to PR dates
             acts = {}
-    return Research(build_tree(prs, repo, root=root, prefix=prefix, tags=tags, activity=acts), src)
+    research = Research(build_tree(prs, repo, root=root, prefix=prefix, tags=tags, activity=acts), src)
+    research.config, research.config_warnings = config, warnings
+    return research
 
 
 def from_data(
@@ -82,5 +94,8 @@ __all__ = [
     "Comment",
     "FileChange",
     "Alert",
+    "Spec",
+    "Section",
+    "SectionChange",
     "metric_direction",
 ]
