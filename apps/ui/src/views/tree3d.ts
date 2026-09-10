@@ -23,6 +23,15 @@ const CAMERA_DIR = new THREE.Vector3(-1, 1.25, 1.45).normalize();
 const CAMERA_RADIUS = 120;
 /** Top-down camera for the flat mode: tiny polar angle toward +z so screen right = +x and screen down = +z. */
 const TOP_DOWN = new THREE.Spherical(CAMERA_RADIUS, 1e-4, 0);
+/** Azimuth that puts +x (later in time) at the top of the screen: the camera sits on the -x side. */
+const TREE_THETA = -Math.PI / 2;
+
+/**
+ * Which way the time axis runs on screen. "island" is the default angle (time runs to the right in
+ * the flat mode, diagonally in 3D); "tree" turns the view so the first version is at the bottom and
+ * the latest at the top.
+ */
+export type Heading = "island" | "tree";
 
 const COLORS = {
   grass: ["#a7d38b", "#b0d994", "#9fcc84", "#b8dd9d", "#a3cf88"],
@@ -233,6 +242,7 @@ export class Tree3D implements TreeViewApi {
     private readonly opts: ViewOptions,
     /** Start in the flat (2D) mode, ready to `raise()`. */
     startFlat = false,
+    private heading: Heading = "island",
   ) {
     this.wrap = document.createElement("div");
     this.wrap.className = "tree3d";
@@ -253,7 +263,7 @@ export class Tree3D implements TreeViewApi {
     // Wide near/far range: an orthographic camera can see behind its own position, which keeps the
     // sea from being clipped at the bottom of the screen when looking down at an angle.
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -2000, 2000);
-    this.camera.position.copy(CAMERA_DIR).multiplyScalar(CAMERA_RADIUS);
+    this.camera.position.setFromSpherical(this.isoSph());
     this.camera.lookAt(0, 0, 0);
 
     this.scene.add(new THREE.HemisphereLight(0xfff7ea, 0xa9c79a, 1.9));
@@ -433,8 +443,8 @@ export class Tree3D implements TreeViewApi {
 
     this.applySelection();
     if (firstForTree && this.flatMode) {
-      const goal = this.computeFit(undefined, new THREE.Vector3().setFromSpherical(TOP_DOWN).normalize());
-      if (goal) this.setCamera(TOP_DOWN.clone(), goal.target, goal.zoom);
+      const goal = this.computeFit(undefined, new THREE.Vector3().setFromSpherical(this.topDown()).normalize());
+      if (goal) this.setCamera(this.topDown(), goal.target, goal.zoom);
       this.introStart = -1e9;
     } else if (firstForTree) {
       this.fit(undefined, false);
@@ -1205,6 +1215,18 @@ export class Tree3D implements TreeViewApi {
 
   // ------------------------------------------------------------------ 3D <-> 2D morph
 
+  /** Camera for the flat mode in the current heading. */
+  private topDown(): THREE.Spherical {
+    return new THREE.Spherical(TOP_DOWN.radius, TOP_DOWN.phi, this.heading === "tree" ? TREE_THETA : TOP_DOWN.theta);
+  }
+
+  /** Isometric 3D camera in the current heading. */
+  private isoSph(): THREE.Spherical {
+    const sph = new THREE.Spherical().setFromVector3(CAMERA_DIR.clone().multiplyScalar(CAMERA_RADIUS));
+    if (this.heading === "tree") sph.theta = TREE_THETA;
+    return sph;
+  }
+
   private cameraState(): CameraState {
     const offset = this.camera.position.clone().sub(this.controls.target);
     return { sph: new THREE.Spherical().setFromVector3(offset), target: this.controls.target.clone(), zoom: this.camera.zoom, flat: this.flat };
@@ -1231,20 +1253,25 @@ export class Tree3D implements TreeViewApi {
   private setFlatMode(on: boolean): void {
     this.flatMode = on;
     const c = this.controls;
+    const top = this.topDown();
     c.enableRotate = !on;
-    c.minPolarAngle = on ? TOP_DOWN.phi : 0.35;
-    c.maxPolarAngle = on ? TOP_DOWN.phi : 1.2;
-    c.minAzimuthAngle = on ? TOP_DOWN.theta : -Infinity;
-    c.maxAzimuthAngle = on ? TOP_DOWN.theta : Infinity;
+    c.minPolarAngle = on ? top.phi : 0.35;
+    c.maxPolarAngle = on ? top.phi : 1.2;
+    c.minAzimuthAngle = on ? top.theta : -Infinity;
+    c.maxAzimuthAngle = on ? top.theta : Infinity;
     c.enabled = on;
   }
 
   private runMorph(to: CameraState, duration: number, flatAt: (t: number) => number): Promise<void> {
     this.tween = null;
     this.controls.enabled = false;
+    const from = this.cameraState();
+    // Turn the short way round: the user may have orbited the 3D camera any number of times.
+    while (to.sph.theta - from.sph.theta > Math.PI) to.sph.theta -= 2 * Math.PI;
+    while (to.sph.theta - from.sph.theta < -Math.PI) to.sph.theta += 2 * Math.PI;
     return new Promise((resolve) => {
       this.morph = {
-        from: this.cameraState(),
+        from,
         to,
         start: performance.now(),
         duration: reducedMotion() ? 1 : duration,
@@ -1260,7 +1287,7 @@ export class Tree3D implements TreeViewApi {
     const from = this.cameraState();
     const target = from.target.clone().setY(0);
     const start = this.flat;
-    await this.runMorph({ sph: TOP_DOWN.clone(), target, zoom: from.zoom, flat: 1 }, 700, (t) => start + (1 - start) * easeInOut(t));
+    await this.runMorph({ sph: this.topDown(), target, zoom: from.zoom, flat: 1 }, 700, (t) => start + (1 - start) * easeInOut(t));
     this.setFlatMode(true);
   }
 
@@ -1268,11 +1295,27 @@ export class Tree3D implements TreeViewApi {
   async raise(): Promise<void> {
     if (!this.flatMode) return;
     this.setFlatMode(false);
-    const goal = this.computeFit(undefined, CAMERA_DIR.clone());
+    const sph = this.isoSph();
+    const goal = this.computeFit(undefined, new THREE.Vector3().setFromSpherical(sph).normalize());
     if (!goal) return;
-    const sph = new THREE.Spherical().setFromVector3(CAMERA_DIR.clone().multiplyScalar(CAMERA_RADIUS));
     await this.runMorph({ sph, target: goal.target, zoom: goal.zoom, flat: 0 }, 950, (t) => 1 - easeOutBack(t));
     this.controls.enabled = true;
+  }
+
+  /**
+   * Turn the view to a heading and frame the whole tree, staying flat or 3D. Turning to "island" in
+   * 3D restores the first view (default angle, everything in frame).
+   */
+  async turn(heading: Heading): Promise<void> {
+    this.heading = heading;
+    const flat = this.flatMode;
+    const sph = flat ? this.topDown() : this.isoSph();
+    const goal = this.computeFit(undefined, new THREE.Vector3().setFromSpherical(sph).normalize());
+    if (!goal) return;
+    const level = this.flat;
+    await this.runMorph({ sph, target: goal.target, zoom: goal.zoom, flat: level }, 900, () => level);
+    if (flat) this.setFlatMode(true);
+    else this.controls.enabled = true;
   }
 
   private stepMorph(now: number): void {

@@ -22,6 +22,7 @@ import {
   type Status,
   type RepoConfig,
   type RepoConfigWarning,
+  type MessageKey,
   type TreeConfig,
 } from "@researchtree/core";
 import { followColorScheme } from "./colorscheme";
@@ -31,7 +32,7 @@ import { applyLocale, localePreference } from "./locale";
 import { loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
 import { statusLabel } from "./theme";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
-import { Tree3D } from "./views/tree3d";
+import { Tree3D, type Heading } from "./views/tree3d";
 import type { ViewOptions } from "./views/view";
 
 const RECENT_KEY = "recentRepos";
@@ -43,9 +44,24 @@ const configKey = (repo: string) => `config:${repo}`;
 const GUIDE_URL = "https://darkpyonix.github.io/researchtree/guide/";
 const PROJECT_URL = "https://github.com/DarkPyonix/researchtree";
 
-type ViewMode = "3d" | "2d";
+/**
+ * The view button cycles island -> flat -> tree -> tree3d -> island. "island" is the first view;
+ * "flat" presses it flat; "tree" turns the flat view so versions rise from bottom to top; "tree3d"
+ * raises the islands again at that angle.
+ */
+type ViewMode = "island" | "flat" | "tree" | "tree3d";
+const NEXT_MODE: Record<ViewMode, ViewMode> = { island: "flat", flat: "tree", tree: "tree3d", tree3d: "island" };
+/** Label of the button in each mode: what pressing it does. */
+const MODE_ACTION: Record<ViewMode, MessageKey> = { island: "toolbar.flat", flat: "toolbar.tree", tree: "toolbar.raise", tree3d: "toolbar.island" };
+const isFlatMode = (mode: ViewMode) => mode === "flat" || mode === "tree";
+const headingOf = (mode: ViewMode): Heading => (mode === "tree" || mode === "tree3d" ? "tree" : "island");
 
-const hint = (mode: ViewMode) => t(mode === "3d" ? "hint.3d" : "hint.2d");
+function savedMode(value: unknown): ViewMode {
+  if (value === "2d") return "flat"; // saved by earlier versions
+  return value === "flat" || value === "tree" || value === "tree3d" ? value : "island";
+}
+
+const hint = (mode: ViewMode) => t(isFlatMode(mode) ? "hint.2d" : "hint.3d");
 
 /** Start the viewer on the given host (web / extension / local). */
 export async function startApp(host: Host, root: HTMLElement): Promise<void> {
@@ -93,7 +109,7 @@ class App {
     private readonly root: HTMLElement,
   ) {
     this.gh = new GitHubClient(host);
-    this.mode = host.storage.get<ViewMode>(MODE_KEY) === "2d" ? "2d" : "3d";
+    this.mode = savedMode(host.storage.get<string>(MODE_KEY));
   }
 
   private mount(el: HTMLElement): void {
@@ -423,15 +439,15 @@ class App {
       stage.hint.textContent = t("app.noWebGL");
       return;
     }
-    stage.canvas.classList.toggle("is-3d", this.mode === "3d");
+    stage.canvas.classList.toggle("is-3d", !isFlatMode(this.mode));
     stage.hint.textContent = hint(this.mode);
-    this.view = new Tree3D(stage.canvas, stage.options, this.mode === "2d");
+    this.view = new Tree3D(stage.canvas, stage.options, isFlatMode(this.mode), headingOf(this.mode));
     this.view.render(this.tree, this.filter());
     this.view.select(this.selected, false);
   }
 
   private modeButton(): HTMLElement {
-    const label = () => t(this.mode === "3d" ? "toolbar.flat" : "toolbar.island");
+    const label = () => t(MODE_ACTION[this.mode]);
     const text = h("span", { class: "btn-label" }, label());
     const button = h(
       "button",
@@ -459,23 +475,27 @@ class App {
   }
 
   /**
-   * Switch between the 3D islands and the flat view. Both are the same scene: the islands are
-   * pressed flat under a top-down camera and the ground disappears (and the reverse).
+   * Go to the next view. All four are the same scene: the islands are pressed flat under a top-down
+   * camera (the ground disappears) or raised again, and the camera turns between the two headings.
    */
   private async switchMode(): Promise<void> {
     const stage = this.stage;
     const view = this.view;
     if (!stage || !view) return;
-    const next: ViewMode = this.mode === "3d" ? "2d" : "3d";
+    const next = NEXT_MODE[this.mode];
     this.mode = next;
     this.host.storage.set(MODE_KEY, next);
     stage.hint.textContent = hint(next);
-    if (next === "2d") {
+    if (next === "flat") {
       await view.lower();
       stage.canvas.classList.remove("is-3d");
-    } else {
+    } else if (next === "tree") {
+      await view.turn("tree");
+    } else if (next === "tree3d") {
       stage.canvas.classList.add("is-3d");
       await view.raise();
+    } else {
+      await view.turn("island");
     }
   }
 
