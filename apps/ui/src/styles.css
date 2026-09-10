@@ -602,7 +602,9 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
      and the tab bar, with its close button, sticks to the top. */
   .panel { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; height: 70%; overflow-y: auto; overscroll-behavior: contain; }
   .panel-body { flex: none; overflow: visible; }
-  .panel-tabs { position: sticky; top: 0; z-index: 3; padding: 10px 22px 8px; background: var(--card); }
+  /* Stuck at the top, the bar keeps the same 22px gap as on its sides; the negative margin tucks the
+     extra padding into the header's bottom padding so the unscrolled layout does not move. */
+  .panel-tabs { position: sticky; top: 0; z-index: 3; margin-top: -12px; padding: 22px 22px 8px; background: var(--card); }
   .panel-tabs .tabs { display: flex; }
   .panel-tabs .tab { flex: 1; min-width: 0; padding: 0 2px; font-size: 12px; }
   .panel-tabs .tabs-close { display: inline-grid; flex: none; width: 34px; height: 34px; }
