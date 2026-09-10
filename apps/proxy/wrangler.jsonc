@@ -1,0 +1,14 @@
+{
+  // Deployed at: https://researchtree.thisisthepy.workers.dev
+  "name": "researchtree",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "vars": {
+    // Public value. Fill in after registering the OAuth App.
+    "GITHUB_CLIENT_ID": "",
+    "ALLOWED_ORIGINS": "https://darkpyonix.github.io,http://localhost:5173"
+  }
+  // Register GITHUB_CLIENT_SECRET with `npx wrangler secret put GITHUB_CLIENT_SECRET`.
+  // For local development (`wrangler dev`) put it in .dev.vars (never commit it).
+}
