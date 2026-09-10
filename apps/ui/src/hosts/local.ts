@@ -2,6 +2,7 @@ import {
   assertApiPath,
   buildQuery,
   HttpError,
+  t,
   type GitHubRequest,
   type GitHubResponse,
   type GitHubUser,
@@ -57,7 +58,7 @@ export function createLocalHost(): Host {
       cache: "no-store",
     });
     const data = (await res.json().catch(() => ({}))) as T & { error?: string };
-    if (!res.ok) throw new HttpError(res.status, data.error ?? `로컬 서버 오류 (${res.status})`, data);
+    if (!res.ok) throw new HttpError(res.status, data.error ?? t("local.serverError", { status: res.status }), data);
     return data;
   }
 
@@ -79,14 +80,14 @@ export function createLocalHost(): Host {
           const res = await api<DevicePoll>("GET", "/api/auth/device/poll");
           if (res.status === "ok") {
             const user = toUser({ logged_in: true, ...res }) ?? toUser(await api<AuthState>("GET", "/api/auth"));
-            if (!user) throw new Error("로그인은 끝났지만 사용자 정보를 불러오지 못했습니다.");
+            if (!user) throw new Error(t("local.userFailed"));
             return user;
           }
-          if (res.status === "expired") throw new Error("로그인 코드가 만료되었습니다. 다시 시도해 주세요.");
-          if (res.status === "denied") throw new Error("GitHub에서 로그인이 거부되었습니다.");
+          if (res.status === "expired") throw new Error(t("local.codeExpired"));
+          if (res.status === "denied") throw new Error(t("local.denied"));
           if (res.interval) interval = Math.max(res.interval, 1);
         }
-        throw new Error("로그인 코드가 만료되었습니다. 다시 시도해 주세요.");
+        throw new Error(t("local.codeExpired"));
       },
       async signOut() {
         await api("POST", "/api/auth/logout");

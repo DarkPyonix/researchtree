@@ -1,4 +1,4 @@
-import type { GitHubRequest, GitHubResponse, GitHubUser, Host, RpcCall, RpcEvent, RpcResponse } from "@researchtree/core";
+import { t, type GitHubRequest, type GitHubResponse, type GitHubUser, type Host, type RpcCall, type RpcEvent, type RpcResponse } from "@researchtree/core";
 
 interface VsCodeApi {
   postMessage(msg: unknown): void;
@@ -41,7 +41,7 @@ function createRpc(api: VsCodeApi) {
         if (timeout > 0) {
           p.timer = setTimeout(() => {
             pending.delete(id);
-            reject(new Error(`VS Code 확장 응답 시간 초과 (${msg.type})`));
+            reject(new Error(t("webview.timeout", { type: msg.type })));
           }, timeout);
         }
         pending.set(id, p);
@@ -63,6 +63,8 @@ export function createExtensionHost(): Host {
 
   return {
     kind: "extension",
+    // The extension writes VS Code's display language into <html lang> (see apps/extension/src/extension.ts).
+    languages: document.documentElement.lang ? [document.documentElement.lang] : undefined,
     storage: {
       get<T>(key: string): T | undefined {
         return readState()[key] as T | undefined;

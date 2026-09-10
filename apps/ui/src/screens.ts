@@ -1,5 +1,5 @@
-import type { GitHubClient, GitHubUser, Host } from "@researchtree/core";
-import { parseRepo } from "@researchtree/core";
+import type { GitHubClient, GitHubUser, Host, LocalePreference, TreeConfig } from "@researchtree/core";
+import { DEFAULT_TREE_CONFIG, LOCALE_NAMES, LOCALES, normalizeTreeConfig, parseRepo, t } from "@researchtree/core";
 import { clear, h, icon, type Child } from "./dom";
 
 function logo(size = 44): SVGSVGElement {
@@ -104,15 +104,15 @@ export function loginScreen(opts: { host: Host; error?: string; onSignedIn: (use
               clear(deviceBox);
               deviceBox.hidden = false;
               deviceBox.append(
-                h("p", { class: "muted" }, "GitHub에서 아래 코드를 입력하고 승인해 주세요."),
+                h("p", { class: "muted" }, t("login.deviceCodePrompt")),
                 h("div", { class: "device-code" }, info.userCode),
                 h(
                   "button",
                   { class: "btn", onclick: () => host.openExternal(info.verificationUri) },
                   icon("external"),
-                  " GitHub 열기",
+                  ` ${t("login.openGitHub")}`,
                 ),
-                h("p", { class: "muted small" }, "승인하면 자동으로 넘어갑니다."),
+                h("p", { class: "muted small" }, t("login.deviceAuto")),
               );
               host.openExternal(info.verificationUri);
             },
@@ -126,7 +126,7 @@ export function loginScreen(opts: { host: Host; error?: string; onSignedIn: (use
       },
     },
     icon("github", 18),
-    " GitHub로 로그인",
+    ` ${t("login.withGitHub")}`,
   );
 
   const parts: Node[] = [
@@ -136,7 +136,7 @@ export function loginScreen(opts: { host: Host; error?: string; onSignedIn: (use
     h(
       "p",
       { class: "screen-body" },
-      "실험 브랜치와 PR을 읽어 연구가 자라온 과정을 나무로 보여줍니다. 처음 한 번만 GitHub 로그인이 필요해요.",
+      t("login.intro"),
     ),
     loginBtn,
   ];
@@ -150,9 +150,9 @@ export function loginScreen(opts: { host: Host; error?: string; onSignedIn: (use
       class: "input",
       placeholder: "github_pat_…",
       autocomplete: "off",
-      "aria-label": "개인 액세스 토큰",
+      "aria-label": t("login.tokenLabel"),
     });
-    const submit = h("button", { class: "btn", type: "submit" }, "토큰으로 로그인");
+    const submit = h("button", { class: "btn", type: "submit" }, t("login.withToken"));
     const form = h(
       "form",
       {
@@ -165,7 +165,7 @@ export function loginScreen(opts: { host: Host; error?: string; onSignedIn: (use
             opts.onSignedIn(await withToken(input.value));
           } catch {
             submit.disabled = false;
-            showError("토큰을 확인할 수 없습니다. 권한과 만료일을 확인해 주세요.");
+            showError(t("login.tokenInvalid"));
           }
         },
       },
@@ -173,19 +173,14 @@ export function loginScreen(opts: { host: Host; error?: string; onSignedIn: (use
       h(
         "p",
         { class: "muted small" },
-        "fine-grained 토큰이면 대상 레포에 Pull requests(읽기/쓰기), Contents(읽기) 권한을 주세요. 토큰은 이 브라우저에만 저장됩니다.",
+        t("login.tokenHelp"),
       ),
     );
     parts.push(
-      h("details", { class: "token-details", open: !avail.ok }, h("summary", null, "개인 액세스 토큰(PAT)으로 로그인"), form),
+      h("details", { class: "token-details", open: !avail.ok }, h("summary", null, t("login.patSummary")), form),
     );
   }
 
-  if (host.kind === "web") {
-    parts.push(
-      h("a", { class: "demo-link", href: "?demo" }, "로그인 없이 데모 보기 →"),
-    );
-  }
   return screen(...parts);
 }
 
@@ -197,17 +192,17 @@ export function repoPicker(opts: {
   onPick: (repo: string) => void;
   onSignOut: () => void;
 }): HTMLElement {
-  const input = h("input", { class: "input", placeholder: "owner/name", "aria-label": "레포", autocomplete: "off", spellcheck: "false" });
+  const input = h("input", { class: "input", placeholder: "owner/name", "aria-label": t("picker.repoLabel"), autocomplete: "off", spellcheck: "false" });
   const errorBox = h("p", { class: "form-error", role: "alert" }, opts.error ?? "");
   errorBox.hidden = !opts.error;
-  const list = h("div", { class: "repo-list" }, h("p", { class: "muted small" }, "레포 목록을 불러오는 중…"));
+  const list = h("div", { class: "repo-list" }, h("p", { class: "muted small" }, t("picker.loading")));
   let repos: { full_name: string; private: boolean }[] = [];
 
   const renderList = () => {
     const q = input.value.trim().toLowerCase();
     clear(list);
     const items = repos.filter((r) => r.full_name.toLowerCase().includes(q)).slice(0, 12);
-    if (items.length === 0) list.append(h("p", { class: "muted small" }, "일치하는 레포가 없습니다."));
+    if (items.length === 0) list.append(h("p", { class: "muted small" }, t("picker.noMatch")));
     for (const r of items) {
       list.append(
         h(
@@ -215,7 +210,7 @@ export function repoPicker(opts: {
           { class: "repo-item", onclick: () => opts.onPick(r.full_name) },
           icon("repo", 14),
           h("span", null, r.full_name),
-          r.private ? h("span", { class: "tag" }, "비공개") : null,
+          r.private ? h("span", { class: "tag" }, t("picker.private")) : null,
         ),
       );
     }
@@ -229,7 +224,7 @@ export function repoPicker(opts: {
     })
     .catch(() => {
       clear(list);
-      list.append(h("p", { class: "muted small" }, "레포 목록을 불러오지 못했습니다. 직접 입력해 주세요."));
+      list.append(h("p", { class: "muted small" }, t("picker.listFailed")));
     });
 
   const form = h(
@@ -240,7 +235,7 @@ export function repoPicker(opts: {
         e.preventDefault();
         const v = input.value.trim();
         if (!parseRepo(v)) {
-          errorBox.textContent = "owner/name 형식으로 입력해 주세요.";
+          errorBox.textContent = t("picker.formatError");
           errorBox.hidden = false;
           return;
         }
@@ -248,25 +243,100 @@ export function repoPicker(opts: {
       },
     },
     input,
-    h("button", { class: "btn primary", type: "submit" }, "열기"),
+    h("button", { class: "btn primary", type: "submit" }, t("common.open")),
   );
 
   return screen(
     h("div", { class: "eyebrow" }, `@${opts.user.login}`),
-    h("h2", { class: "screen-title" }, "어떤 연구를 볼까요?"),
-    h("p", { class: "screen-body" }, "research 브랜치와 experiment/* PR이 있는 레포를 골라 주세요."),
+    h("h2", { class: "screen-title" }, t("picker.title")),
+    h("p", { class: "screen-body" }, t("picker.body")),
     form,
     errorBox,
     opts.recent.length
       ? h(
           "div",
           { class: "recent" },
-          h("div", { class: "section-label" }, "최근에 본 레포"),
+          h("div", { class: "section-label" }, t("picker.recent")),
           h("div", { class: "chips" }, opts.recent.map((r) => h("button", { class: "chip", onclick: () => opts.onPick(r) }, r))),
         )
       : null,
-    h("div", { class: "section-label" }, "내 레포"),
+    h("div", { class: "section-label" }, t("picker.mine")),
     list,
-    h("button", { class: "btn ghost small", onclick: opts.onSignOut }, icon("logout", 14), " 로그아웃"),
+    h("button", { class: "btn ghost small", onclick: opts.onSignOut }, icon("logout", 14), ` ${t("common.signOut")}`),
   );
+}
+
+/**
+ * Settings modal: the global language preference plus the per-repo branch names
+ * (root branch and experiment prefix).
+ */
+export function settingsDialog(opts: {
+  repo: string;
+  config: TreeConfig;
+  locale: LocalePreference;
+  /** Where the automatic language comes from, e.g. "browser language". */
+  autoSource: string;
+  onSave: (settings: { config: TreeConfig; locale: LocalePreference }) => void;
+  onCancel: () => void;
+}): HTMLElement {
+  const language = h(
+    "select",
+    { class: "input", "aria-label": t("settings.language") },
+    h("option", { value: "auto" }, t("settings.languageAuto", { source: opts.autoSource })),
+    LOCALES.map((l) => h("option", { value: l, lang: l }, LOCALE_NAMES[l])),
+  );
+  language.value = opts.locale;
+  const root = h("input", { class: "input", value: opts.config.root, "aria-label": t("settings.rootBranch"), spellcheck: "false", autocomplete: "off" });
+  const prefix = h("input", { class: "input", value: opts.config.prefix, "aria-label": t("settings.prefix"), spellcheck: "false", autocomplete: "off" });
+  const errorBox = h("p", { class: "form-error", role: "alert", hidden: true });
+  const preview = h("p", { class: "muted small" });
+  const update = () => {
+    const c = normalizeTreeConfig({ root: root.value, prefix: prefix.value });
+    preview.textContent = "error" in c ? "" : t("settings.preview", { root: c.root, prefix: c.prefix });
+  };
+  root.addEventListener("input", update);
+  prefix.addEventListener("input", update);
+  update();
+
+  const close = (e: Event) => {
+    if (e.target === overlay) opts.onCancel();
+  };
+  const form = h(
+    "form",
+    {
+      class: "card dialog",
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": t("settings.title"),
+      onsubmit: (e: SubmitEvent) => {
+        e.preventDefault();
+        const c = normalizeTreeConfig({ root: root.value, prefix: prefix.value });
+        if ("error" in c) {
+          errorBox.textContent = c.error;
+          errorBox.hidden = false;
+          return;
+        }
+        opts.onSave({ config: c, locale: language.value as LocalePreference });
+      },
+    },
+    h("div", { class: "eyebrow" }, opts.repo),
+    h("h2", { class: "screen-title" }, t("settings.title")),
+    h("label", { class: "field" }, h("span", null, t("settings.language")), language),
+    h("p", { class: "muted small" }, t("settings.languageNote")),
+    h("div", { class: "section-label" }, t("settings.branchTitle")),
+    h("p", { class: "screen-body" }, t("settings.branchBody")),
+    h("label", { class: "field" }, h("span", null, t("settings.rootBranch")), root),
+    h("label", { class: "field" }, h("span", null, t("settings.prefix")), prefix),
+    preview,
+    errorBox,
+    h(
+      "div",
+      { class: "screen-actions" },
+      h("button", { class: "btn primary", type: "submit" }, t("settings.save")),
+      h("button", { class: "btn", type: "button", onclick: () => { root.value = DEFAULT_TREE_CONFIG.root; prefix.value = DEFAULT_TREE_CONFIG.prefix; update(); } }, t("settings.defaults")),
+      h("button", { class: "btn ghost", type: "button", onclick: opts.onCancel }, t("common.cancel")),
+    ),
+  );
+  const overlay = h("div", { class: "overlay", onclick: close, onkeydown: (e: KeyboardEvent) => e.key === "Escape" && opts.onCancel() }, form);
+  return overlay;
 }

@@ -1,4 +1,4 @@
-import { assertApiPath, buildQuery, HttpError, type GitHubRequest, type GitHubResponse, type GitHubUser, type Host } from "@researchtree/core";
+import { assertApiPath, buildQuery, HttpError, t, type GitHubRequest, type GitHubResponse, type GitHubUser, type Host } from "@researchtree/core";
 import { localStore, openInNewTab, repoFromUrl } from "../host-utils";
 
 const API = "https://api.github.com";
@@ -63,17 +63,17 @@ export async function completeOAuthRedirect(): Promise<{ error?: string } | null
   history.replaceState(null, "", redirectUri() + (pending?.returnTo ?? ""));
 
   if (ghError) return { error: params.get("error_description") ?? ghError };
-  if (!pending || pending.state !== state) return { error: "로그인 요청이 일치하지 않습니다. 다시 시도해 주세요." };
+  if (!pending || pending.state !== state) return { error: t("web.stateMismatch") };
 
   const res = await fetch(`${PROXY_URL}/token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code, code_verifier: pending.verifier }),
   }).catch(() => null);
-  if (!res) return { error: "인증 서버에 연결할 수 없습니다." };
+  if (!res) return { error: t("web.proxyUnreachable") };
   const data = (await res.json().catch(() => ({}))) as { access_token?: string; error?: string; error_description?: string };
   if (!res.ok || !data.access_token) {
-    return { error: data.error_description ?? data.error ?? "토큰을 받지 못했습니다." };
+    return { error: data.error_description ?? data.error ?? t("web.noToken") };
   }
   localStore().set(TOKEN_KEY, data.access_token);
   return {};
@@ -99,10 +99,10 @@ export function createWebHost(): Host {
         }
       },
       availability() {
-        return CLIENT_ID ? { ok: true } : { ok: false, reason: "OAuth App client ID가 설정되지 않았습니다 (VITE_GITHUB_CLIENT_ID)." };
+        return CLIENT_ID ? { ok: true } : { ok: false, reason: t("web.noClientId") };
       },
       async signIn() {
-        if (!CLIENT_ID) throw new Error("OAuth App client ID가 설정되지 않았습니다.");
+        if (!CLIENT_ID) throw new Error(t("web.noClientIdShort"));
         const pending: Pending = { state: randomString(), returnTo: location.search };
         const url = new URL("https://github.com/login/oauth/authorize");
         url.searchParams.set("client_id", CLIENT_ID);

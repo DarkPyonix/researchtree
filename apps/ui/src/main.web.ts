@@ -1,17 +1,15 @@
 import { startApp } from "./app";
-import { createDemoHost } from "./hosts/demo";
 import { completeOAuthRedirect, createWebHost } from "./hosts/web";
+import { applyLocale } from "./locale";
 import { loginScreen } from "./screens";
 
-// Central web entry. With `?demo`, run on the demo host backed by fake data.
+// Central web entry.
 async function main() {
   const root = document.getElementById("app")!;
-  if (new URLSearchParams(location.search).has("demo")) {
-    await startApp(createDemoHost(), root);
-    return;
-  }
-  const result = await completeOAuthRedirect();
   const host = createWebHost();
+  // Before the OAuth redirect is handled, so its error messages are already localized.
+  applyLocale(host);
+  const result = await completeOAuthRedirect();
   if (result?.error) {
     root.append(loginScreen({ host, error: result.error, onSignedIn: () => location.reload() }));
     return;

@@ -37,29 +37,54 @@ function page(entry: string, connect: string): Plugin {
  * - default (web):  central web app → dist/ (GitHub Pages)
  * - `--mode serve`:  page served by `researchtree serve` → ../researchtree/server/static/
  * - `--mode extension`: webview bundle → ../extension/media/main.js + main.css (fixed names, no HTML)
+ * - `--mode gallery`: season gallery (synthetic data, no network) embedded in the guide → ../../docs/guide/public/gallery/
  */
 export default defineConfig(({ mode }): UserConfig => {
-  const base: UserConfig = { root: here("."), base: "./", publicDir: false, server: { port: 5173, strictPort: true } };
+  const base: UserConfig = {
+    root: here("."),
+    base: "./",
+    publicDir: false,
+    server: { port: 5173, strictPort: true },
+    // three.js is needed on first paint (the 3D island is the default view), so one chunk is expected.
+    // Never inline assets as data: URIs; the CSPs only allow fonts from 'self' (or the webview source).
+    build: { chunkSizeWarningLimit: 900, assetsInlineLimit: 0 },
+  };
 
   if (mode === "extension") {
     return {
       ...base,
       build: {
+        ...base.build,
         target: "es2022",
         outDir: here("../extension/media"),
         emptyOutDir: true,
         sourcemap: true,
         cssCodeSplit: false,
-        assetsInlineLimit: 1024 * 1024,
         rollupOptions: {
           input: here("src/main.extension.ts"),
           output: {
             format: "es",
             inlineDynamicImports: true,
             entryFileNames: "main.js",
-            assetFileNames: (info) => (info.names?.some((n) => n.endsWith(".css")) ? "main.css" : "[name][extname]"),
+            // Fonts stay separate files next to main.css (webview CSP allows font-src from the extension).
+            assetFileNames: (info) => (info.names?.some((n) => n.endsWith(".css")) ? "main.css" : "fonts/[name]-[hash][extname]"),
           },
         },
+      },
+    };
+  }
+
+  if (mode === "gallery") {
+    return {
+      ...base,
+      plugins: [page("/src/gallery.ts", "'none'")],
+      build: {
+        ...base.build,
+        target: "es2022",
+        outDir: here("../../docs/guide/public/gallery"),
+        emptyOutDir: true,
+        sourcemap: false,
+        rollupOptions: { input: here("gallery.html") },
       },
     };
   }
@@ -69,7 +94,7 @@ export default defineConfig(({ mode }): UserConfig => {
     return {
       ...base,
       plugins: [page("/src/main.local.ts", "'self'")],
-      build: { target: "es2022", outDir: here("../researchtree/server/static"), emptyOutDir: true, sourcemap: false },
+      build: { ...base.build, target: "es2022", outDir: here("../researchtree/server/static"), emptyOutDir: true, sourcemap: false },
     };
   }
 
@@ -78,6 +103,6 @@ export default defineConfig(({ mode }): UserConfig => {
   return {
     ...base,
     plugins: [page("/src/main.web.ts", `'self' https://api.github.com ${proxy}`)],
-    build: { target: "es2022", outDir: here("dist"), emptyOutDir: true, sourcemap: true },
+    build: { ...base.build, target: "es2022", outDir: here("dist"), emptyOutDir: true, sourcemap: true },
   };
 });
