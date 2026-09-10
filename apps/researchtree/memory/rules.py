@@ -60,7 +60,8 @@ def adopted_regression(research: Research) -> Iterable[Alert]:
     `warn` when nothing improved (every comparable metric is worse); `info` for trade-offs.
     """
     for e in research.experiments.where(status="adopted"):
-        judged = {k: e.improved(k) for k in e.metrics if metric_direction(k)}
+        # Unchanged metrics (delta 0) are neither better nor worse.
+        judged = {k: e.improved(k) for k in e.metrics if metric_direction(k) and e.delta(k)}
         worse = [k for k, ok in judged.items() if ok is False]
         if not worse:
             continue

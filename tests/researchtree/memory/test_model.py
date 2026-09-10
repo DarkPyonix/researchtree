@@ -95,6 +95,16 @@ def test_rules_and_custom_rule(research) -> None:
     assert all(a.rule == "no-wandb" for a in research.check([no_wandb]))
 
 
+def test_unchanged_metric_is_not_a_regression(research) -> None:
+    e = next(x for x in research.experiments.where(status="adopted") if "val_loss" in x.baseline)
+    parent_value = e.baseline["val_loss"]
+    e._data.meta["metrics"] = {"val_loss": parent_value}
+    assert e.delta("val_loss") == 0
+    assert not [a for a in rules.adopted_regression(research) if a.experiment == e.name]
+    e._data.meta["metrics"] = {"val_loss": parent_value + 1}
+    assert [a.rule for a in rules.adopted_regression(research) if a.experiment == e.name] == ["adopted-regression"]
+
+
 def test_manifest_and_describe(research) -> None:
     text = research.manifest()
     assert text.startswith("# ResearchTree memory")

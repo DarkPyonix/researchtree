@@ -63,3 +63,25 @@ def test_spec_object_helpers() -> None:
     assert s["model"].summary == "The model." and s["Model"].key == "model"
     assert s.summary() == "Spec\n  Model — The model."
     assert [c.kind for c in s.diff(None)] == ["added", "added"]
+
+
+def test_parse_claims_from_headings_and_list_items() -> None:
+    text = "\n".join(
+        [
+            "# Intent",
+            "### N1. Headings work",
+            "- **N2** (revised): List items work too",
+            "- **N3.** Bold with the period inside",
+            "- N4: Plain ids work",
+            "- GPU2 is not a claim without a separator",
+            "```",
+            "- N5: not in code",
+            "```",
+        ]
+    )
+    assert spec.parse_claims(text) == {
+        "N1": "Headings work",
+        "N2": "List items work too",
+        "N3": "Bold with the period inside",
+        "N4": "Plain ids work",
+    }
