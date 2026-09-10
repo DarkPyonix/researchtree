@@ -3,8 +3,7 @@
 학습 프로젝트에 Python 패키지를 설치하면, 학습 코드에서 현재 브랜치의 PR 본문을 바로 갱신할 수 있어요. 번거롭게 메트릭 수치를 복사해서 손으로 옮겨 적지 않아도 됩니다.
 
 ```bash
-uv add researchtree        # PyPI 공개 후
-uv add "researchtree @ git+https://github.com/DarkPyonix/researchtree"   # 지금
+uv add researchtree        # 또는 pip install researchtree
 ```
 
 ```python

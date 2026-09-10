@@ -22,7 +22,7 @@ ResearchTree reads the branches, pull requests, tags, and commits of GitHub repo
 
 - ResearchTree is meant for recording and browsing research experiments kept in Git. Do not use it to access repositories you are not authorized to access, to overload GitHub's API, or to break GitHub's terms.
 - Commands that change your repository (for example `researchtree release --yes`) do exactly what they show in their plan. Review the plan before you run them.
-- ResearchTree is pre-release software. Features may change, and the hosted services may be unavailable at times.
+- ResearchTree is under active development. Features may change, and the hosted services may be unavailable at times.
 
 ## No warranty and limitation of liability
 
@@ -62,7 +62,7 @@ ResearchTree는 [Apache License 2.0](https://github.com/DarkPyonix/researchtree/
 
 - ResearchTree는 Git에 기록한 연구 실험을 남기고 둘러보기 위한 도구예요. 권한 없는 레포에 접근하거나, GitHub API에 과부하를 주거나, GitHub 약관을 어기는 데 쓰면 안 돼요.
 - 레포를 바꾸는 명령(예: `researchtree release --yes`)은 계획에 보여준 그대로 동작해요. 실행 전에 계획을 확인하세요.
-- ResearchTree는 출시 전 소프트웨어예요. 기능이 바뀔 수 있고 호스팅 서비스가 가끔 중단될 수 있어요.
+- ResearchTree는 활발히 개발 중이에요. 기능이 바뀔 수 있고 호스팅 서비스가 가끔 중단될 수 있어요.
 
 ### 보증 없음과 책임 제한
 

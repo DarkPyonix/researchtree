@@ -42,8 +42,8 @@ features:
     linkText: 소개 읽기
 ---
 
-::: warning 출시 전 단계
-[중앙 웹](https://darkpyonix.github.io/researchtree/)은 지금 바로 GitHub 로그인으로 쓸 수 있어요. PyPI 패키지와 VS Code Marketplace 확장은 아직 공개되지 않아 소스에서 설치해야 해요. 자세한 내용은 [시작하기](/guide/introduction)를 참고해 주세요.
+::: tip 바로 시작하기
+[중앙 웹](https://darkpyonix.github.io/researchtree/)은 지금 바로 GitHub 로그인으로 쓸 수 있어요. Python 패키지는 `pip install researchtree`로, VS Code 확장은 [Marketplace](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree)에서 설치해요. 자세한 내용은 [시작하기](/guide/introduction)를 참고해 주세요.
 :::
 
 <div class="rt-showcase">

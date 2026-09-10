@@ -2,8 +2,16 @@
 
 코드 편집기 바로 옆에서 실험 트리를 확인하고, 원하는 브랜치로 빠르게 전환할 수 있어요. 확장 ID는 `darkpyonix.researchtree`입니다.
 
-::: warning 아직 배포 전
-VS Code Marketplace와 Open VSX에는 아직 등록되지 않았어요. 현재는 소스코드에서 `.vsix` 파일을 직접 빌드해 설치할 수 있습니다.
+## 설치
+
+[VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree)에서 설치하거나, 확장 탭에서 `ResearchTree`를 검색하세요. 터미널에서는 이렇게 설치해요.
+
+```bash
+code --install-extension darkpyonix.researchtree
+```
+
+::: info Open VSX
+VSCodium, Cursor처럼 Open VSX를 쓰는 편집기용 등록은 곧 할 예정이에요. 그전까지는 소스에서 `.vsix`를 빌드해 설치해 주세요.
 
 ```bash
 git clone https://github.com/DarkPyonix/researchtree && cd researchtree

@@ -11,8 +11,7 @@ User as Code(Bojie Li, 2026, [arXiv:2606.16707](https://arxiv.org/abs/2606.16707
 ## 불러오기
 
 ```bash
-uv add researchtree        # PyPI 공개 후
-uv add "researchtree @ git+https://github.com/DarkPyonix/researchtree"   # 지금
+uv add researchtree        # 또는 pip install researchtree
 ```
 
 ```python
