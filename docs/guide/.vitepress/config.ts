@@ -1,6 +1,7 @@
 import { defineConfig } from "vitepress";
 
 const REPO = "https://github.com/DarkPyonix/researchtree";
+const SITE = "https://darkpyonix.github.io/researchtree/guide/";
 
 // Served from GitHub Pages at /researchtree/guide/ (the viewer app lives at /researchtree/).
 export default defineConfig({
@@ -10,10 +11,32 @@ export default defineConfig({
   base: "/researchtree/guide/",
   cleanUrls: true,
   lastUpdated: true,
+  // Lists every page for search engines at /researchtree/guide/sitemap.xml.
+  sitemap: { hostname: SITE },
   head: [
     ["meta", { name: "theme-color", content: "#3d7a6b" }],
     ["link", { rel: "icon", type: "image/svg+xml", href: "/researchtree/guide/logo.svg" }],
+    ["meta", { property: "og:type", content: "website" }],
+    ["meta", { property: "og:site_name", content: "ResearchTree" }],
+    ["meta", { property: "og:image", content: `${SITE}og.png` }],
+    ["meta", { property: "og:image:width", content: "1200" }],
+    ["meta", { property: "og:image:height", content: "630" }],
+    ["meta", { name: "twitter:card", content: "summary_large_image" }],
   ],
+  // Per-page canonical URL, title and description for search results and link previews.
+  transformPageData(page) {
+    const path = page.relativePath.replace(/(^|\/)index\.md$/, "$1").replace(/\.md$/, "");
+    const url = SITE + path;
+    const title = page.frontmatter.title || page.title || "ResearchTree";
+    const description = page.frontmatter.description || page.description || "Git 브랜치와 PR로 연구 과정을 실험 트리로 기록하고 보는 방법";
+    page.frontmatter.head ??= [];
+    page.frontmatter.head.push(
+      ["link", { rel: "canonical", href: url }],
+      ["meta", { property: "og:url", content: url }],
+      ["meta", { property: "og:title", content: title }],
+      ["meta", { property: "og:description", content: description }],
+    );
+  },
 
   themeConfig: {
     logo: "/logo.svg",
