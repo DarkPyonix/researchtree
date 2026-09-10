@@ -1,4 +1,4 @@
-import { assertApiPath, buildQuery, type GitHubRequest, type GitHubResponse, type GitHubUser, type RpcRequest, type RpcResponse } from "@researchtree/core";
+import { assertApiPath, buildQuery, t, type GitHubRequest, type GitHubResponse, type GitHubUser, type RpcRequest, type RpcResponse } from "@researchtree/core";
 
 const API = "https://api.github.com";
 
@@ -77,9 +77,9 @@ async function dispatch(deps: RpcDeps, msg: RpcRequest): Promise<unknown> {
     }
     case "auth.signIn": {
       const token = await deps.getToken(true);
-      if (!token) throw new Error("GitHub 로그인이 취소되었습니다.");
+      if (!token) throw new Error(t("ext.signInCancelled"));
       const user = await fetchUser(deps, token);
-      if (!user) throw new Error("GitHub 토큰이 유효하지 않습니다.");
+      if (!user) throw new Error(t("ext.invalidToken"));
       return user;
     }
     case "auth.signOut":
@@ -87,29 +87,29 @@ async function dispatch(deps: RpcDeps, msg: RpcRequest): Promise<unknown> {
       return null;
     case "github": {
       const req = msg.req;
-      if (!req || typeof req.path !== "string") throw new Error("잘못된 GitHub 요청");
-      if (!["GET", "POST", "PATCH", "PUT"].includes(req.method)) throw new Error(`허용되지 않는 메서드: ${String(req.method)}`);
+      if (!req || typeof req.path !== "string") throw new Error(t("ext.badRequest"));
+      if (!["GET", "POST", "PATCH", "PUT"].includes(req.method)) throw new Error(t("ext.badMethod", { method: String(req.method) }));
       assertApiPath(req.path);
       return await githubFetch(deps, await deps.getToken(false), req);
     }
     case "initialRepo":
       return await deps.initialRepo();
     case "openExternal":
-      if (!isHttpUrl(msg.url)) throw new Error("http(s) 주소만 열 수 있습니다.");
+      if (!isHttpUrl(msg.url)) throw new Error(t("ext.httpOnly"));
       await deps.openExternal(msg.url);
       return null;
     case "checkout":
-      if (!isBranchName(msg.branch)) throw new Error("잘못된 브랜치 이름");
+      if (!isBranchName(msg.branch)) throw new Error(t("ext.badBranch"));
       await deps.checkout(msg.branch);
       return null;
     case "openDiff":
-      if (!isBranchName(msg.base) || !isBranchName(msg.head)) throw new Error("잘못된 브랜치 이름");
+      if (!isBranchName(msg.base) || !isBranchName(msg.head)) throw new Error(t("ext.badBranch"));
       await deps.openDiff(msg.base, msg.head);
       return null;
     case "currentBranch":
       return await deps.currentBranch();
     default:
-      throw new Error(`알 수 없는 요청: ${String((msg as { type?: unknown }).type)}`);
+      throw new Error(t("ext.unknownRequest", { type: String((msg as { type?: unknown }).type) }));
   }
 }
 

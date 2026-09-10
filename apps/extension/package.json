@@ -2,6 +2,7 @@
   "name": "researchtree",
   "publisher": "darkpyonix",
   "displayName": "ResearchTree",
+  "icon": "icon.png",
   "description": "Every branch is an experiment, every PR is its lab note. See your research as a tree of experiment branches and PRs right inside VS Code.",
   "version": "0.0.1",
   "license": "Apache-2.0",

@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { randomBytes } from "node:crypto";
 import { GitBridge } from "./git";
 import { githubFetch, handleMessage, type RpcDeps } from "./rpc";
-import type { RpcEvent } from "@researchtree/core";
+import { detectLocale, getLocale, setLocale, t, type RpcEvent } from "@researchtree/core";
 
 const SIGNED_OUT_KEY = "researchtree.signedOut";
 const SCOPES = ["repo"];
@@ -22,7 +22,7 @@ function webviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string 
     `font-src ${webview.cspSource}`,
   ].join("; ");
   return `<!doctype html>
-<html lang="ko">
+<html lang="${getLocale()}">
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="Content-Security-Policy" content="${csp}" />
@@ -38,6 +38,8 @@ function webviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string 
 }
 
 export function activate(context: vscode.ExtensionContext): void {
+  // Messages from the extension host follow VS Code's display language; the webview reads it from <html lang>.
+  setLocale(detectLocale([vscode.env.language]));
   const state = context.globalState;
 
   async function getToken(interactive: boolean): Promise<string | undefined> {
@@ -94,7 +96,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 50);
   status.text = "$(git-branch) ResearchTree";
-  status.tooltip = "ResearchTree 열기";
+  status.tooltip = t("ext.openTooltip");
   status.command = "researchtree.open";
   context.subscriptions.push(status);
 
@@ -107,7 +109,7 @@ export function activate(context: vscode.ExtensionContext): void {
       await deps.signOut();
       // Reload the webview so it returns to the sign-in screen.
       if (panel) panel.webview.html = webviewHtml(panel.webview, context.extensionUri);
-      void vscode.window.showInformationMessage("ResearchTree: 로그아웃했습니다.");
+      void vscode.window.showInformationMessage(t("ext.signedOut"));
     }),
   );
 }

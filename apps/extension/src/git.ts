@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { repoFromRemote, type GitHubRequest, type GitHubResponse } from "@researchtree/core";
+import { repoFromRemote, t, type GitHubRequest, type GitHubResponse } from "@researchtree/core";
 
 /* Subset of the built-in Git extension API used here (vscode/extensions/git/src/api/git.d.ts). */
 interface Remote {
@@ -109,7 +109,7 @@ export class GitBridge {
     if (list.length > 1) {
       const item = await vscode.window.showQuickPick(
         list.map((c) => ({ label: c.slug, description: vscode.workspace.asRelativePath(c.repo.rootUri), c })),
-        { placeHolder: "ResearchTree로 볼 레포를 고르세요" },
+        { placeHolder: t("ext.pickRepo") },
       );
       found = item?.c;
     }
@@ -139,7 +139,7 @@ export class GitBridge {
 
   private async require(): Promise<{ repo: Repository; slug: string }> {
     const picked = await this.pick();
-    if (!picked) throw new Error("워크스페이스에서 GitHub 레포를 찾지 못했습니다.");
+    if (!picked) throw new Error(t("ext.noRepo"));
     return picked;
   }
 
@@ -147,7 +147,7 @@ export class GitBridge {
     try {
       const { repo } = await this.require();
       await vscode.window.withProgress(
-        { location: vscode.ProgressLocation.Notification, title: `${branch}로 전환하는 중…` },
+        { location: vscode.ProgressLocation.Notification, title: t("ext.switching", { branch }) },
         async () => {
           await repo.fetch("origin", branch).catch(() => repo.fetch("origin"));
           const local = await repo.getBranch(branch).catch(() => undefined);
@@ -160,10 +160,10 @@ export class GitBridge {
           }
         },
       );
-      void vscode.window.showInformationMessage(`ResearchTree: ${branch}로 전환했습니다.`);
+      void vscode.window.showInformationMessage(t("ext.switched", { branch }));
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      void vscode.window.showErrorMessage(`ResearchTree: 체크아웃 실패 (${branch}) — ${msg}`);
+      void vscode.window.showErrorMessage(t("ext.checkoutFailed", { branch, error: msg }));
       throw e;
     }
   }
@@ -182,17 +182,17 @@ export class GitBridge {
       path: `/repos/${slug}/compare/${enc(base)}...${enc(head)}`,
     });
     if (res.status !== 200) {
-      void vscode.window.showErrorMessage(`ResearchTree: 변경 파일을 불러오지 못했습니다 (GitHub ${res.status}).`);
+      void vscode.window.showErrorMessage(t("ext.compareFailed", { status: res.status }));
       return;
     }
     const files = ((res.data as { files?: { filename: string; status: string; previous_filename?: string }[] }).files ?? []);
     if (files.length === 0) {
-      void vscode.window.showInformationMessage(`ResearchTree: ${base}와 ${head} 사이에 바뀐 파일이 없습니다.`);
+      void vscode.window.showInformationMessage(t("ext.noChanges", { base, head }));
       return;
     }
     const item = await vscode.window.showQuickPick(
       files.map((f) => ({ label: f.filename, description: f.status, f })),
-      { placeHolder: `${head} ← ${base} 변경 파일 (${files.length}개)`, matchOnDescription: true },
+      { placeHolder: t("ext.changedFiles", { head, base, n: files.length }), matchOnDescription: true },
     );
     if (!item) return;
 
@@ -201,7 +201,7 @@ export class GitBridge {
     const baseRef = `origin/${base}`;
     const headRef = `origin/${head}`;
     if (!api || !(await this.hasRef(repo, baseRef)) || !(await this.hasRef(repo, headRef))) {
-      void vscode.window.showWarningMessage("ResearchTree: 로컬에서 브랜치를 찾지 못해 GitHub 비교 화면을 엽니다.");
+      void vscode.window.showWarningMessage(t("ext.openCompare"));
       await vscode.env.openExternal(vscode.Uri.parse(compareUrl));
       return;
     }
