@@ -313,6 +313,28 @@ def spec_summary(sections: Sequence[Section]) -> str:
     return "\n".join(out)
 
 
+# A claim id (N1), optionally bold, then a separator (. : or ), possibly inside the bold), an optional
+# note in parentheses, and the statement: "### N1. text", "- **N2** (revised): text", "- **N3.** text".
+_CLAIM_BODY = r"(\*\*)?([A-Za-z]+\d+)([.:)])?(?:\*\*)?\s*(?:\([^)]*\))?\s*([.:)])?\s*(.+?)\s*$"
+_CLAIM_HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+" + _CLAIM_BODY)
+_CLAIM_ITEM_RE = re.compile(r"^\s*[-*+]\s+" + _CLAIM_BODY)
+
+
+def parse_claims(text: str) -> dict[str, str]:
+    """Claim ids and their statements from an intent document: headings like `### N1. ...` or list
+    items like `- **N1**: ...` (an annotation in parentheses before the colon is allowed)."""
+    claims: dict[str, str] = {}
+    fences = _Fences()
+    for line in _split_lines(text):
+        if fences.step(line):
+            continue
+        m = _CLAIM_HEADING_RE.match(line) or _CLAIM_ITEM_RE.match(line)
+        # Without a separator or bold, "- GPU2 is fast" would read as a claim.
+        if m and (m.group(1) or m.group(3) or m.group(4)) and m.group(2) not in claims:
+            claims[m.group(2)] = m.group(5)
+    return claims
+
+
 def parse_repo_config(text: str) -> tuple[dict[str, str], list[dict[str, str]]]:
     """Parse `.researchtree.yml`. Unknown keys are reported but otherwise ignored; bad values are dropped."""
     config: dict[str, str] = {}

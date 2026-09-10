@@ -146,7 +146,6 @@ def cmd_release(args: argparse.Namespace) -> int:
 
 
 _CHANGE_LABELS = {"added": "추가", "changed": "수정", "renamed": "이름 변경", "removed": "삭제"}
-_CLAIM_RE = re.compile(r"^([A-Za-z]+\d+)[.:)]\s*(.+)$")
 
 
 def _section_label(key: str, title: str) -> str:
@@ -170,12 +169,12 @@ def _changes_lines(changes: list) -> list[str]:
 
 def _spec_lines(args: argparse.Namespace, research) -> list[str]:
     """What `researchtree spec` prints. Raises LookupError for a missing document."""
-    from .memory.spec import check_spec
+    from .memory.spec import check_spec, parse_claims
 
     version = research.version(args.version) if args.version else research.latest
     if args.claims:
         intent = research.intent(version)
-        titles = {m.group(1): m.group(2) for s in (intent.sections if intent else []) if (m := _CLAIM_RE.match(s.title))}
+        titles = parse_claims(intent.text) if intent else {}
         claims = research.claims()
         lines = []
         for cid in sorted(set(titles) | set(claims)):
