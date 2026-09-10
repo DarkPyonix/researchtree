@@ -49,7 +49,18 @@ A conclusion section, bad and good:
 >
 > Good: *Adding a non-negativity penalty makes listening emerge. In the toy model, listening accuracy rose from 0.25 to 0.955 while speaking stayed at 1.000 (chance is 0.0625). The cost is English listening, which fell from 0.876 to 0.125, so one shared rotation cannot serve both languages. This does not affect the turn-taking claim (N2), which is about timing, not English recognition.*
 
-## Intent, spec and evidence
+## Intent- and spec-driven development
+
+ResearchTree projects follow **spec-driven development (SDD)** adapted to research. As in SDD, the spec is the single source of truth for the current design and the code follows it. The difference: in research a spec change is a **hypothesis**, not a settled requirement. A design-changing experiment edits the spec first on its own branch, then implements it, and the verdict (adopted or rejected) decides whether that spec change enters `research`. An intent layer sits above the spec: the claims the design is meant to prove, which experiments test.
+
+The workflow:
+
+1. **Intent**: `INTENT.md` states the problem, goals, claims (`N1`, `N2`, …), constraints, non-goals and open decisions.
+2. **First spec**: `SPEC.md` describes the initial design; tag `research/v1`.
+3. **Propose an experiment** that tests a claim or answers an open decision; open the branch and a draft PR with `claims: [N1]`.
+4. **Spec first, then code**: on that branch, edit the spec sections the experiment changes, implement them, train and measure (`rt.log`). Tuning-only experiments leave the spec alone and say `spec: none`.
+5. **Verdict**: write the conclusion, then merge (adopted) or close (rejected). Only adopted spec changes reach `research`.
+6. **Version**: tag `research/vN`; that tag's spec is the confirmed design. If a claim moved, update `INTENT.md` in the same step.
 
 Keep three kinds of writing apart. Mixing them is what makes research documents grow until nobody reads them.
 

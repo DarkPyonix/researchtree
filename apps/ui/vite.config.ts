@@ -20,7 +20,9 @@ function cspPolicy(connect: string): string {
 /** Installable web app (web build only): manifest, icons and the service worker live in pwa/. */
 const PWA_HEAD = [
   '<link rel="manifest" href="./manifest.webmanifest" />',
-  '<meta name="theme-color" content="#f1ece3" />',
+  // System bars take the sea color as drawn in 3D, in the light and the dark palette.
+  '<meta name="theme-color" content="#a5dddb" media="(prefers-color-scheme: light)" />',
+  '<meta name="theme-color" content="#8fc8c8" media="(prefers-color-scheme: dark)" />',
   '<link rel="apple-touch-icon" href="./apple-touch-icon.png" />',
   '<meta name="apple-mobile-web-app-title" content="ResearchTree" />',
   '<meta name="mobile-web-app-capable" content="yes" />',
