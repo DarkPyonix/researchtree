@@ -44,6 +44,7 @@ export default defineConfig({
           { text: "PR과 본문 YAML", link: "/rules/pull-requests" },
           { text: "research 버전 태그", link: "/rules/versions" },
           { text: "트리 결정 규칙", link: "/rules/tree-rules" },
+          { text: "의도와 스펙 문서", link: "/rules/spec" },
         ],
       },
       {

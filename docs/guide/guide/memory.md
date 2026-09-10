@@ -79,6 +79,22 @@ max(research.experiments, key=lambda e: e.ended - e.started)
 [n.name for n in research["duet-mix"].path]
 ```
 
+## 의도와 스펙
+
+실험 기록과 함께, 레포의 의도 문서(`INTENT.md`)와 스펙 문서(`SPEC.md`)도 버전별로 읽을 수 있어요. 문서를 쓰는 규칙과 경로 설정은 [의도와 스펙 문서](/rules/spec)에 있어요.
+
+```python
+spec = research.spec()                     # 최신 버전의 스펙 (research.version("v3").spec() 도 같아요)
+print(spec.summary())                      # 제목과 요약 줄만
+research.version("v4").spec_changes()      # 직전 버전 대비 바뀐 섹션
+research["duet-mix"].spec_changes()        # 실험이 갈라진 지점 대비 바꾼 섹션
+research.spec_history("vocoder")           # 섹션 하나가 바뀐 버전들
+research["duet-mix"].claims                # 이 실험이 검증하는 주장 id (YAML claims)
+research.claims()                          # {"N1": Experiments, ...}
+```
+
+에이전트는 실험을 제안하기 전에 `researchtree spec --summary`와 `researchtree spec --intent`로 지금의 설계와 주장을 먼저 읽으면 돼요.
+
 ## 규칙 검사
 
 `research.check()`는 트리 위에서 규칙 함수를 돌려 경고를 돌려줘요. LLM이 끼지 않는 결정적인 검사라 결과가 매번 같아요.

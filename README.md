@@ -336,6 +336,18 @@ From a terminal: `researchtree memory`, `researchtree memory v3`, `researchtree 
 > [!NOTE]
 > Inspired by [User as Code](https://arxiv.org/abs/2606.16707) (Li, 2026), which keeps agent memory as typed Python state plus executable rules. Here the pull requests are the append-only log and the YAML block is already the typed state, so no separate structuring step is needed. GitHub stays the only data store.
 
+### Intent and spec documents
+
+Keep **why** (`INTENT.md`: goals, claims with ids like `N1`, non-goals), **what the system is now** (`SPEC.md`: decisions only, one feature per section, each opening with a one-line `>` summary) and **evidence** (PR bodies) apart. An experiment that changes the design edits `SPEC.md` on its own branch, so each version's spec holds only adopted designs, and experiments list the claims they test with `claims: [N1]`.
+
+```bash
+researchtree spec --summary     # the latest design on one page
+researchtree spec --diff        # what changed since the previous version
+researchtree spec --claims      # each claim with the experiments that tested it
+```
+
+In the viewer, the version panel's **Spec** tab shows each version's spec in full, as a summary, or as changes since the previous version, with a history per section, and the experiment panel's **Spec** tab shows what that branch changed. Set other paths in `.researchtree.yml` on the root branch (`spec:`, `intent:`, `prefix:`). See the [guide](https://darkpyonix.github.io/researchtree/guide/rules/spec).
+
 ## 📦 Install
 
 ```bash

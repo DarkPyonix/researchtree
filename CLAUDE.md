@@ -25,6 +25,7 @@ Details: [docs/CONVENTIONS.md](docs/CONVENTIONS.md). Do not change these without
 - PR-body rewriting must be lossless: only the YAML block changes, comments and key order are preserved, unknown fields are kept, and a broken YAML block is never overwritten.
 - TypeScript (`apps/core/src/prbody.ts`) and Python (`apps/researchtree/experiment/body.py`) implement the same rules. Both must pass `tests/fixtures/prbody-cases.json`. Change the fixture first, then both implementations.
 - The tree rules likewise live in TypeScript (`apps/core/src/tree.ts`) and Python (`apps/researchtree/memory/build.py`). Both must turn `tests/fixtures/tree-sample.json` into `tree-expected.json`. After an intended rule change, regenerate with `RT_UPDATE_FIXTURES=1 npm test`, then update the Python port.
+- The intent/spec rules (sections, includes, section changes, `.researchtree.yml`) live in `apps/core/src/spec.ts` and `apps/researchtree/memory/spec.py`, checked the same way against `tests/fixtures/spec-cases.json` → `spec-expected.json`.
 
 ## Security rules
 
@@ -47,7 +48,7 @@ Keep the layout flat: one level of products under `apps/`, and `tests/` mirrors 
 | `apps/ui` | All browser-side code: UI, the three.js island view (3D and flat), hosts (web, local, extension), entries, the Vite build for all three targets |
 | `apps/extension` | VS Code extension host (`darkpyonix.researchtree`) |
 | `apps/proxy` | Cloudflare Worker → `https://researchtree.thisisthepy.workers.dev` |
-| `apps/researchtree` | Python package: `github/` (api, auth, tokens), `experiment/` (body, tracking), `memory/` (the PR tree as typed objects for agents: build, model, source, rules, manifest), `server/` (app, handler, static), `cli.py`, `git.py` |
+| `apps/researchtree` | Python package: `github/` (api, auth, tokens), `experiment/` (body, tracking), `memory/` (the PR tree as typed objects for agents: build, model, source, rules, manifest, spec), `server/` (app, handler, static), `cli.py`, `git.py` |
 | `tests/<app>` | Tests for each app; `tests/fixtures` holds data shared by TS and Python |
 | `scripts/` | Repository maintenance scripts (`merge-to-main.sh`) |
 
