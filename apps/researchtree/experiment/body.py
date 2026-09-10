@@ -243,12 +243,24 @@ def replace_markdown(body: str | None, markdown: str) -> str:
     return f"{block}\n\n{md}\n" if md else f"{block}\n"
 
 
-def set_conclusion(body: str | None, conclusion: str, heading: str = "결론") -> str:
-    """Create or replace the `## 결론` (conclusion) section."""
+# Headings that mark the conclusion section, in any case: `## 결론` or `## Conclusion(s)`. Part of the
+# PR-body convention shared with the TypeScript implementation.
+CONCLUSION_RE = re.compile(r"^##[ \t]+(결론|conclusions?)[ \t]*\r?\n(.*?)(?=^##[ \t]|\Z)", re.M | re.S | re.I)
+
+
+def set_conclusion(body: str | None, conclusion: str, heading: str | None = "결론") -> str:
+    """Create or replace the conclusion section. An existing `## 결론` / `## Conclusion` section keeps
+    its heading and only its text changes; otherwise a new section with `heading` goes first."""
     md = parse(body).markdown
-    section_re = re.compile(rf"^##[ \t]+{re.escape(heading)}[ \t]*\r?\n.*?(?=^##[ \t]|\Z)", re.M | re.S)
-    section = f"## {heading}\n{conclusion.strip()}\n\n"
-    nxt, n = section_re.subn(lambda _m: section, md, count=1)
-    if not n:
-        nxt = section + md
+    m = CONCLUSION_RE.search(md)
+    if m:
+        nxt = md[: m.start()] + f"## {m.group(1)}\n{conclusion.strip()}\n\n" + md[m.end() :]
+    else:
+        nxt = f"## {heading or '결론'}\n{conclusion.strip()}\n\n" + md
     return replace_markdown(body, nxt)
+
+
+def get_conclusion(body: str | None) -> str | None:
+    """Text of the conclusion section (`## 결론` or `## Conclusion`), or None."""
+    m = CONCLUSION_RE.search(parse(body).markdown)
+    return m.group(2).strip() if m else None

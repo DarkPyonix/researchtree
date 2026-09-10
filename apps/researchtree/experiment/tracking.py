@@ -10,7 +10,13 @@ from .. import git
 from ..github import api, tokens
 from . import body
 
-EXPERIMENT_PREFIX = "experiment/"
+DEFAULT_PREFIX = "experiment/"
+
+
+def experiment_prefix() -> str:
+    """Experiment branch prefix; override with RESEARCHTREE_PREFIX to match the viewer's branch settings."""
+    prefix = os.environ.get("RESEARCHTREE_PREFIX", "").strip() or DEFAULT_PREFIX
+    return prefix if prefix.endswith("/") else prefix + "/"
 STATUSES = body.STATUSES
 
 
@@ -43,8 +49,9 @@ def _apply(edit: Callable[[str], str]) -> None:
         return
     try:
         branch = git.current_branch()
-        if not branch or not branch.startswith(EXPERIMENT_PREFIX):
-            raise _Skip(f"현재 브랜치({branch or '알 수 없음'})가 {EXPERIMENT_PREFIX}* 가 아니라서 기록하지 않습니다.")
+        prefix = experiment_prefix()
+        if not branch or not branch.startswith(prefix):
+            raise _Skip(f"현재 브랜치({branch or '알 수 없음'})가 {prefix}* 가 아니라서 기록하지 않습니다.")
         repo = os.environ.get("RESEARCHTREE_REPO") or git.origin_repo()
         if not repo:
             raise _Skip("origin remote에서 GitHub 레포를 알아내지 못했습니다.")
@@ -83,9 +90,10 @@ def set(**fields: Any) -> None:  # noqa: A001 - public rt.set API
         _apply(lambda current: body.update(current, fields))
 
 
-def conclude(status: str, text: str) -> None:
-    """Set `status` and write the `## 결론` (conclusion) section."""
+def conclude(status: str, text: str, heading: str | None = None) -> None:
+    """Set `status` and write the conclusion section. An existing `## 결론` / `## Conclusion` section is
+    updated in place; a new one gets `heading` (default `결론`, e.g. heading="Conclusion")."""
     if status not in STATUSES:
         warnings.warn(f"researchtree: status는 {', '.join(STATUSES)} 중 하나여야 합니다: {status}", RuntimeWarning, stacklevel=2)
         return
-    _apply(lambda current: body.set_conclusion(body.update(current, {"status": status}), text))
+    _apply(lambda current: body.set_conclusion(body.update(current, {"status": status}), text, heading))

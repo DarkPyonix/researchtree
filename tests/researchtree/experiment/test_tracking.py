@@ -117,3 +117,10 @@ def test_invalid_status_warns(fake_repo):
     with pytest.warns(RuntimeWarning):
         log.conclude("done", "x")
     assert fake_repo["calls"] == []
+
+
+def test_custom_prefix_from_env(monkeypatch, fake_repo):
+    monkeypatch.setenv("RESEARCHTREE_PREFIX", "exp")
+    monkeypatch.setattr(git, "current_branch", lambda cwd=None: "exp/a")
+    log.log(a=1)
+    assert fake_repo["patches"]

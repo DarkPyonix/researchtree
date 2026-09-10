@@ -10,13 +10,24 @@ description = "Visualize your research as a growing tree of experiments, built o
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
+authors = [{ name = "DarkPyonix" }]
 keywords = ["experiment-tracking", "git", "pull-requests", "visualization", "research", "ml"]
 requires-python = ">=3.11"
 dependencies = ["ruamel.yaml>=0.18"]
 classifiers = [
-    "Programming Language :: Python :: 3",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Version Control :: Git",
 ]
 
 
@@ -25,6 +36,9 @@ keyring = ["keyring>=24"]
 
 [project.urls]
 Homepage = "https://github.com/DarkPyonix/researchtree"
+Documentation = "https://darkpyonix.github.io/researchtree/guide/"
+Repository = "https://github.com/DarkPyonix/researchtree"
+Issues = "https://github.com/DarkPyonix/researchtree/issues"
 
 [project.scripts]
 researchtree = "researchtree.cli:main"

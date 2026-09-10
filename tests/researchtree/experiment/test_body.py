@@ -25,6 +25,12 @@ def test_update_fixture(case):
     assert prbody.update(case["body"], case["patch"]) == case["expected"]
 
 
+@pytest.mark.parametrize("case", CASES["conclusion"], ids=[c["name"] for c in CASES["conclusion"]])
+def test_conclusion_fixture(case):
+    assert prbody.set_conclusion(case["body"], case["text"], case["heading"]) == case["expected"]
+    assert prbody.get_conclusion(case["body"]) == case["get"]
+
+
 def test_update_refuses_broken_yaml():
     with pytest.raises(prbody.PrBodyError):
         prbody.update("```yaml\nhypothesis: [x\n```\n", {"status": "adopted"})
