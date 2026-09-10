@@ -62,6 +62,8 @@ export default defineConfig({
           { text: "학습 스크립트 연동", link: "/guide/tracking" },
           { text: "에이전트 기억", link: "/guide/memory" },
           { text: "보안과 개인정보", link: "/guide/security" },
+          { text: "개인정보 처리방침", link: "/legal/privacy" },
+          { text: "이용약관", link: "/legal/terms" },
         ],
       },
       {
@@ -98,7 +100,8 @@ export default defineConfig({
     sidebarMenuLabel: "메뉴",
     darkModeSwitchLabel: "테마",
     footer: {
-      message: "Apache-2.0 License",
+      message:
+        'Apache-2.0 License · <a href="/researchtree/guide/legal/privacy">Privacy Policy</a> · <a href="/researchtree/guide/legal/terms">Terms of Service</a>',
       copyright: "© DarkPyonix",
     },
   },
