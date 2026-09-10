@@ -151,14 +151,13 @@ export function placeTree(tree: ResearchTree, col: number): Placement {
   const maxWidth = Math.max(24, pts.length) * col;
   const pxPerDay = Math.min(Math.max((col * 1.2) / median, 2), maxWidth / spanDays);
 
-  // A child sits right of its parent: a full label width on the same row, a small step otherwise.
+  // Every parent -> child step has the same length (a wider one where a new version's island starts),
+  // whatever the dates: equal spacing reads better than a literal time scale. Dates still drive the
+  // year and season marks through the date <-> x fit below.
   const pos = new Map<string, Placed>();
   const place = (p: (typeof pts)[number], parent: Placed | null) => {
-    const raw = timed ? ((time(p) - t0) / DAY) * pxPerDay : p.depth * col;
-    // A new version starts a new island: leave a wide channel. Otherwise a label width on the same row, less across rows.
     const newIsland = parent !== null && islandOf(tree, parent.data.id) !== islandOf(tree, p.data.id);
-    const gap = newIsland ? col * 1.6 : parent && Math.abs(parent.row - p.x) < 0.5 ? col * 1.1 : col * 1.0;
-    const x = parent === null ? 0 : Math.max(raw, parent.x + gap);
+    const x = parent === null ? 0 : parent.x + (newIsland ? col * 1.8 : col * 1.3);
     const placed = { x, row: p.x, depth: p.depth, data: p.data };
     pos.set(p.data.id, placed);
     for (const c of p.children ?? []) place(c, placed);

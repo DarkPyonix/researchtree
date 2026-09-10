@@ -16,7 +16,7 @@ import { LAYOUT_COL, type TreeViewApi, type ViewFilter, type ViewOptions } from 
  */
 
 const DEPTH_STEP = 10; // world units per layout column (x axis = time)
-const ROW_STEP = 10; // world units between sibling rows (z axis)
+const ROW_STEP = 16; // world units between sibling rows (z axis): wide, so branches clearly fan out
 const FRUSTUM = 30; // visible world height at zoom 1
 const GROW_STEP = 380; // ms between generations in the intro animation
 const CAMERA_DIR = new THREE.Vector3(-1, 1.25, 1.45).normalize();
@@ -61,7 +61,7 @@ const PARTICLES: Record<Season, number> = { spring: 7, summer: 5, autumn: 6, win
 const SNOW = "#ffffff";
 const BRIDGE = ["#b98a5e", "#a97c52"];
 /** Island radius around nodes and paths, and the water channel kept between two versions' islands. */
-const ISLAND_RADIUS = 6.5;
+const ISLAND_RADIUS = 9;
 const CHANNEL = 3.4;
 /** Path cells this close (along the path) to land become a wooden landing; farther out is open water. */
 const LANDING = 4;
