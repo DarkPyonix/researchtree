@@ -96,4 +96,5 @@ researchtree release v3.1 --yes # 버전 이름을 직접 정할 때
 ```
 
 - 레포의 로컬 클론에서 실행해요. 작업 트리가 깨끗해야 하고, PR 상태를 읽으려고 GitHub 토큰(`researchtree login`)을 써요.
+- 실험마다 `git worktree`로 폴더를 나눠 쓰고 있다면, 끝난 실험의 worktree를 먼저 지우고(`git worktree remove <폴더>`) 메인 클론에서 실행해요. 다른 worktree에 체크아웃된 브랜치는 Git이 전환하거나 지우지 못하기 때문이에요. `--yes`는 실행 전에 이걸 확인하고, 지울 worktree 목록을 알려주고 멈춰요. 진행 중인 실험의 worktree는 그대로 둬도 돼요.
 - 버전 이름을 주지 않으면 마지막 버전 다음 번호(`v2` 다음은 `v3`)를 붙여요. 태그는 보관 머지까지 끝난 `research`에 달아요.

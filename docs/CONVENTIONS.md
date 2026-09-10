@@ -61,6 +61,7 @@ ResearchTree가 동작하려면 팀이 지켜야 하는 브랜치/PR 규칙과 P
 - **진행 중인 자손 실험이 있는 브랜치는 이번에 정리하지 않는다.** 부모의 revert가 먼저 `research`에 들어가면, 나중에 자식을 머지할 때 자식이 기대는 부모 코드가 함께 빠지기 때문이다. 자손이 모두 끝난 뒤의 버전에서 정리된다.
 - 순서: 채택 실험을 `research`로 머지 → 보관 머지 → 버전 태그 → push → 브랜치 삭제. 태그는 보관 머지까지 끝난 `research`에 붙인다.
 - PR은 GitHub에 그대로 남으므로 트리는 바뀌지 않는다. 기각 PR은 이미 close되어 있어서 보관 머지 뒤에도 기각으로 남는다.
+- 실험마다 `git worktree`로 작업 폴더를 나눠 쓴다면, 끝난 실험의 worktree를 먼저 지우고 메인 클론에서 실행한다. 다른 worktree에 체크아웃된 브랜치는 전환하거나 삭제할 수 없어서, `researchtree release --yes`는 그런 브랜치가 있으면 아무것도 바꾸기 전에 멈추고 지울 worktree를 알려준다.
 - `researchtree release`가 이 과정을 수행한다. 옵션 없이 실행하면 계획만 보여주고, `--yes`를 붙여야 실제로 실행한다.
   ```bash
   git switch research && git merge --no-ff experiment/depth-lr-warmup   # 채택 (또는 GitHub에서 PR 머지)

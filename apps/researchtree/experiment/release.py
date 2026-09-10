@@ -13,6 +13,7 @@ from __future__ import annotations
 import re
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable, Iterable
 
 from ..memory.build import version_tag
@@ -101,6 +102,21 @@ def remote_checks(git: Git, remote: str, root: str) -> tuple[Callable[[str], boo
     return exists, merged
 
 
+def _held_elsewhere(git: Git, branches: Iterable[str]) -> dict[str, str]:
+    """Branches checked out in another worktree, mapped to that worktree's path. Git refuses to
+    switch to or delete such a branch here."""
+    here = Path(git.out("rev-parse", "--show-toplevel")).resolve()
+    held: dict[str, str] = {}
+    path: str | None = None
+    for line in git.out("worktree", "list", "--porcelain").splitlines():
+        if line.startswith("worktree "):
+            path = line[len("worktree ") :]
+        elif line.startswith("branch refs/heads/") and path and Path(path).resolve() != here:
+            held[line[len("branch refs/heads/") :]] = path
+    wanted = set(branches)
+    return {b: p for b, p in held.items() if b in wanted}
+
+
 def _archive(git: Git, remote: str, root: str, branch: str) -> None:
     git.run("switch", "-C", branch, f"{remote}/{branch}")
     base = git.out("merge-base", root, branch)
@@ -138,6 +154,10 @@ def execute(
         raise ReleaseError("작업 트리가 깨끗하지 않습니다. 커밋하거나 stash한 뒤 다시 실행하세요.")
     if git.ok("rev-parse", "--verify", "--quiet", f"refs/tags/{tag}"):
         raise ReleaseError(f"태그 {tag}가 이미 있습니다.")
+    held = _held_elsewhere(git, [root, *(s.branch for s in steps if s.action in (DELETE, ARCHIVE))])
+    if held:
+        lines = "\n".join(f"  {b}: git worktree remove {p}" for b, p in sorted(held.items()))
+        raise ReleaseError(f"다른 worktree에 체크아웃된 브랜치가 있어 진행할 수 없습니다. 먼저 정리하세요.\n{lines}")
 
     git.run("switch", root)
     git.run("merge", "--ff-only", f"{remote}/{root}")
