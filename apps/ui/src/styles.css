@@ -25,11 +25,48 @@
   --worse: #b5473a;
   --warn: #e07a2e;
   --font: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "JetBrains Mono Variable", "JetBrains Mono", "D2Coding", Consolas, "Liberation Mono", monospace;
+  /* Pretendard before the generic fallback so Hangul in code keeps the bundled face. */
+  --mono: "JetBrains Mono Variable", "JetBrains Mono", "D2Coding", Consolas, "Liberation Mono", "Pretendard Variable", monospace;
   /* Display face for titles and big numbers: Fraunces for Latin, Pretendard for Hangul. */
   --display: "Fraunces Variable", "Pretendard Variable", Georgia, serif;
   --radius: 16px;
+  --chip-border: rgba(29, 42, 48, 0.08);
+  --on-accent-soft: rgba(255, 255, 255, 0.75);
+  --add: #2f7a4a;
+  --add-bg: #e3f1e6;
+  --del: #b0442f;
+  --del-bg: #f6e1dc;
   color-scheme: light;
+}
+
+/* Dark palette, picked by colorscheme.ts (system setting on the web, the VS Code theme in the extension).
+   The 3D island keeps its own colors; only the page and the UI around it change. */
+:root[data-theme="dark"] {
+  --bg: #15191b;
+  --card: #1f2528;
+  --card-sunken: #181d20;
+  --ink: #ede7dd;
+  --ink-soft: #cbc4b8;
+  --muted: #8f887d;
+  --line: #313a3e;
+  --accent: #e6ddcf;
+  --accent-ink: #1d2a30;
+  --accent-2: #e2735b;
+  --dot: rgba(237, 231, 221, 0.07);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.4);
+  --st-running: #e6a23c;
+  --st-adopted: #4fae87;
+  --st-rejected: #8f887d;
+  --better: #5bb88f;
+  --worse: #e2735b;
+  --warn: #ec8a3f;
+  --chip-border: rgba(237, 231, 221, 0.1);
+  --on-accent-soft: rgba(29, 42, 48, 0.7);
+  --add: #6cc38e;
+  --add-bg: rgba(108, 195, 142, 0.14);
+  --del: #ec8a76;
+  --del-bg: rgba(236, 138, 118, 0.14);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -261,6 +298,10 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .brand-time:empty { display: none; }
 .brand-year { font: 600 34px/1 var(--display); color: var(--ink); letter-spacing: 0.01em; font-variant-numeric: lining-nums; }
 .brand-season { font: 600 14px/1 var(--font); color: var(--ink-soft); }
+/* Over the 3D sea the backdrop is light in either theme, so text drawn straight on it keeps the light ink. */
+:root[data-theme="dark"] .canvas.is-3d ~ .brand-stack .brand-year { color: #1d2a30; }
+:root[data-theme="dark"] .canvas.is-3d ~ .brand-stack .brand-season { color: #3d4a50; }
+:root[data-theme="dark"] .canvas.is-3d ~ .hint { color: #4f5b60; }
 .brand-title { display: flex; align-items: baseline; gap: 12px; margin: 10px 0 4px; }
 .brand-title .count { font: 500 42px/1 var(--display); color: var(--accent-2); font-variant-numeric: lining-nums; }
 .brand-title h1 { margin: 0; font: 700 21px/1.25 var(--display); word-break: break-all; }
@@ -365,7 +406,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   justify-items: center;
   gap: 1px;
   padding: 5px 10px 6px;
-  border: 1px solid rgba(29, 42, 48, 0.08);
+  border: 1px solid var(--chip-border);
   border-radius: 10px;
   background: var(--card);
   color: var(--ink);
@@ -385,8 +426,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   width: 8px;
   height: 8px;
   background: inherit;
-  border-right: 1px solid rgba(29, 42, 48, 0.08);
-  border-bottom: 1px solid rgba(29, 42, 48, 0.08);
+  border-right: 1px solid var(--chip-border);
+  border-bottom: 1px solid var(--chip-border);
   transform: translateX(-50%) rotate(45deg);
 }
 .label3d-name { font-size: 12.5px; font-weight: 700; line-height: 1.2; }
@@ -407,7 +448,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 }
 .label3d:hover { background: var(--card-sunken); }
 .label3d.root { background: var(--accent); color: var(--accent-ink); }
-.label3d.root .label3d-sub { color: rgba(255, 255, 255, 0.75); }
+.label3d.root .label3d-sub { color: var(--on-accent-soft); }
 .label3d.status-rejected .label3d-name { color: var(--muted); }
 .label3d.on-path { border-color: var(--accent); }
 .label3d.selected { background: var(--accent-2); color: #fff; z-index: 2; }
@@ -479,7 +520,7 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .prose h1, .prose h2, .prose h3, .prose h4 { font-size: 14px; color: var(--ink); margin: 14px 0 4px; }
 .prose p { margin: 0 0 8px; }
 .prose ul, .prose ol { margin: 0 0 8px; padding-left: 20px; }
-.prose code { font: 12.5px var(--mono); background: var(--card-sunken); padding: 1px 5px; border-radius: 5px; }
+.prose code { font: 12.5px var(--mono); color: var(--ink); background: var(--card-sunken); padding: 1px 5px; border-radius: 5px; }
 .prose pre { background: var(--card-sunken); padding: 10px 12px; border-radius: 10px; overflow-x: auto; }
 .prose pre code { padding: 0; background: none; }
 .prose a { color: var(--accent-2); }
@@ -606,16 +647,16 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .file-head::-webkit-details-marker { display: none; }
 .file-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); }
 .file-status { flex: none; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: var(--card-sunken); color: var(--ink-soft); }
-.file-status.added { background: #e3f1e6; color: #2f6f4a; }
-.file-status.removed { background: #f6e1dc; color: #a2412e; }
+.file-status.added { background: var(--add-bg); color: var(--add); }
+.file-status.removed { background: var(--del-bg); color: var(--del); }
 .file-stat { flex: none; font: 12px var(--mono); }
-.file-stat .add, .pl.add { color: #2f7a4a; }
-.file-stat .del, .pl.del { color: #b0442f; }
+.file-stat .add, .pl.add { color: var(--add); }
+.file-stat .del, .pl.del { color: var(--del); }
 .patch { margin: 0; padding: 6px 0; overflow-x: auto; background: var(--card-sunken); font: 11.5px/1.5 var(--mono); border-top: 1px solid var(--line); }
 .pl { display: block; padding: 0 10px; white-space: pre; }
-.pl.add { background: rgb(47 122 74 / 0.08); }
-.pl.del { background: rgb(176 68 47 / 0.08); }
-.pl.hunk { color: var(--muted); background: rgb(31 59 70 / 0.05); }
+.pl.add { background: var(--add-bg); }
+.pl.del { background: var(--del-bg); }
+.pl.hunk { color: var(--muted); background: var(--card-sunken); }
 .file-pad { padding: 8px 10px; margin: 0; }
 
 /* ---------- squircle corners ----------

@@ -1,27 +1,13 @@
-/* Maps the viewer palette onto the active VS Code color theme.
-   Defined on body so it overrides the :root defaults for everything inside. */
+/* The webview keeps the viewer's own palette and fonts; colorscheme.ts picks light or dark from the
+   VS Code theme kind. This only undoes VS Code's default webview styles (body padding, theme font
+   and colors on body, links and code). */
 body.host-extension {
-  --bg: var(--vscode-editor-background, #1e1e1e);
-  --card: var(--vscode-sideBar-background, var(--vscode-editorWidget-background, #252526));
-  --ink: var(--vscode-foreground, #cccccc);
-  --ink-soft: var(--vscode-editor-foreground, var(--vscode-foreground, #cccccc));
-  --muted: var(--vscode-descriptionForeground, #9d9d9d);
-  --line: var(--vscode-panel-border, var(--vscode-widget-border, rgba(128, 128, 128, 0.35)));
-  --accent: var(--vscode-button-background, var(--vscode-focusBorder, #0e639c));
-  --accent-2: var(--vscode-textLink-foreground, var(--vscode-focusBorder, #3794ff));
-  --shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.36));
-  --font: var(--vscode-font-family, system-ui, sans-serif);
-  --mono: var(--vscode-editor-font-family, ui-monospace, monospace);
-
+  padding: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--font);
-  font-size: var(--vscode-font-size, 13px);
-  margin: 0;
-  padding: 0;
+  font: 14px/1.5 var(--font);
 }
 
-body.host-extension :focus-visible {
-  outline: 1px solid var(--vscode-focusBorder, #007fd4);
-  outline-offset: 1px;
-}
+/* :where keeps these as weak as VS Code's own element rules, so the viewer's classes still win. */
+:where(body.host-extension) a { color: inherit; }
+:where(body.host-extension) code { color: inherit; }

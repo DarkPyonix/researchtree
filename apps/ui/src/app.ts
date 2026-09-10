@@ -19,6 +19,7 @@ import {
   type Status,
   type TreeConfig,
 } from "@researchtree/core";
+import { followColorScheme } from "./colorscheme";
 import { append, clear, h, icon } from "./dom";
 import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
@@ -45,6 +46,7 @@ const hint = (mode: ViewMode) => t(mode === "3d" ? "hint.3d" : "hint.2d");
 export async function startApp(host: Host, root: HTMLElement): Promise<void> {
   document.body.classList.add(`host-${host.kind}`);
   applyLocale(host);
+  followColorScheme();
   await new App(host, root).boot();
 }
 
