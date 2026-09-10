@@ -1,8 +1,48 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+
 [project]
 name = "researchtree"
 version = "1.0.0"
-escription = "Visualize your research as a growing tree of experiments, built on Git branches and pull requests."
-keywords = ["experiment-tracking", "git", "pull-requests", "visualization", "research", "ml"]
+description = "Visualize your research as a growing tree of experiments, built on Git branches and pull requests."
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+keywords = ["experiment-tracking", "git", "pull-requests", "visualization", "research", "ml"]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["ruamel.yaml>=0.18"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+
+[project.optional-dependencies]
+keyring = ["keyring>=24"]
+
+[project.urls]
+Homepage = "https://github.com/DarkPyonix/researchtree"
+
+[project.scripts]
+researchtree = "researchtree.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["apps/researchtree"]
+artifacts = ["apps/researchtree/server/static/**"]
+
+[tool.hatch.build.targets.wheel.hooks.custom]
+path = "build.py"
+
+[tool.hatch.build.targets.sdist]
+include = ["apps/researchtree", "tests/researchtree", "tests/fixtures", "build.py", "LICENSE"]
+artifacts = ["apps/researchtree/server/static/**"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/researchtree"]
+addopts = "--import-mode=importlib"

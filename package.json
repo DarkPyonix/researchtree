@@ -1,0 +1,26 @@
+{
+  "name": "researchtree-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/core",
+    "apps/ui",
+    "apps/extension",
+    "apps/proxy"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @researchtree/ui",
+    "build": "npm run build:web && npm run build:local && npm run build:extension",
+    "build:web": "npm run build -w @researchtree/ui",
+    "build:local": "npm run build:local -w @researchtree/ui",
+    "build:extension": "npm run build -w researchtree",
+    "package:extension": "npm run package -w researchtree",
+    "test": "vitest run --config tests/vitest.config.ts",
+    "test:py": "uv run pytest",
+    "typecheck": "tsc -p apps/core && tsc -p apps/ui && tsc -p apps/proxy && tsc -p apps/extension && tsc -p tests"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
