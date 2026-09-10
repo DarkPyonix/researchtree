@@ -1,0 +1,8 @@
+[project]
+name = "researchtree"
+version = "1.0.0"
+escription = "Visualize your research as a growing tree of experiments, built on Git branches and pull requests."
+keywords = ["experiment-tracking", "git", "pull-requests", "visualization", "research", "ml"]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
