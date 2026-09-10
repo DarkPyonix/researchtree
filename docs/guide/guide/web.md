@@ -12,7 +12,7 @@ GitHub Pages 배포는 현재 준비 중이에요. 정식 공개 전까지는 [�
 
 ## 로그인
 
-![로그인 화면](/images/readme/sign-in.png)
+![로그인 화면](/images/readme/ko/sign-in.png)
 
 토큰 없이 처음 접속하면 트리 대신 로그인 화면이 나타나요. 로그인 방식은 두 가지가 있습니다.
 

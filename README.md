@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/island.png" alt="The ResearchTree research island: a voxel island where each experiment is a plant and each research version is a stone obelisk" width="880">
+  <img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/en/island.png" alt="The ResearchTree research island: a voxel island where each experiment is a plant and each research version is a stone obelisk" width="880">
 </p>
 
 > [!NOTE]
@@ -65,16 +65,16 @@ There is no database and no server-side cache: **GitHub is the only data store.*
 
 <table>
   <tr>
-    <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/version-panel.png" alt="Version panel open on a research version"></td>
-    <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/press-down.png" alt="Mid-transition: the islands being pressed flat as the camera turns top-down"></td>
+    <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/en/version-panel.png" alt="Version panel open on a research version"></td>
+    <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/en/press-down.png" alt="Mid-transition: the islands being pressed flat as the camera turns top-down"></td>
   </tr>
   <tr>
     <td align="center"><b>Version panel</b>: tag date, merged experiments, metrics, and what grew from it</td>
     <td align="center"><b>Press-down morph</b>: the camera turns top-down and the islands flatten</td>
   </tr>
   <tr>
-    <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/flat-tree.png" alt="Flat view: dirt paths, pressed plants, version stones and label chips seen from above on a dotted background"></td>
-    <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/sign-in.png" alt="Sign-in screen"></td>
+    <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/en/flat-tree.png" alt="Flat view: dirt paths, pressed plants, version stones and label chips seen from above on a dotted background"></td>
+    <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/en/sign-in.png" alt="Sign-in screen"></td>
   </tr>
   <tr>
     <td align="center"><b>Flat view</b>: the same scene seen from above, with only paths, plots and stones left</td>

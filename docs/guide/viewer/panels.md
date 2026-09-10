@@ -39,7 +39,7 @@
 
 돌 기념탑(입체·평면 모두)을 누르면 버전 패널이 열려요. 첫 버전 `v1`은 `research` 고목을 누르면 볼 수 있습니다.
 
-![버전 패널](/images/readme/version-panel.png)
+![버전 패널](/images/readme/ko/version-panel.png)
 
 | 항목 | 내용 |
 |---|---|

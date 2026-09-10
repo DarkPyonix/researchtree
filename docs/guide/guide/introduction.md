@@ -4,7 +4,7 @@
 
 ResearchTree는 Git 브랜치와 Pull Request를 바탕으로, 연구 과정을 초기 구현에서 점점 자라나는 실험 트리로 시각화해 주는 도구예요.
 
-![3D 연구의 섬](/images/readme/island.png)
+![3D 연구의 섬](/images/readme/ko/island.png)
 
 ## 왜 필요한가
 
@@ -42,11 +42,11 @@ main, develop, 기타             ← 연구 외 용도. 트리에 표시하지 
 
 | 3D 연구의 섬 (기본) | 평면 보기 |
 |---|---|
-| ![3D 섬](/images/readme/island.png) | ![평면 보기](/images/readme/flat-tree.png) |
+| ![3D 섬](/images/readme/ko/island.png) | ![평면 보기](/images/readme/ko/flat-tree.png) |
 
 | 버전 패널 | 로그인 화면 |
 |---|---|
-| ![버전 패널](/images/readme/version-panel.png) | ![로그인](/images/readme/sign-in.png) |
+| ![버전 패널](/images/readme/ko/version-panel.png) | ![로그인](/images/readme/ko/sign-in.png) |
 
 ## 세 가지 사용 방법
 

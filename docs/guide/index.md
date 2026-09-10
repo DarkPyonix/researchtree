@@ -61,7 +61,7 @@ ResearchTree는 아직 정식 배포 전이에요. PyPI 패키지, VS Code Marke
 </div>
 <figure class="rt-frame">
 <div class="rt-dots"><i></i><i></i><i></i></div>
-<img src="/images/readme/island.png" alt="3D 연구의 섬: 실험은 식물로, research 버전은 돌 기념탑으로 그려진 복셀 섬">
+<img src="/images/readme/ko/island.png" alt="3D 연구의 섬: 실험은 식물로, research 버전은 돌 기념탑으로 그려진 복셀 섬">
 <figcaption>실제 뷰어 화면. 드래그로 옮기고 휠로 확대해요.</figcaption>
 </figure>
 </div>
