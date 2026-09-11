@@ -202,20 +202,17 @@ export class Panel {
     );
   }
 
-  /** `closable`: the panel's main tab bar, which also carries a close button on narrow screens (the header scrolls away there). */
-  private tabBar<T extends string>(tabs: [T, string][], current: T, pick: (key: T) => void, closable = false): HTMLElement {
+  /** `sticky`: the panel's main tab bar, which stays at the top while the sheet scrolls on narrow screens. */
+  private tabBar<T extends string>(tabs: [T, string][], current: T, pick: (key: T) => void, sticky = false): HTMLElement {
     const bar = h(
       "div",
       { class: "tabs", role: "tablist" },
       tabs.map(([key, label]) =>
         h("button", { class: "tab", role: "tab", "aria-selected": String(current === key), onclick: () => pick(key) }, label),
       ),
-      closable
-        ? h("button", { class: "icon-btn tabs-close", type: "button", "aria-label": t("common.close"), title: t("common.close"), onclick: () => this.deps.onNavigate(null) }, icon("close", 15))
-        : null,
     );
     // The wrapper paints the card color around the bar, so text scrolling under it never shows through.
-    return closable ? h("div", { class: "panel-tabs" }, bar) : bar;
+    return sticky ? h("div", { class: "panel-tabs" }, bar) : bar;
   }
 
   private store(tree: ResearchTree): SpecStore {
