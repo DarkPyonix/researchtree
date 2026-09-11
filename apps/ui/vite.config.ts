@@ -20,9 +20,11 @@ function cspPolicy(connect: string): string {
 /** Installable web app (web build only): manifest, icons and the service worker live in pwa/. */
 const PWA_HEAD = [
   '<link rel="manifest" href="./manifest.webmanifest" />',
-  // System bars take the sea color as drawn in 3D, in the light and the dark palette.
+  // System bars start in the sea color as drawn in 3D; src/systembars.ts repaints them per screen.
   '<meta name="theme-color" content="#a5dddb" media="(prefers-color-scheme: light)" />',
   '<meta name="theme-color" content="#8fc8c8" media="(prefers-color-scheme: dark)" />',
+  // iOS home-screen app: draw under a translucent status bar (the safe-area insets keep the UI clear).
+  '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />',
   '<link rel="apple-touch-icon" href="./apple-touch-icon.png" />',
   '<meta name="apple-mobile-web-app-title" content="ResearchTree" />',
   '<meta name="mobile-web-app-capable" content="yes" />',
