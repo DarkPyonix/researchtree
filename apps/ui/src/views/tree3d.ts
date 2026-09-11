@@ -19,6 +19,8 @@ const DEPTH_STEP = 10; // world units per layout column (x axis = time)
 const ROW_STEP = 16; // world units between sibling rows (z axis): wide, so branches clearly fan out
 const FRUSTUM = 30; // visible world height at zoom 1
 const GROW_STEP = 380; // ms between generations in the intro animation
+/** Label opacity for experiments in a hidden status layer (their plants fade to 0.22). */
+const DIM_LABEL = 0.25;
 const CAMERA_DIR = new THREE.Vector3(-1, 1.25, 1.45).normalize();
 const CAMERA_RADIUS = 120;
 /** Top-down camera for the flat mode: tiny polar angle toward +z so screen right = +x and screen down = +z. */
@@ -1401,7 +1403,8 @@ export class Tree3D implements TreeViewApi {
       const base = THREE.MathUtils.lerp(v.group.scale.x || 0.001, s, t >= 1 ? 0.25 : 1);
       v.group.scale.set(base, base * squash, base);
       setStyle(v.label, "visibility", t > 0.6 ? "" : "hidden");
-      setStyle(v.label, "opacity", labelAlpha);
+      // The inline opacity overrides the stylesheet, so a hidden status layer dims its labels here too.
+      setStyle(v.label, "opacity", v.label.classList.contains("dim") ? (Number(labelAlpha) * DIM_LABEL).toFixed(3) : labelAlpha);
       if (v.base) for (const b of v.base) b.visible = flat < 0.92;
       if (v.sway && motion) {
         const phase = hash(v.id ?? "") % 100;
