@@ -40,7 +40,8 @@ def next_version(research: Research) -> str:
     names = [v.name for v in research.versions if re.match(r"^v\d+", v.name)]
     if not names:
         return "v1"
-    return f"v{max(int(re.match(r'^v(\d+)', n).group(1)) for n in names) + 1}"  # type: ignore[union-attr]
+    major = max(int(re.match(r"^v(\d+)", n).group(1)) for n in names)  # type: ignore[union-attr]
+    return f"v{major + 1}"
 
 
 def plan(research: Research, *, exists: Callable[[str], bool], merged: Callable[[str], bool]) -> list[Step]:
