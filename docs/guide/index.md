@@ -65,9 +65,3 @@ features:
 <figcaption>실제 뷰어 화면. 드래그로 옮기고 휠로 확대해요.</figcaption>
 </figure>
 </div>
-
-<p class="rt-english">
-<strong>English:</strong> This is the user &amp; developer guide for ResearchTree, written in Korean.
-ResearchTree renders your experiment branches and pull requests as a tree that grows from your initial implementation.
-See the <a href="https://github.com/DarkPyonix/researchtree">repository README</a> for an English overview.
-</p>

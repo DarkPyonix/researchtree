@@ -1,19 +1,29 @@
 import { defineConfig } from "vitepress";
+import { LANG_KEY, REPO, themeText } from "./i18n";
+import { ko } from "./i18n/ko";
 
-const REPO = "https://github.com/DarkPyonix/researchtree";
 const SITE = "https://darkpyonix.github.io/researchtree/guide/";
 
+// Before the first paint: when the reader picked English (or the browser is not Korean), hide the page
+// until the theme has swapped in the English text, so the Korean prerender never flashes. The theme
+// removes the class; the timeout is a safety net. Keep the choice rule in sync with theme/lang.ts.
+const LANG_BOOT = `(function(){try{var l=localStorage.getItem("${LANG_KEY}");if(!l)l=/^ko\\b/i.test(navigator.language)?"ko":"en";if(l==="en"){var d=document.documentElement;d.classList.add("rt-lang-pending");setTimeout(function(){d.classList.remove("rt-lang-pending")},2000)}}catch(e){}})()`;
+
 // Served from GitHub Pages at /researchtree/guide/ (the viewer app lives at /researchtree/).
+// One set of pages: the Korean Markdown files are the routes, and English versions of the same pages
+// live under en/ (left out of the routes). The theme swaps page and chrome text in place (theme/lang.ts).
 export default defineConfig({
-  lang: "ko-KR",
-  title: "ResearchTree 가이드",
-  description: "Git 브랜치와 PR로 연구 과정을 실험 트리로 기록하고 보는 방법",
+  lang: ko.lang,
+  title: ko.title,
+  description: ko.description,
   base: "/researchtree/guide/",
   cleanUrls: true,
   lastUpdated: true,
+  srcExclude: ["en/**"],
   // Lists every page for search engines at /researchtree/guide/sitemap.xml.
   sitemap: { hostname: SITE },
   head: [
+    ["script", {}, LANG_BOOT],
     ["meta", { name: "theme-color", content: "#3d7a6b" }],
     ["link", { rel: "icon", type: "image/svg+xml", href: "/researchtree/guide/logo.svg" }],
     ["meta", { property: "og:type", content: "website" }],
@@ -25,10 +35,11 @@ export default defineConfig({
   ],
   // Per-page canonical URL, title and description for search results and link previews.
   transformPageData(page) {
-    const path = page.relativePath.replace(/(^|\/)index\.md$/, "$1").replace(/\.md$/, "");
+    // English pages (en/…) are shown at the Korean page's address.
+    const path = page.relativePath.replace(/^en\//, "").replace(/(^|\/)index\.md$/, "$1").replace(/\.md$/, "");
     const url = SITE + path;
     const title = page.frontmatter.title || page.title || "ResearchTree";
-    const description = page.frontmatter.description || page.description || "Git 브랜치와 PR로 연구 과정을 실험 트리로 기록하고 보는 방법";
+    const description = page.frontmatter.description || page.description || ko.description;
     page.frontmatter.head ??= [];
     page.frontmatter.head.push(
       ["link", { rel: "canonical", href: url }],
@@ -41,88 +52,8 @@ export default defineConfig({
   themeConfig: {
     logo: "/logo.svg",
     siteTitle: "ResearchTree",
-    nav: [
-      { text: "가이드", link: "/guide/introduction", activeMatch: "^/guide/" },
-      { text: "연구 기록 규칙", link: "/rules/branches", activeMatch: "^/rules/" },
-      { text: "뷰어", link: "/viewer/island", activeMatch: "^/viewer/" },
-      { text: "개발자", link: "/dev/structure", activeMatch: "^/dev/" },
-      { text: "뷰어 열기", link: "https://darkpyonix.github.io/researchtree/" },
-    ],
-
-    sidebar: [
-      {
-        text: "시작하기",
-        items: [
-          { text: "소개", link: "/guide/introduction" },
-          { text: "레포 준비", link: "/guide/repo-setup" },
-          { text: "중앙 웹", link: "/guide/web" },
-          { text: "VS Code 확장", link: "/guide/vscode" },
-          { text: "로컬 실행", link: "/guide/local" },
-        ],
-      },
-      {
-        text: "연구 기록 규칙",
-        items: [
-          { text: "브랜치", link: "/rules/branches" },
-          { text: "PR과 본문 YAML", link: "/rules/pull-requests" },
-          { text: "research 버전 태그", link: "/rules/versions" },
-          { text: "트리 결정 규칙", link: "/rules/tree-rules" },
-          { text: "의도·스펙 기반 개발", link: "/rules/spec" },
-        ],
-      },
-      {
-        text: "뷰어 사용법",
-        items: [
-          { text: "3D 연구의 섬", link: "/viewer/island" },
-          { text: "평면 보기", link: "/viewer/flat" },
-          { text: "상세 패널과 버전 패널", link: "/viewer/panels" },
-          { text: "탐색과 도구", link: "/viewer/navigation" },
-          { text: "시간축과 계절", link: "/viewer/seasons" },
-        ],
-      },
-      {
-        text: "더 알아보기",
-        items: [
-          { text: "학습 스크립트 연동", link: "/guide/tracking" },
-          { text: "에이전트 기억", link: "/guide/memory" },
-          { text: "보안과 개인정보", link: "/guide/security" },
-          { text: "개인정보 처리방침", link: "/legal/privacy" },
-          { text: "이용약관", link: "/legal/terms" },
-        ],
-      },
-      {
-        text: "개발자 가이드",
-        items: [
-          { text: "모노레포 구조", link: "/dev/structure" },
-          { text: "아키텍처", link: "/dev/architecture" },
-          { text: "테스트", link: "/dev/testing" },
-          { text: "배포", link: "/dev/deploy" },
-          { text: "기여 규칙", link: "/dev/contributing" },
-        ],
-      },
-    ],
-
+    ...themeText(ko),
     socialLinks: [{ icon: "github", link: REPO }],
-    search: {
-      provider: "local",
-      options: {
-        translations: {
-          button: { buttonText: "검색", buttonAriaLabel: "검색" },
-          modal: {
-            noResultsText: "결과가 없습니다",
-            resetButtonTitle: "지우기",
-            footer: { selectText: "선택", navigateText: "이동", closeText: "닫기" },
-          },
-        },
-      },
-    },
-    editLink: { pattern: `${REPO}/edit/main/docs/guide/:path`, text: "이 페이지 수정하기" },
-    outline: { label: "이 페이지에서", level: [2, 3] },
-    docFooter: { prev: "이전", next: "다음" },
-    lastUpdated: { text: "마지막 수정" },
-    returnToTopLabel: "맨 위로",
-    sidebarMenuLabel: "메뉴",
-    darkModeSwitchLabel: "테마",
     footer: {
       message:
         'Apache-2.0 License · <a href="/researchtree/guide/legal/privacy">Privacy Policy</a> · <a href="/researchtree/guide/legal/terms">Terms of Service</a>',

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from ..github import api, auth, tokens
+from ..i18n import t
 
 if TYPE_CHECKING:
     from .app import App
@@ -37,11 +38,11 @@ MIME = {
 NO_STATIC_PAGE = """<!doctype html>
 <meta charset="utf-8"><title>ResearchTree</title>
 <body style="font-family:system-ui,sans-serif;max-width:40rem;margin:4rem auto;line-height:1.6">
-<h1>뷰어 빌드 파일이 없습니다</h1>
-<p>이 설치본에는 <code>researchtree/server/static/</code>이 들어 있지 않습니다. 저장소에서 개발 중이라면 먼저 뷰어를 빌드하세요.</p>
+<h1>{title}</h1>
+<p>{body}</p>
 <pre>npm install
 npm run build:local</pre>
-<p>PyPI에서 받은 wheel에는 빌드 파일이 포함되어 있습니다.</p>
+<p>{wheel}</p>
 </body>
 """
 
@@ -102,7 +103,7 @@ class Handler(BaseHTTPRequestHandler):
     def _dispatch(self) -> None:
         # DNS rebinding guard: reject any request addressed to another host name (static files included).
         if self.headers.get("Host", "") not in self.app.allowed_hosts:
-            self._error(403, "허용되지 않는 Host 헤더입니다.")
+            self._error(403, t("server.badHost"))
             return
         url = urllib.parse.urlsplit(self.path)
         try:
@@ -111,16 +112,17 @@ class Handler(BaseHTTPRequestHandler):
             elif self.command in ("GET", "HEAD"):
                 self._static(url.path)
             else:
-                self._error(405, "허용되지 않는 메서드입니다.")
+                self._error(405, t("server.badMethod"))
         except Exception as e:  # noqa: BLE001
-            self._error(500, f"서버 오류: {e}")
+            self._error(500, t("server.error", error=e))
 
     # ------------------------------------------------------------ static files
 
     def _index(self) -> None:
         index = self.app.static_dir / "index.html"
         if not index.is_file():
-            self._send(200, NO_STATIC_PAGE.encode(), MIME[".html"])
+            page = NO_STATIC_PAGE.format(title=t("server.noBuildTitle"), body=t("server.noBuildBody"), wheel=t("server.noBuildWheel"))
+            self._send(200, page.encode(), MIME[".html"])
             return
         text = index.read_text(encoding="utf-8")
         meta = f'<meta name="researchtree-session" content="{html.escape(self.app.session)}" />'
@@ -147,13 +149,13 @@ class Handler(BaseHTTPRequestHandler):
     def _read_body(self) -> bytes | None:
         n = int(self.headers.get("Content-Length") or 0)
         if n > MAX_BODY:
-            raise ValueError("요청 본문이 너무 큽니다.")
+            raise ValueError(t("server.bodyTooLarge"))
         return self.rfile.read(n) if n > 0 else None
 
     def _api(self, url: urllib.parse.SplitResult) -> None:
         sent = self.headers.get(SESSION_HEADER, "")
         if not hmac.compare_digest(sent.encode(), self.app.session.encode()):
-            self._error(403, "세션 토큰이 없거나 일치하지 않습니다.")
+            self._error(403, t("server.badSession"))
             return
 
         path, method = url.path, self.command
@@ -172,9 +174,9 @@ class Handler(BaseHTTPRequestHandler):
         if handler:
             handler()
         elif any(p == path for (_, p) in routes):
-            self._error(405, "허용되지 않는 메서드입니다.")
+            self._error(405, t("server.badMethod"))
         else:
-            self._error(404, "알 수 없는 API 경로입니다.")
+            self._error(404, t("server.unknownApi"))
 
     def _context(self) -> None:
         self._json(200, {"repo": self.app.repo})
@@ -231,7 +233,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _relay(self, api_path: str, query: str) -> None:
         if self.command not in api.ALLOWED_METHODS:
-            self._error(405, "허용되지 않는 메서드입니다.")
+            self._error(405, t("server.badMethod"))
             return
         try:
             api.assert_api_path(api_path)
@@ -246,7 +248,7 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 json.loads(body)
             except ValueError:
-                self._error(400, "요청 본문이 JSON이 아닙니다.")
+                self._error(400, t("server.notJson"))
                 return
             headers["Content-Type"] = "application/json"
         if etag := self.headers.get("If-None-Match"):

@@ -8,6 +8,7 @@ from typing import Any, Callable
 
 from .. import git
 from ..github import api, tokens
+from ..i18n import t
 from . import body
 
 DEFAULT_PREFIX = "experiment/"
@@ -38,7 +39,7 @@ def _find_pr(token: str, repo: str, branch: str) -> dict[str, Any]:
         "GET", f"/repos/{repo}/pulls", token=token, query={"head": f"{owner}:{branch}", "state": "all", "per_page": 10}
     )
     if not prs:
-        raise _Skip(f"브랜치 {branch}의 PR을 찾지 못했습니다.")
+        raise _Skip(t("track.noPr", branch=branch))
     # prefer open PRs
     prs.sort(key=lambda p: (p.get("state") != "open", -int(p.get("number", 0))))
     return prs[0]
@@ -51,13 +52,13 @@ def _apply(edit: Callable[[str], str]) -> None:
         branch = git.current_branch()
         prefix = experiment_prefix()
         if not branch or not branch.startswith(prefix):
-            raise _Skip(f"현재 브랜치({branch or '알 수 없음'})가 {prefix}* 가 아니라서 기록하지 않습니다.")
+            raise _Skip(t("track.notExperiment", branch=branch or t("track.unknownBranch"), prefix=prefix))
         repo = os.environ.get("RESEARCHTREE_REPO") or git.origin_repo()
         if not repo:
-            raise _Skip("origin remote에서 GitHub 레포를 알아내지 못했습니다.")
+            raise _Skip(t("track.noRepo"))
         token = tokens.load_token()
         if not token:
-            raise _Skip("GitHub 토큰이 없습니다. `researchtree login`을 먼저 실행하세요.")
+            raise _Skip(t("track.noToken"))
 
         number = _find_pr(token, repo, branch)["number"]
         last: Exception | None = None
@@ -71,11 +72,11 @@ def _apply(edit: Callable[[str], str]) -> None:
                 raise
             except Exception as e:  # noqa: BLE001
                 last = e
-        raise last or RuntimeError("알 수 없는 오류")
+        raise last or RuntimeError(t("track.unknownError"))
     except _Skip as e:
         warnings.warn(f"researchtree: {e}", RuntimeWarning, stacklevel=3)
     except Exception as e:  # noqa: BLE001 - never raise into the training script
-        warnings.warn(f"researchtree: PR 본문을 갱신하지 못했습니다: {e}", RuntimeWarning, stacklevel=3)
+        warnings.warn("researchtree: " + t("track.updateFailed", error=e), RuntimeWarning, stacklevel=3)
 
 
 def log(**metrics: float | int | str | None) -> None:
@@ -92,8 +93,8 @@ def set(**fields: Any) -> None:  # noqa: A001 - public rt.set API
 
 def conclude(status: str, text: str, heading: str | None = None) -> None:
     """Set `status` and write the conclusion section. An existing `## 결론` / `## Conclusion` section is
-    updated in place; a new one gets `heading` (default `결론`, e.g. heading="Conclusion")."""
+    updated in place; a new one gets `heading`, by default `## 결론` or `## Conclusion` by the CLI language."""
     if status not in STATUSES:
-        warnings.warn(f"researchtree: status는 {', '.join(STATUSES)} 중 하나여야 합니다: {status}", RuntimeWarning, stacklevel=2)
+        warnings.warn("researchtree: " + t("track.badStatus", allowed=", ".join(STATUSES), status=status), RuntimeWarning, stacklevel=2)
         return
-    _apply(lambda current: body.set_conclusion(body.update(current, {"status": status}), text, heading))
+    _apply(lambda current: body.set_conclusion(body.update(current, {"status": status}), text, heading or t("body.conclusionHeading")))

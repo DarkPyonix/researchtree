@@ -624,15 +624,28 @@ html:not(.dark) .vp-doc .vp-code span { filter: saturate(0.85); }
   text-align: center;
 }
 
-.rt-english {
-  max-width: 820px;
-  margin: 56px auto 0;
-  padding-top: 24px;
-  border-top: 1px dashed var(--rt-line);
-  color: var(--rt-muted);
-  font-size: 14px;
-  line-height: 1.7;
+/* Language switch (theme/LangSwitch.vue). While the English text loads, the Korean prerender stays hidden. */
+.rt-lang-pending .VPNav, .rt-lang-pending .VPLocalNav, .rt-lang-pending .VPSidebar, .rt-lang-pending .VPContent,
+.rt-lang-pending .VPFooter { visibility: hidden; }
+.rt-lang {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  margin-left: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 18px;
+  background: transparent;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
 }
+.rt-lang:hover { color: var(--vp-c-brand-1); border-color: var(--vp-c-brand-1); }
+.rt-lang svg { width: 16px; height: 16px; }
+.rt-lang.screen { margin: 16px 0 0; }
 
 .vp-doc td:first-child,
 .vp-doc th:first-child { min-width: 7em; }

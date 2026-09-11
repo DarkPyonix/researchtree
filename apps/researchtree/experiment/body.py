@@ -12,6 +12,8 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.error import YAMLError
 
+from ..i18n import t
+
 STATUSES = ("running", "adopted", "rejected")
 
 # First ```yaml fenced block in the body. Opening and closing fences must each be on their own line.
@@ -190,11 +192,11 @@ def update(body: str | None, patch: dict[str, Any]) -> str:
         try:
             doc = _yaml().load(loc[2])
         except YAMLError as e:
-            raise PrBodyError("PR 본문의 YAML 블록을 파싱할 수 없어 수정하지 않았습니다.") from e
+            raise PrBodyError(t("body.parseError")) from e
     if doc is None:
         doc = CommentedMap()
     if not isinstance(doc, dict):
-        raise PrBodyError("PR 본문의 YAML 블록이 key: value 형식이 아닙니다.")
+        raise PrBodyError(t("body.notMapping"))
 
     for key, value in patch.items():
         if key == "metrics" and value is not None:

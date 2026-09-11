@@ -19,7 +19,8 @@ const DEPTH_STEP = 10; // world units per layout column (x axis = time)
 const ROW_STEP = 16; // world units between sibling rows (z axis): wide, so branches clearly fan out
 const FRUSTUM = 30; // visible world height at zoom 1
 const GROW_STEP = 380; // ms between generations in the intro animation
-/** Label opacity for experiments in a hidden status layer (their plants fade to 0.22). */
+/** Opacity of plants and paths in a hidden status layer, and of their labels. */
+const DIM_OPACITY = 0.22;
 const DIM_LABEL = 0.25;
 const CAMERA_DIR = new THREE.Vector3(-1, 1.25, 1.45).normalize();
 const CAMERA_RADIUS = 120;
@@ -106,6 +107,16 @@ function tint(hex: string, toward: string, t: number): string {
 }
 
 /** Write an inline style only when it changes, so unchanged labels never invalidate style. */
+/** A parent-child link, or a dashed merge from an experiment into a version. */
+type Link = { source: { data: { id: string } }; target: { data: { id: string; node?: TreeNode }; depth: number }; dashed?: boolean };
+
+/** How a hidden status layer draws its plants and the paths to them. */
+function fade(m: THREE.Material): void {
+  m.transparent = true;
+  m.opacity = DIM_OPACITY;
+  m.depthWrite = false;
+}
+
 function setStyle(el: HTMLElement, prop: "opacity" | "visibility", value: string): void {
   if (el.style[prop] !== value) el.style[prop] = value;
 }
@@ -419,7 +430,9 @@ export class Tree3D implements TreeViewApi {
     // Each node lives on the island of the version it grows from (the root is the first version).
     const eras = new Map([...positions.keys()].map((id) => [id, islandOf(tree, id)]));
     const { land, ground } = this.buildIsland(positions, eras, placement.links, occupied, rand);
-    this.buildPaths(traced, positions, colors, ground);
+    // Paths to experiments in a hidden status layer fade with their plants. A merge link's experiment is its source.
+    const hidden = new Set(pts.flatMap((p) => (p.data.node && filter.hidden.has(p.data.node.status) ? [p.data.id] : [])));
+    this.buildPaths(traced, positions, colors, ground, (l) => hidden.has(l.dashed ? l.source.data.id : l.target.data.id));
     this.buildDecorations(land, occupied, rand);
     if (placement.timed) this.buildYearMarks(yearBoundaries(placement.start, placement.end).map((y) => ({ year: y.year, x: placement.dateToX(y.at) * unit - cx })), land);
     this.buildClouds(rand);
@@ -456,10 +469,10 @@ export class Tree3D implements TreeViewApi {
 
   /** Tile cells (two wide) along each link's curve, in order from source to target. */
   private tracePaths(
-    links: { source: { data: { id: string } }; target: { data: { id: string; node?: TreeNode }; depth: number }; dashed?: boolean }[],
+    links: Link[],
     positions: Map<string, THREE.Vector3>,
     occupied: Set<string>,
-  ): { link: (typeof links)[number]; cells: [number, number][] }[] {
+  ): { link: Link; cells: [number, number][] }[] {
     const cellOf = (x: number, z: number) => `${Math.round(x)},${Math.round(z)}`;
     return links.map((l) => {
       const a = positions.get(l.source.data.id)!;
@@ -509,6 +522,7 @@ export class Tree3D implements TreeViewApi {
     positions: Map<string, THREE.Vector3>,
     colors: Map<string, string>,
     ground: Set<string>,
+    faded: (link: Link) => boolean,
   ): void {
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
@@ -535,6 +549,7 @@ export class Tree3D implements TreeViewApi {
       });
 
       const mesh = this.instanced(tiles.length);
+      if (faded(l)) fade(mesh.material as THREE.MeshStandardMaterial);
       tiles.forEach(([x, z], i) => {
         m.compose(new THREE.Vector3(x, 0.06, z), q, new THREE.Vector3(1, 0.12, 1));
         mesh.setMatrixAt(i, m);
@@ -568,7 +583,7 @@ export class Tree3D implements TreeViewApi {
     postMesh.count = posts.length;
     this.world.add(plankMesh, postMesh);
     this.ground.push(plankMesh, postMesh);
-    this.buildFlatLines(traced.map((t) => t.link), positions, colors);
+    this.buildFlatLines(traced.map((t) => t.link), positions, colors, faded);
   }
 
   /**
@@ -576,15 +591,16 @@ export class Tree3D implements TreeViewApi {
    * (dashed for extra merges into a version). One mesh with vertex colours, shown only when flat.
    */
   private buildFlatLines(
-    links: ReturnType<Tree3D["tracePaths"]>[number]["link"][],
+    links: Link[],
     positions: Map<string, THREE.Vector3>,
     colors: Map<string, string>,
+    faded: (link: Link) => boolean,
   ): void {
     const WIDTH = 0.5;
     const DASH = 1.2;
-    const pos: number[] = [];
-    const col: number[] = [];
+    const layers = [false, true].map((dim) => ({ dim, pos: [] as number[], col: [] as number[] }));
     for (const l of links) {
+      const { pos, col } = layers[faded(l) ? 1 : 0]!;
       const a = positions.get(l.source.data.id)!;
       const b = positions.get(l.target.data.id)!;
       const mx = (a.x + b.x) / 2;
@@ -609,15 +625,19 @@ export class Tree3D implements TreeViewApi {
         for (let k = 0; k < 6; k++) col.push(c.r, c.g, c.b);
       }
     }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-    geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
-    const mat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.frustumCulled = false;
-    this.disposables.push(geo, mat);
-    this.world.add(mesh);
-    this.flatOnly.push(mesh);
+    for (const { dim, pos, col } of layers) {
+      if (!pos.length) continue;
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+      const mat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
+      if (dim) fade(mat);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.frustumCulled = false;
+      this.disposables.push(geo, mat);
+      this.world.add(mesh);
+      this.flatOnly.push(mesh);
+    }
   }
 
   /** A little ferry moored in the channel between two islands. */
@@ -1064,9 +1084,8 @@ export class Tree3D implements TreeViewApi {
 
   private dim(v: NodeVisual, on: boolean): void {
     for (const m of v.materials) {
-      m.transparent = on;
-      m.opacity = on ? 0.22 : 1;
-      m.depthWrite = !on;
+      if (on) fade(m);
+      else Object.assign(m, { transparent: false, opacity: 1, depthWrite: true });
     }
     v.label.classList.toggle("dim", on);
   }
