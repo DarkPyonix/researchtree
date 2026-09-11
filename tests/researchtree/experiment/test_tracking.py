@@ -7,6 +7,7 @@ import pytest
 from researchtree import git
 from researchtree.experiment import tracking as log
 from researchtree.github import api, tokens
+from researchtree.i18n import set_locale
 
 
 @pytest.fixture
@@ -44,6 +45,12 @@ def test_set_field(fake_repo):
 def test_conclude(fake_repo):
     log.conclude("rejected", "느림")
     assert fake_repo["body"] == "```yaml\nhypothesis: h\nstatus: rejected\n```\n\n## 결론\n느림\n"
+
+
+def test_conclude_heading_follows_the_language(fake_repo):
+    set_locale("en")
+    log.conclude("rejected", "slow")
+    assert fake_repo["body"] == "```yaml\nhypothesis: h\nstatus: rejected\n```\n\n## Conclusion\nslow\n"
 
 
 @pytest.mark.parametrize("env", [{"RANK": "1"}, {"LOCAL_RANK": "3"}])

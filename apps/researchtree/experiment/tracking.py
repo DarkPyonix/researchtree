@@ -93,8 +93,8 @@ def set(**fields: Any) -> None:  # noqa: A001 - public rt.set API
 
 def conclude(status: str, text: str, heading: str | None = None) -> None:
     """Set `status` and write the conclusion section. An existing `## 결론` / `## Conclusion` section is
-    updated in place; a new one gets `heading` (default `결론`, e.g. heading="Conclusion")."""
+    updated in place; a new one gets `heading`, by default `## 결론` or `## Conclusion` by the CLI language."""
     if status not in STATUSES:
         warnings.warn("researchtree: " + t("track.badStatus", allowed=", ".join(STATUSES), status=status), RuntimeWarning, stacklevel=2)
         return
-    _apply(lambda current: body.set_conclusion(body.update(current, {"status": status}), text, heading))
+    _apply(lambda current: body.set_conclusion(body.update(current, {"status": status}), text, heading or t("body.conclusionHeading")))

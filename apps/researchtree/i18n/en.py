@@ -110,6 +110,7 @@ EN = {
     "track.badStatus": "status must be one of {allowed}: {status}",
     # PR body
     "body.parseError": "The YAML block in the PR body can't be parsed, so it was left unchanged.",
+    "body.conclusionHeading": "Conclusion",
     "body.notMapping": "The YAML block in the PR body is not key: value pairs.",
     # GitHub
     "api.badPath": "GitHub API path not allowed: {path}",

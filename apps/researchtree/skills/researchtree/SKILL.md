@@ -288,7 +288,7 @@ rt.conclude("rejected", "Divergence went down but convergence was too slow.", he
 
 - These calls never raise into training. If the branch is not an experiment branch, no PR is found, there is no token or GitHub fails, they emit a `RuntimeWarning` and return.
 - In distributed runs they act only on rank 0 (`RANK` / `LOCAL_RANK`).
-- `conclude(status, text, heading=None)`: `status` must be `running`, `adopted` or `rejected`. An existing conclusion section is replaced in place; a new one uses `heading` (default `결론`; pass `heading="Conclusion"` for English).
+- `conclude(status, text, heading=None)`: `status` must be `running`, `adopted` or `rejected`. An existing conclusion section is replaced in place; a new one uses `heading` (default: `결론` or `Conclusion`, following the system language).
 - Log final metrics, not per-step values. Use the metric key names already used in the tree so experiments stay comparable.
 
 ## Concluding an experiment

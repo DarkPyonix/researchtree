@@ -110,6 +110,7 @@ KO = {
     "track.badStatus": "status는 {allowed} 중 하나여야 합니다: {status}",
     # PR body
     "body.parseError": "PR 본문의 YAML 블록을 파싱할 수 없어 수정하지 않았습니다.",
+    "body.conclusionHeading": "결론",
     "body.notMapping": "PR 본문의 YAML 블록이 key: value 형식이 아닙니다.",
     # GitHub
     "api.badPath": "허용되지 않는 GitHub API 경로: {path}",
