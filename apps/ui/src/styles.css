@@ -514,7 +514,6 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   background: var(--card-sunken);
 }
 .tab { height: 34px; padding: 0 4px; border: 0; border-radius: 9px; background: transparent; font-size: 12.5px; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tabs-close { display: none; }
 .panel-tabs { padding: 4px 22px 0; }
 .panel-tabs .tabs { margin: 0; }
 .tab[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(40, 30, 20, 0.1); }
@@ -614,7 +613,6 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   .panel-tabs { position: sticky; top: 0; z-index: 3; margin-top: -12px; padding: 22px 22px 8px; background: var(--card); }
   .panel-tabs .tabs { display: flex; }
   .panel-tabs .tab { flex: 1; min-width: 0; padding: 0 2px; font-size: 12px; }
-  .panel-tabs .tabs-close { display: inline-grid; flex: none; width: 34px; height: 34px; }
   .panel-resizer { display: none; }
   .shell.panel-open .brand-stack, .shell.panel-open .gens, .shell.panel-open .toolbar { display: none; }
 }
