@@ -8,6 +8,9 @@ function logo(size = 56): HTMLElement {
   return h("img", { src: logoUrl, width: String(size), height: String(size), alt: "" });
 }
 
+/** Public example repository for first-time users (a year of made-up TTS research). */
+export const DEMO_REPO = "DarkPyonix/researchtree-demo";
+
 function screen(...children: Child[]): HTMLElement {
   return h("div", { class: "screen" }, h("div", { class: "card screen-card" }, ...children));
 }
@@ -207,6 +210,12 @@ export function repoPicker(opts: {
     h("p", { class: "screen-body" }, t("picker.body")),
     form,
     errorBox,
+    h(
+      "div",
+      { class: "demo" },
+      h("button", { class: "btn demo-btn", type: "button", onclick: () => opts.onPick(DEMO_REPO) }, icon("repo", 14), ` ${t("picker.demo")}`),
+      h("p", { class: "muted small" }, t("picker.demoHint")),
+    ),
     opts.recent.length
       ? h(
           "div",

@@ -100,6 +100,8 @@ export const en: Record<MessageKey, string> = {
   "picker.formatError": "Enter it as owner/name.",
   "picker.recent": "Recently viewed",
   "picker.mine": "Your repositories",
+  "picker.demo": "Explore the demo repository",
+  "picker.demoHint": "A made-up year of text-to-speech research: five versions, competing hypotheses side by side, and intent and spec documents.",
 
   // Settings
   "settings.title": "Settings",

@@ -266,6 +266,9 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .token-form p { margin: 8px 0 0; }
 
 .recent { margin-top: 6px; }
+.demo { margin: 14px 0 4px; padding: 12px; border-radius: 12px; background: var(--card-sunken); }
+.demo .demo-btn { width: 100%; }
+.demo p { margin: 8px 2px 0; }
 .repo-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; margin-bottom: 16px; max-height: 280px; overflow-y: auto; }
 .repo-item {
   min-width: 0;
