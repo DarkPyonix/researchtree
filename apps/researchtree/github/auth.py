@@ -10,6 +10,7 @@ import urllib.parse
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from ..i18n import t
 from . import api, tokens
 
 DEVICE_CODE_URL = "https://github.com/login/device/code"
@@ -26,10 +27,7 @@ class AuthError(Exception):
 def client_id() -> str:
     cid = os.environ.get("RESEARCHTREE_CLIENT_ID") or DEFAULT_CLIENT_ID
     if not cid:
-        raise AuthError(
-            "OAuth App client ID가 설정되지 않았습니다. RESEARCHTREE_CLIENT_ID 환경변수를 지정하거나, "
-            f"{tokens.ENV_TOKEN} 환경변수에 토큰을 직접 넣어 주세요."
-        )
+        raise AuthError(t("auth.noClientId", env=tokens.ENV_TOKEN))
     return cid
 
 
@@ -52,7 +50,7 @@ def _post_form(url: str, data: dict[str, str]) -> dict[str, Any]:
     except ValueError:
         out = {}
     if res.status >= 400 and "error" not in out:
-        raise AuthError(f"GitHub 인증 서버 응답 {res.status}")
+        raise AuthError(t("auth.serverStatus", status=res.status))
     return out if isinstance(out, dict) else {}
 
 
@@ -83,7 +81,7 @@ class DeviceFlow:
     def start(self) -> DeviceCode:
         data = _post_form(DEVICE_CODE_URL, {"client_id": client_id(), "scope": SCOPE})
         if "device_code" not in data:
-            raise AuthError(data.get("error_description") or data.get("error") or "Device Flow를 시작하지 못했습니다.")
+            raise AuthError(data.get("error_description") or data.get("error") or t("auth.deviceStartFailed"))
         code = DeviceCode(
             device_code=data["device_code"],
             user_code=data["user_code"],
@@ -105,7 +103,7 @@ class DeviceFlow:
             if self.token:
                 return {"status": "ok"}
             if self.code is None:
-                return {"status": "expired", "message": "진행 중인 로그인이 없습니다."}
+                return {"status": "expired", "message": t("auth.noPending")}
             now = self._clock()
             if now >= self._deadline:
                 self.code = None
@@ -140,7 +138,7 @@ class DeviceFlow:
                 return {"status": "denied"}
             else:
                 self.code = None
-                raise AuthError(data.get("error_description") or err or "알 수 없는 인증 응답")
+                raise AuthError(data.get("error_description") or err or t("auth.unknownResponse"))
             self._next_poll = self._clock() + self.interval
             return {"status": "pending", "interval": self.interval}
 
@@ -149,7 +147,7 @@ def terminal_login(sleep: Callable[[float], None] = time.sleep, out: Callable[[s
     """`researchtree login`: print the code and URL, then wait for approval."""
     flow = DeviceFlow()
     code = flow.start()
-    out(f"브라우저에서 {code.verification_uri} 를 열고 아래 코드를 입력하세요.")
+    out(t("auth.openAndEnter", uri=code.verification_uri))
     out(f"\n    {code.user_code}\n")
     while True:
         sleep(flow.interval)
@@ -157,11 +155,11 @@ def terminal_login(sleep: Callable[[float], None] = time.sleep, out: Callable[[s
         if res["status"] == "ok":
             break
         if res["status"] == "expired":
-            raise AuthError("코드가 만료되었습니다. 다시 시도해 주세요.")
+            raise AuthError(t("auth.expired"))
         if res["status"] == "denied":
-            raise AuthError("로그인이 거부되었습니다.")
+            raise AuthError(t("auth.denied"))
     assert flow.token
     user = fetch_user(flow.token)
     where = tokens.store_token(flow.token)
-    out(f"{user.get('login')} 계정으로 로그인했습니다. (토큰 저장 위치: {where})")
+    out(t("auth.signedIn", login=user.get("login"), where=where))
     return user

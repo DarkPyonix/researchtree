@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .. import __version__
+from ..i18n import t
 
 API = "https://api.github.com"
 USER_AGENT = f"researchtree/{__version__}"
@@ -44,7 +45,7 @@ class Response:
 def assert_api_path(path: str) -> None:
     """Same check as TS `assertApiPath`: keeps the token from leaking to other domains."""
     if not path.startswith("/") or path.startswith("//") or _SCHEME_RE.match(path) or "\\" in path:
-        raise ValueError(f"허용되지 않는 GitHub API 경로: {path}")
+        raise ValueError(t("api.badPath", path=path))
 
 
 def build_query(query: dict[str, Any] | None) -> str:
@@ -86,7 +87,7 @@ def request(
 ) -> Response:
     """Request a path on `api.github.com`. Full URLs are not accepted."""
     if method not in ALLOWED_METHODS:
-        raise ValueError(f"허용되지 않는 메서드: {method}")
+        raise ValueError(t("api.badMethod", method=method))
     assert_api_path(path)
     headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
     if etag:

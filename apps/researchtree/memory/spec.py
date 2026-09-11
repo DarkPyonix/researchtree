@@ -12,6 +12,8 @@ from typing import Any, Callable, Iterable, Sequence
 from ruamel.yaml import YAML
 from ruamel.yaml.error import YAMLError
 
+from ..i18n import t
+
 REPO_CONFIG_PATH = ".researchtree.yml"
 DEFAULT_SPEC_PATH = "SPEC.md"
 DEFAULT_INTENT_PATH = "INTENT.md"
@@ -58,7 +60,7 @@ class SectionChange:
     after: Section | None
 
     def __str__(self) -> str:
-        return f"{self.kind}: {self.title or '(머리말)'}"
+        return f"{t('spec.kind.' + self.kind)}: {self.title or t('spec.preamble')}"
 
 
 @dataclass

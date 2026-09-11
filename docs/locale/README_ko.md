@@ -39,7 +39,7 @@
 >
 > **데모 프로젝트로 보기:** [researchtree-demo](https://darkpyonix.github.io/researchtree/?repo=DarkPyonix/researchtree-demo). 가상의 음성 합성(TTS) 연구 1년치로, 버전 다섯 개, 나란히 비교한 경쟁 가설들, 근거에 따라 바뀌는 의도·스펙 문서를 담았습니다([레포](https://github.com/DarkPyonix/researchtree-demo)).
 >
-> 뷰어와 VS Code 확장은 한국어와 영어를 지원합니다. 기본은 브라우저(또는 VS Code) 언어이고 **설정**에서 바꿀 수 있습니다. Python CLI 출력은 아직 한국어만 나옵니다.
+> 뷰어와 VS Code 확장은 한국어와 영어를 지원합니다. 기본은 브라우저(또는 VS Code) 언어이고 **설정**에서 바꿀 수 있습니다. Python CLI는 시스템 언어(한국어 또는 영어)를 따르고, `RESEARCHTREE_LANG=en` 또는 `ko`로 정할 수 있습니다.
 
 ---
 

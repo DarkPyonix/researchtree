@@ -5,7 +5,7 @@ Rules for working in this repository. Project overview: [PROJECT.md](PROJECT.md)
 ## Language
 
 - **Code comments and docstrings: English only.**
-- User-facing text in the viewer and the VS Code extension (UI, toasts, error messages shown to users) goes through the i18n table (`t()` in `apps/core/src/i18n/`) with both a Korean and an English entry; never hard-code it. The Python CLI output is still Korean for now.
+- User-facing text in the viewer and the VS Code extension (UI, toasts, error messages shown to users) goes through the i18n table (`t()` in `apps/core/src/i18n/`) with both a Korean and an English entry; never hard-code it. The Python package (CLI, local server, training-script warnings) does the same with `t()` in `apps/researchtree/i18n/`; output meant for agents (manifest, cards, JSON) stays English.
 - Documents under `docs/` and `PROJECT.md`: Korean.
 - Commit messages: English (see [Git](#git)).
 

@@ -38,7 +38,7 @@
 >
 > **See it on a demo project:** [researchtree-demo](https://darkpyonix.github.io/researchtree/?repo=DarkPyonix/researchtree-demo), a year of made-up text-to-speech research with five versions, competing hypotheses side by side, and intent and spec documents that evolve with the evidence ([repository](https://github.com/DarkPyonix/researchtree-demo)).
 >
-> The viewer and the VS Code extension speak Korean and English: they follow your browser (or VS Code) language, and you can switch in **Settings**. The Python CLI output is still Korean only.
+> The viewer and the VS Code extension speak Korean and English: they follow your browser (or VS Code) language, and you can switch in **Settings**. The Python CLI follows your system language (Korean or English); set `RESEARCHTREE_LANG=en` or `ko` to choose.
 
 ---
 
