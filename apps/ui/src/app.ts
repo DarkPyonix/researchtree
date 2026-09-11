@@ -26,6 +26,7 @@ import {
   type TreeConfig,
 } from "@researchtree/core";
 import { followColorScheme } from "./colorscheme";
+import { paintSystemBars } from "./systembars";
 import { append, clear, h, icon } from "./dom";
 import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
@@ -122,6 +123,7 @@ class App {
     this.shell = null;
     clear(this.root);
     this.root.append(el);
+    paintSystemBars(false); // full-page screens sit on the page background
   }
 
   async boot(loginError?: string): Promise<void> {
@@ -442,6 +444,7 @@ class App {
     stage.canvas.classList.toggle("is-3d", !isFlatMode(this.mode));
     stage.hint.textContent = hint(this.mode);
     this.view = new Tree3D(stage.canvas, stage.options, isFlatMode(this.mode), headingOf(this.mode));
+    paintSystemBars(!isFlatMode(this.mode));
     this.view.render(this.tree, this.filter());
     this.view.select(this.selected, false);
   }
@@ -489,10 +492,12 @@ class App {
     if (next === "flat") {
       await view.lower();
       stage.canvas.classList.remove("is-3d");
+      paintSystemBars(false);
     } else if (next === "tree") {
       await view.turn("tree");
     } else if (next === "tree3d") {
       stage.canvas.classList.add("is-3d");
+      paintSystemBars(true);
       await view.raise();
     } else {
       await view.turn("island");
