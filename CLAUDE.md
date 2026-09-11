@@ -73,6 +73,7 @@ Before finishing a change: run the tests and typecheck for every package you tou
 - **On `main`, the root keeps only `README.md` of its markdown files (no `CLAUDE.md`, `PROJECT.md`, ...), and `docs/` keeps only `docs/locale/` and `docs/guide/`; everything else is removed.** Merge `develop` into `main` with `scripts/merge-to-main.sh`, which does this. Therefore `README.md`, `docs/locale/*`, and `docs/guide/*` must never link to other `docs/` files; copy the needed content into the guide instead.
 - `README.md` is the English front page; translations live in `docs/locale/README_<lang>.md` (e.g. `README_ko.md`) and link back to each other.
 - `docs/guide/` is the user/developer guide published on GitHub Pages at `/researchtree/guide/` (the viewer itself is served at `/researchtree/`). Keep it in sync with actual features.
+- The guide has one set of pages in two languages. The Korean Markdown files are the routes; the English version of a page is the file at the same path under `docs/guide/en/` (excluded from the routes, swapped in by `.vitepress/theme/lang.ts`; a page without one stays Korean). Nav, sidebar and labels are in `.vitepress/i18n/{ko,en}.ts`. Links in `en/` pages must be absolute (`/rules/spec`), since the page is shown at the Korean page's address.
 
 ## Working rules
 
