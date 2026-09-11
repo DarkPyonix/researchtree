@@ -98,6 +98,8 @@ export const ko = {
   "picker.formatError": "owner/name 형식으로 입력해 주세요.",
   "picker.recent": "최근에 본 레포",
   "picker.mine": "내 레포",
+  "picker.demo": "데모 레포로 둘러보기",
+  "picker.demoHint": "가상의 음성 합성 연구 1년치를 담은 예시 레포예요. 버전 5개, 나란히 비교한 가설들, 의도·스펙 문서를 볼 수 있어요.",
 
   // Settings
   "settings.title": "설정",
