@@ -241,6 +241,7 @@ export const ko = {
   "world.noSettingsBody": "그 레포의 README에 어떤 연구를 어디에 놓을지 적으면 이 지도가 만들어져요.",
   "world.failed": "지도를 읽지 못했어요: {error}",
   "world.land": "아일랜드",
+  "hint.world": "드래그 이동 · 휠 확대 · 섬을 누르면 그 연구로",
   "world.lockedName": "아직 열리지 않은 섬",
   "world.lockedSub": "권한이 있는 계정으로 로그인하면 열려요",
   "world.lockedTitle": "{repo}: 접근 권한이 필요해요",

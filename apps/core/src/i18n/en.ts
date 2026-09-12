@@ -243,6 +243,7 @@ export const en: Record<MessageKey, string> = {
   "world.noSettingsBody": "Say which research goes where in that repository's README and this map appears.",
   "world.failed": "Couldn't read the map: {error}",
   "world.land": "Island",
+  "hint.world": "Drag to move · wheel to zoom · click an island to open it",
   "world.lockedName": "Locked island",
   "world.lockedSub": "Sign in with an account that has access",
   "world.lockedTitle": "{repo}: you need access to this one",

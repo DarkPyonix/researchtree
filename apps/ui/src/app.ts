@@ -33,6 +33,7 @@ import {
   type MessageKey,
   type TreeConfig,
 } from "@researchtree/core";
+import * as THREE from "three";
 import { followColorScheme } from "./colorscheme";
 import { paintSystemBars } from "./systembars";
 import { append, clear, h, icon } from "./dom";
@@ -368,16 +369,12 @@ class App {
     if (!world.map) return void this.showWorld(world.user);
     this.tree = null;
     this.setUrl({ repo: null, node: null });
-    const canvas = h("div", { class: "canvas" });
+    const canvas = h("div", { class: "canvas is-3d" });
+    const hint = h("div", { class: "hint" }, t("hint.world"));
     const toast = h("div", { class: "toast", role: "status", "aria-live": "polite" });
-    const shellEl = h("div", { class: "shell" }, canvas, toast);
+    const shellEl = h("div", { class: "shell" }, canvas, hint, toast);
     this.mount(shellEl);
     this.banner = new ScrollBanner(shellEl);
-    const view = new World(canvas, {
-      onOpen: (research) => void this.openRepo(research.repo),
-      locked: (repo) => this.locked.has(repo),
-    });
-    view.render(world.map);
     shellEl.append(this.worldCard(world.user));
     if (message) {
       toast.textContent = message;
@@ -385,7 +382,71 @@ class App {
       setTimeout(() => toast.classList.remove("show"), 4200);
     }
     this.banner.show({ eyebrow: t("world.land"), title: t("world.title", { user: world.user }) });
-    if (world.map.islands.length === 0) canvas.append(h("p", { class: "world-empty muted" }, t("world.empty")));
+    if (!islandResearch(world.map).length) {
+      canvas.append(h("p", { class: "world-empty muted" }, t("world.empty")));
+      return;
+    }
+
+    // The map is the viewer's own islands, side by side on one sea: drag or scroll to sail between.
+    this.view?.destroy();
+    this.view = new Tree3D(
+      canvas,
+      {
+        onSelect: (id) => this.onWorldSelect(id),
+        insets: () => ({ top: 150, left: 16, right: 16, bottom: 96 }),
+        onTime: () => {},
+      },
+      false,
+      "island",
+    );
+    paintSystemBars(true);
+    void this.loadWorldTrees(world.map);
+  }
+
+  /** Sail into whatever was clicked: any plant or stone opens the research it grows on. */
+  private onWorldSelect(id: string | null): void {
+    const repo = id?.split("\u0000")[0];
+    if (repo?.includes("/")) void this.openRepo(repo);
+  }
+
+  /**
+   * Every research on the map, read and built into one scene. They arrive one at a time, so the
+   * first island is on screen while the rest are still loading.
+   */
+  private async loadWorldTrees(map: IslandMap): Promise<void> {
+    const entries: { tree: ResearchTree; filter: ViewFilter; offset: THREE.Vector3 }[] = [];
+    const research = islandResearch(map);
+    const spacing = 150;
+    for (const [i, item] of research.entries()) {
+      const at = this.mapPlace(map, item, spacing);
+      let tree: ResearchTree;
+      try {
+        const config = repoFileConfig({ root: item.root, prefix: item.prefix });
+        const [prs, tags] = await Promise.all([
+          this.gh.listPulls(item.repo),
+          this.gh.listVersionTags(item.repo, config.root).catch(() => []),
+        ]);
+        tree = buildTree(prs, item.repo, config, tags, new Map());
+      } catch {
+        this.locked.add(item.repo);
+        continue;
+      }
+      entries.push({ tree, filter: { hidden: new Set(), metrics: new Map() }, offset: at });
+      if (!this.view || this.world === null) return;
+      this.view.renderWorld(entries);
+      if (i === 0) this.view.fit(undefined, false);
+    }
+    this.view?.fit(undefined, false);
+  }
+
+  /** Where one research's island sits on the sea: its place in its land, and the land's on the map. */
+  private mapPlace(map: IslandMap, item: { repo: string }, spacing: number): THREE.Vector3 {
+    for (const land of map.islands) {
+      const at = land.repos.find((r) => r.repo === item.repo);
+      if (!at) continue;
+      return new THREE.Vector3(land.at[0] * spacing * 2.4 + at.at[0] * spacing, 0, land.at[1] * spacing * 2.4 + at.at[1] * spacing);
+    }
+    return new THREE.Vector3();
   }
 
   /** Who the map belongs to: their own introduction, and their résumé when they published one. */

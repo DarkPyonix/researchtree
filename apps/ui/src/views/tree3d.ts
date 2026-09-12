@@ -227,8 +227,16 @@ export class Tree3D implements TreeViewApi {
 
   private visuals = new Map<string, NodeVisual>();
   private rootVisual: NodeVisual | null = null;
+  /** True while several research islands share the sea: node ids carry their repository. */
+  private scoped = false;
+  /** Island bounds accumulate across every tree in the scene. */
+  private islandFresh = true;
   /** The research intro rock beside the first version, and its label. */
   private reef: THREE.Group | null = null;
+  /** Every reef in the scene: one per research island. */
+  private reefs: { group: THREE.Group; label: HTMLElement }[] = [];
+  /** One name per research island, floating over it on the world map. */
+  private islandNames: { label: HTMLElement; at: THREE.Vector3 }[] = [];
   private reefPos: THREE.Vector3 | null = null;
   private reefLabel: HTMLElement | null = null;
   private paths: PathVisual[] = [];
@@ -309,7 +317,7 @@ export class Tree3D implements TreeViewApi {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.09;
     this.controls.screenSpacePanning = true;
-    this.controls.minZoom = 0.08; // far enough out to see a long research history at once
+    this.controls.minZoom = 0.03; // far enough out for a whole map of research islands
     this.controls.maxZoom = 4;
     this.controls.minPolarAngle = 0.35;
     this.controls.maxPolarAngle = 1.2;
@@ -392,6 +400,9 @@ export class Tree3D implements TreeViewApi {
     this.reef = null;
     this.reefPos = null;
     this.reefLabel = null;
+    this.reefs = [];
+    this.islandNames = [];
+    this.islandFresh = true;
     this.paths = [];
     this.clouds = [];
     this.flatOnly = [];
@@ -413,6 +424,31 @@ export class Tree3D implements TreeViewApi {
     const firstForTree = this.tree?.repo !== tree.repo;
     this.tree = tree;
     this.clearWorld();
+    this.scoped = false;
+    this.labels.classList.remove("world");
+    this.buildTree(tree, filter, new THREE.Vector3());
+    this.finish(firstForTree);
+  }
+
+  /**
+   * Several research islands on one sea (docs/ISLAND.md): the account's whole map, drawn with the
+   * same islands the viewer sails into. Node ids are scoped by repository, because two repositories
+   * may well both have an `experiment/warmup`.
+   */
+  renderWorld(entries: { tree: ResearchTree; filter: ViewFilter; offset: THREE.Vector3 }[]): void {
+    this.tree = entries[0]?.tree ?? null;
+    this.clearWorld();
+    this.scoped = true;
+    // On a map of islands the plants keep their shapes but lose their chips: only the research's
+    // own name is readable at this distance.
+    this.labels.classList.add("world");
+    for (const entry of entries) this.buildTree(entry.tree, entry.filter, entry.offset);
+    this.finish(true);
+  }
+
+  /** Where one research's island sits, and everything on it. */
+  private buildTree(tree: ResearchTree, filter: ViewFilter, offset: THREE.Vector3): void {
+    const scope = this.scoped ? tree.repo : "";
     const rand = mulberry32(hash(tree.repo));
 
     // Layout: the time-axis placement, mapped onto the ground plane.
@@ -423,8 +459,9 @@ export class Tree3D implements TreeViewApi {
     const zs = pts.map((p) => p.row * ROW_STEP);
     const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
     const cz = (Math.min(...zs) + Math.max(...zs)) / 2;
-    const worldOf = (p: (typeof pts)[number]) => new THREE.Vector3(p.x * unit - cx, 0, p.row * ROW_STEP - cz);
-    this.dateAtX = placement.timed ? (x) => placement.xToDate((x + cx) / unit) : null;
+    const worldOf = (p: (typeof pts)[number]) => new THREE.Vector3(p.x * unit - cx + offset.x, 0, p.row * ROW_STEP - cz + offset.z);
+    // The time axis belongs to one research; a whole map of them has no single one.
+    this.dateAtX = this.scoped ? null : placement.timed ? (x) => placement.xToDate((x + cx) / unit) : null;
 
     const colors = new Map([...branchColors(tree)].map(([id, c]) => [id, tint(c, "#ffffff", 0.08)]));
 
@@ -452,17 +489,36 @@ export class Tree3D implements TreeViewApi {
 
     for (const p of pts) {
       const pos = positions.get(p.data.id)!;
-      if (p.data.node) this.visuals.set(p.data.id, this.buildExperiment(p.data.node, pos, colors.get(p.data.id) ?? "#999999", p.depth, filter));
-      else if (p.data.version) this.visuals.set(p.data.id, this.buildVersion(tree.root, p.data.version, pos, p.depth));
+      const id = scope ? `${scope}\u0000${p.data.id}` : p.data.id;
+      if (p.data.node) this.visuals.set(id, this.rescope(this.buildExperiment(p.data.node, pos, colors.get(p.data.id) ?? "#999999", p.depth, filter), id));
+      else if (p.data.version) this.visuals.set(id, this.rescope(this.buildVersion(tree.root, p.data.version, pos, p.depth), id));
       else {
-        this.rootVisual = this.buildRoot(tree.root, tree.rootVersion, pos);
+        const root = this.rescope(this.buildRoot(tree.root, tree.rootVersion, pos), id);
+        if (scope) this.visuals.set(id, root);
+        else this.rootVisual = root;
         // The reef in the water beside the first version: what this research is about (docs/ISLAND.md).
-        this.buildReef(pos, ground);
+        this.buildReef(pos, ground, scope);
       }
     }
 
     this.buildEffects(rand);
+    if (scope) this.nameIsland(tree, offset);
+  }
 
+  /** The research's name, written over its island, so a sea of them stays readable. */
+  private nameIsland(tree: ResearchTree, offset: THREE.Vector3): void {
+    const label = this.makeLabel(`${tree.repo}\u0000`, tree.repo.split("/")[1] ?? tree.repo, tree.repo, "island-name");
+    this.islandNames.push({ label, at: offset.clone() });
+  }
+
+  /** A visual and its group answer to the scoped id, so a click says which research it was. */
+  private rescope(v: NodeVisual, id: string): NodeVisual {
+    if (id === v.id) return v;
+    v.group.userData.nodeId = id;
+    return { ...v, id };
+  }
+
+  private finish(firstForTree: boolean): void {
     const span = Math.max(this.island.maxX - this.island.minX, this.island.maxZ - this.island.minZ) / 2 + 6;
     const cam = this.sun.shadow.camera;
     cam.left = cam.bottom = -span;
@@ -711,7 +767,15 @@ export class Tree3D implements TreeViewApi {
     const maxX = Math.max(...ps.map((p) => p.x)) + 7;
     const minZ = Math.min(...ps.map((p) => p.z)) - 5;
     const maxZ = Math.max(...ps.map((p) => p.z)) + 5;
-    this.island = { minX, maxX, minZ, maxZ };
+    this.island = this.islandFresh
+      ? { minX, maxX, minZ, maxZ }
+      : {
+          minX: Math.min(this.island.minX, minX),
+          maxX: Math.max(this.island.maxX, maxX),
+          minZ: Math.min(this.island.minZ, minZ),
+          maxZ: Math.max(this.island.maxZ, maxZ),
+        };
+    this.islandFresh = false;
 
     const groups = [...seeds.values()];
     const cells: { x: number; z: number; edge: boolean; h: number }[] = [];
@@ -993,9 +1057,9 @@ export class Tree3D implements TreeViewApi {
    * A rock standing in the water off the first version, with a sign on it. Clicking it opens the
    * research intro, so a visitor can read what this is before walking the tree.
    */
-  private buildReef(rootPos: THREE.Vector3, ground: Set<string>): void {
+  private buildReef(rootPos: THREE.Vector3, ground: Set<string>, scope = ""): void {
     const g = new THREE.Group();
-    this.reefPos = null;
+    if (!scope) this.reefPos = null;
     // Just off the island's west shore, level with the first version: open water, and in frame
     // whenever the first version is.
     // In the water off the island's west shore, level with the first version: the island is drawn
@@ -1004,7 +1068,7 @@ export class Tree3D implements TreeViewApi {
     const z = rootPos.z;
     for (let i = 0; i < 6 && ground.has(`${Math.round(x)},${Math.round(z)}`); i++) x -= 1;
     g.position.set(x, SEA_Y, z);
-    g.userData.nodeId = INTRO_ID;
+    g.userData.nodeId = scope ? `${scope}\u0000${INTRO_ID}` : INTRO_ID;
     const [rock, rockLight, moss, board, post] = this.nodeMaterials([COLORS.rock[0]!, COLORS.rock[1]!, COLORS.bush[0]!, "#f3e7c9", COLORS.trunk]);
     // Big enough to read as a landmark from the opening view, not a pebble.
     this.box(g, rock!, 5.4, 2.2, 5, 0, 0, 0);
@@ -1014,10 +1078,14 @@ export class Tree3D implements TreeViewApi {
     // A signboard on a post: this is something to read, not scenery.
     this.box(g, post!, 0.3, 2, 0.3, 1, 3.8, 1);
     this.box(g, board!, 3.2, 1.7, 0.24, 1, 5.4, 1);
-    this.reef = g;
-    this.reefPos = g.position.clone();
     this.world.add(g);
-    this.reefLabel = this.makeLabel(INTRO_ID, t("intro.reef"), t("intro.reefSub"), "reef");
+    const label = this.makeLabel(g.userData.nodeId as string, t("intro.reef"), t("intro.reefSub"), "reef");
+    this.reefs.push({ group: g, label });
+    if (!scope) {
+      this.reef = g;
+      this.reefPos = g.position.clone();
+      this.reefLabel = label;
+    }
   }
 
   private buildExperiment(node: TreeNode, pos: THREE.Vector3, color: string, depth: number, filter: ViewFilter): NodeVisual {
@@ -1168,7 +1236,7 @@ export class Tree3D implements TreeViewApi {
     const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
     this.raycaster.setFromCamera(ndc, this.camera);
     const groups = [...this.visuals.values(), ...(this.rootVisual ? [this.rootVisual] : [])].map((v) => v.group);
-    if (this.reef) groups.push(this.reef);
+    for (const reef of this.reefs) groups.push(reef.group);
     for (const hit of this.raycaster.intersectObjects(groups, true)) {
       let o: THREE.Object3D | null = hit.object;
       while (o && !("nodeId" in o.userData)) o = o.parent;
@@ -1261,8 +1329,9 @@ export class Tree3D implements TreeViewApi {
       ey = Math.max(ey, Math.abs(p.dot(camUp)));
     }
     const single = vs.length === 1;
-    ex = ex * 2 + (single ? 16 : 7);
-    ey = ey * 2 + (single ? 10 : 5);
+    // A map of islands needs sea around it; one island needs only a little air.
+    ex = ex * 2 + (this.scoped ? 110 : single ? 16 : 7);
+    ey = ey * 2 + (this.scoped ? 80 : single ? 10 : 5);
 
     const { w, h } = this.size();
     const i = this.opts.insets();
@@ -1545,9 +1614,13 @@ export class Tree3D implements TreeViewApi {
       v3.set(m.pos.x, 0.2, m.pos.z).project(this.camera);
       targets.push([m.label, ((v3.x + 1) / 2) * w, ((1 - v3.y) / 2) * h]);
     }
-    if (this.reef && this.reefLabel) {
-      v3.set(this.reef.position.x, 7.6, this.reef.position.z).project(this.camera);
-      targets.push([this.reefLabel, ((v3.x + 1) / 2) * w, ((1 - v3.y) / 2) * h]);
+    for (const reef of this.reefs) {
+      v3.set(reef.group.position.x, 7.6, reef.group.position.z).project(this.camera);
+      targets.push([reef.label, ((v3.x + 1) / 2) * w, ((1 - v3.y) / 2) * h]);
+    }
+    for (const name of this.islandNames) {
+      v3.set(name.at.x, 16, name.at.z).project(this.camera);
+      targets.push([name.label, ((v3.x + 1) / 2) * w, ((1 - v3.y) / 2) * h]);
     }
 
     // A pure pan: every chip is off its base position by the same vector.
