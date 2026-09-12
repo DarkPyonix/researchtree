@@ -36,6 +36,12 @@ const TREE_THETA = -Math.PI / 2;
  */
 export type Heading = "island" | "tree";
 
+/** Node id of the research intro reef: not a branch, so it can never clash with one. */
+export const INTRO_ID = "__intro";
+
+/** Water level: the reef and the ferries sit on it. */
+const SEA_Y = -0.62;
+
 const COLORS = {
   grass: ["#a7d38b", "#b0d994", "#9fcc84", "#b8dd9d", "#a3cf88"],
   sand: ["#efdcae", "#ead5a2", "#f2e3bb"],
@@ -221,6 +227,10 @@ export class Tree3D implements TreeViewApi {
 
   private visuals = new Map<string, NodeVisual>();
   private rootVisual: NodeVisual | null = null;
+  /** The research intro rock beside the first version, and its label. */
+  private reef: THREE.Group | null = null;
+  private reefPos: THREE.Vector3 | null = null;
+  private reefLabel: HTMLElement | null = null;
   private paths: PathVisual[] = [];
   private clouds: THREE.Group[] = [];
   /** Shown only in the flat mode: dashed crossings over the water, so branches stay connected. */
@@ -379,6 +389,9 @@ export class Tree3D implements TreeViewApi {
     this.labels.replaceChildren();
     this.visuals.clear();
     this.rootVisual = null;
+    this.reef = null;
+    this.reefPos = null;
+    this.reefLabel = null;
     this.paths = [];
     this.clouds = [];
     this.flatOnly = [];
@@ -441,7 +454,11 @@ export class Tree3D implements TreeViewApi {
       const pos = positions.get(p.data.id)!;
       if (p.data.node) this.visuals.set(p.data.id, this.buildExperiment(p.data.node, pos, colors.get(p.data.id) ?? "#999999", p.depth, filter));
       else if (p.data.version) this.visuals.set(p.data.id, this.buildVersion(tree.root, p.data.version, pos, p.depth));
-      else this.rootVisual = this.buildRoot(tree.root, tree.rootVersion, pos);
+      else {
+        this.rootVisual = this.buildRoot(tree.root, tree.rootVersion, pos);
+        // The reef in the water beside the first version: what this research is about (docs/ISLAND.md).
+        this.buildReef(pos, ground);
+      }
     }
 
     this.buildEffects(rand);
@@ -972,6 +989,37 @@ export class Tree3D implements TreeViewApi {
     return v;
   }
 
+  /**
+   * A rock standing in the water off the first version, with a sign on it. Clicking it opens the
+   * research intro, so a visitor can read what this is before walking the tree.
+   */
+  private buildReef(rootPos: THREE.Vector3, ground: Set<string>): void {
+    const g = new THREE.Group();
+    this.reefPos = null;
+    // Just off the island's west shore, level with the first version: open water, and in frame
+    // whenever the first version is.
+    // In the water off the island's west shore, level with the first version: the island is drawn
+    // out to island.minX, so a step beyond that is always sea, however the tree is shaped.
+    let x = this.island.minX - 3.5;
+    const z = rootPos.z;
+    for (let i = 0; i < 6 && ground.has(`${Math.round(x)},${Math.round(z)}`); i++) x -= 1;
+    g.position.set(x, SEA_Y, z);
+    g.userData.nodeId = INTRO_ID;
+    const [rock, rockLight, moss, board, post] = this.nodeMaterials([COLORS.rock[0]!, COLORS.rock[1]!, COLORS.bush[0]!, "#f3e7c9", COLORS.trunk]);
+    // Big enough to read as a landmark from the opening view, not a pebble.
+    this.box(g, rock!, 5.4, 2.2, 5, 0, 0, 0);
+    this.box(g, rockLight!, 4, 1.6, 3.6, 0.3, 2.2, 0.2);
+    this.box(g, rock!, 2.4, 1.8, 2.2, -0.8, 3.8, -0.5);
+    this.box(g, moss!, 3, 0.2, 2.6, 0.5, 3.8, 0.5);
+    // A signboard on a post: this is something to read, not scenery.
+    this.box(g, post!, 0.3, 2, 0.3, 1, 3.8, 1);
+    this.box(g, board!, 3.2, 1.7, 0.24, 1, 5.4, 1);
+    this.reef = g;
+    this.reefPos = g.position.clone();
+    this.world.add(g);
+    this.reefLabel = this.makeLabel(INTRO_ID, t("intro.reef"), t("intro.reefSub"), "reef");
+  }
+
   private buildExperiment(node: TreeNode, pos: THREE.Vector3, color: string, depth: number, filter: ViewFilter): NodeVisual {
     const g = new THREE.Group();
     g.position.copy(pos);
@@ -1120,6 +1168,7 @@ export class Tree3D implements TreeViewApi {
     const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
     this.raycaster.setFromCamera(ndc, this.camera);
     const groups = [...this.visuals.values(), ...(this.rootVisual ? [this.rootVisual] : [])].map((v) => v.group);
+    if (this.reef) groups.push(this.reef);
     for (const hit of this.raycaster.intersectObjects(groups, true)) {
       let o: THREE.Object3D | null = hit.object;
       while (o && !("nodeId" in o.userData)) o = o.parent;
@@ -1202,12 +1251,14 @@ export class Tree3D implements TreeViewApi {
 
     let ex = 0;
     let ey = 0;
-    for (const v of vs) {
-      for (const y of [0, v.top + 1.5]) {
-        const p = v.pos.clone().setY(y).sub(center);
-        ex = Math.max(ex, Math.abs(p.dot(right)));
-        ey = Math.max(ey, Math.abs(p.dot(camUp)));
-      }
+    const corners: THREE.Vector3[] = [];
+    for (const v of vs) for (const y of [0, v.top + 1.5]) corners.push(v.pos.clone().setY(y));
+    // Fitting everything means the research intro rock too, or it would start off screen.
+    if (!ids && this.reefPos) corners.push(this.reefPos.clone().setY(0), this.reefPos.clone().setY(8));
+    for (const c of corners) {
+      const p = c.sub(center);
+      ex = Math.max(ex, Math.abs(p.dot(right)));
+      ey = Math.max(ey, Math.abs(p.dot(camUp)));
     }
     const single = vs.length === 1;
     ex = ex * 2 + (single ? 16 : 7);
@@ -1493,6 +1544,10 @@ export class Tree3D implements TreeViewApi {
     for (const m of this.yearMarks) {
       v3.set(m.pos.x, 0.2, m.pos.z).project(this.camera);
       targets.push([m.label, ((v3.x + 1) / 2) * w, ((1 - v3.y) / 2) * h]);
+    }
+    if (this.reef && this.reefLabel) {
+      v3.set(this.reef.position.x, 7.6, this.reef.position.z).project(this.camera);
+      targets.push([this.reefLabel, ((v3.x + 1) / 2) * w, ((1 - v3.y) / 2) * h]);
     }
 
     // A pure pan: every chip is off its base position by the same vector.

@@ -6,4 +6,5 @@ export * from "./tree";
 export * from "./host";
 export * from "./github";
 export * from "./spec";
+export * from "./island";
 export type * from "./extension-protocol";

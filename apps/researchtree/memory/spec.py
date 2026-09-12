@@ -26,6 +26,7 @@ _ID_RE = re.compile(r"<!--\s*id:\s*([A-Za-z0-9._-]+)\s*-->")
 _ID_LINE_RE = re.compile(r"^\s*<!--\s*id:\s*([A-Za-z0-9._-]+)\s*-->\s*$")
 _INCLUDE_RE = re.compile(r"^\s*<!--\s*include:\s*(\S+?)\s*-->\s*$")
 _PREFIX_RE = re.compile(r"^(?!/)(?!.*//)(?!.*\.\.)[A-Za-z0-9._\-/]+/$")
+_BRANCH_RE = re.compile(r"^(?!/)(?!.*//)(?!.*\.\.)(?!.*/$)[A-Za-z0-9._\-/]+$")
 _SCHEME_RE = re.compile(r"^[a-z][a-z0-9+.-]*:", re.IGNORECASE)
 
 
@@ -350,14 +351,20 @@ def parse_repo_config(text: str) -> tuple[dict[str, str], list[dict[str, str]]]:
     if not isinstance(data, dict):
         return config, [{"code": "not-mapping"}]
     for key, value in data.items():
-        if key == "prefix":
+        if key == "root":
+            root = value.strip() if isinstance(value, str) else ""
+            if root and _BRANCH_RE.match(root):
+                config["root"] = root
+            else:
+                warnings.append({"code": "invalid-branch", "key": "root"})
+        elif key == "prefix":
             p = value.strip() if isinstance(value, str) else ""
             if p and not p.endswith("/"):
                 p += "/"
             if _PREFIX_RE.match(p):
                 config["prefix"] = p
             else:
-                warnings.append({"code": "invalid-prefix", "key": "prefix"})
+                warnings.append({"code": "invalid-branch", "key": "prefix"})
         elif key in ("spec", "intent"):
             path = join_path("", value.strip()) if isinstance(value, str) else None
             if path:
@@ -366,4 +373,8 @@ def parse_repo_config(text: str) -> tuple[dict[str, str], list[dict[str, str]]]:
                 warnings.append({"code": "invalid-path", "key": key})
         else:
             warnings.append({"code": "unknown-key", "key": str(key)})
+    # A root the prefix would swallow is not a root: every experiment would look like the trunk.
+    if config.get("root") and config.get("prefix") and config["root"].startswith(config["prefix"]):
+        del config["root"]
+        warnings.append({"code": "invalid-branch", "key": "root"})
     return config, warnings

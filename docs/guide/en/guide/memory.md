@@ -23,7 +23,7 @@ print(research.manifest())                   # start here
 ```
 
 - It uses the token you saved with `researchtree login`, or `RESEARCHTREE_TOKEN`. Public repos read fine with no token.
-- If your root branch or prefix isn't the default, pass them in like `rt.load(root="trunk", prefix="exp/")`, or set `RESEARCHTREE_ROOT` and `RESEARCHTREE_PREFIX`.
+- The root branch and the prefix come from the repository's `.researchtree.yml`. To read one repository differently just this once, pass them in: `rt.load(root="trunk", prefix="exp/")`.
 - The tree is built with the same rules as the viewer ([tree rules](/rules/tree-rules)). Both implementations are checked against the same test fixtures.
 
 ## Going from the top down

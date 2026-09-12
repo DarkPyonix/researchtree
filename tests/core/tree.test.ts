@@ -178,8 +178,8 @@ describe("normalizeTreeConfig", () => {
   });
 
   it("잘못된 이름을 거부한다", () => {
-    expect(normalizeTreeConfig({ root: "a..b" })).toHaveProperty("error");
-    expect(normalizeTreeConfig({ root: "exp/x", prefix: "exp/" })).toHaveProperty("error");
+    expect(normalizeTreeConfig({ root: "a..b" })).toBeNull();
+    expect(normalizeTreeConfig({ root: "exp/x", prefix: "exp/" })).toBeNull();
   });
 
   it("설정한 이름으로 트리를 만든다", () => {

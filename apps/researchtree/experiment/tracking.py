@@ -14,10 +14,32 @@ from . import body
 DEFAULT_PREFIX = "experiment/"
 
 
-def experiment_prefix() -> str:
-    """Experiment branch prefix; override with RESEARCHTREE_PREFIX to match the viewer's branch settings."""
-    prefix = os.environ.get("RESEARCHTREE_PREFIX", "").strip() or DEFAULT_PREFIX
-    return prefix if prefix.endswith("/") else prefix + "/"
+_prefix_cache: dict[str, str] = {}
+
+
+def experiment_prefix(repo: str | None = None, token: str | None = None) -> str:
+    """The repository's experiment branch prefix, from its own `.researchtree.yml` (docs/CONVENTIONS.md).
+
+    One reading per process: a training run asks for this on every log call.
+    """
+    if not repo:
+        return DEFAULT_PREFIX
+    if repo not in _prefix_cache:
+        from ..memory.source import Source
+        from ..memory.spec import parse_repo_config
+
+        prefix = DEFAULT_PREFIX
+        try:
+            src = Source(repo, token)
+            for ref in (src.default_branch(), "research"):
+                text = src.file_text(".researchtree.yml", ref) if ref else None
+                if text is not None:
+                    prefix = parse_repo_config(text)[0].get("prefix") or DEFAULT_PREFIX
+                    break
+        except Exception:  # no access, or no such file: the default is right often enough
+            pass
+        _prefix_cache[repo] = prefix if prefix.endswith("/") else prefix + "/"
+    return _prefix_cache[repo]
 STATUSES = body.STATUSES
 
 
@@ -50,15 +72,15 @@ def _apply(edit: Callable[[str], str]) -> None:
         return
     try:
         branch = git.current_branch()
-        prefix = experiment_prefix()
-        if not branch or not branch.startswith(prefix):
-            raise _Skip(t("track.notExperiment", branch=branch or t("track.unknownBranch"), prefix=prefix))
         repo = os.environ.get("RESEARCHTREE_REPO") or git.origin_repo()
         if not repo:
             raise _Skip(t("track.noRepo"))
         token = tokens.load_token()
         if not token:
             raise _Skip(t("track.noToken"))
+        prefix = experiment_prefix(repo, token)
+        if not branch or not branch.startswith(prefix):
+            raise _Skip(t("track.notExperiment", branch=branch or t("track.unknownBranch"), prefix=prefix))
 
         number = _find_pr(token, repo, branch)["number"]
         last: Exception | None = None

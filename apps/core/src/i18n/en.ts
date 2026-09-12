@@ -70,7 +70,8 @@ export const en: Record<MessageKey, string> = {
   "brand.dimStatus": "Dim {status} experiments",
   "brand.subVersions": "{root} · {count} {count|version|versions} · {depth} {depth|generation|generations}",
   "brand.subBranches": "{count} {count|branch|branches} from {root} · {depth} {depth|generation|generations}",
-  "brand.empty": "No {prefix}* PRs yet. Branch your first experiment off {root} and open a PR.",
+  "brand.empty": "No {prefix}* PRs yet.",
+  "brand.emptyNext": "Branch your first experiment off {root} and open a PR.",
   "gens.nav": "Generations",
   "gens.label": "Gen",
   "gens.prev": "Previous generation",
@@ -110,13 +111,9 @@ export const en: Record<MessageKey, string> = {
   "settings.sourceBrowser": "browser language",
   "settings.sourceVscode": "VS Code language",
   "settings.languageNote": "The language applies to every repository.",
-  "settings.branchTitle": "Branch settings",
-  "settings.branchBody": "Choose the branch used as the root of the research tree in this repo, and the prefix of experiment branch names. Settings are saved per repo in this browser.",
-  "settings.rootBranch": "Root branch",
-  "settings.prefix": "Experiment branch prefix",
-  "settings.preview": "e.g. {root} ← {prefix}my-idea (PR base: {root}, tags: {root}/v1, {root}/v2 …)",
+  "settings.branchTitle": "Branches",
+  "settings.branchBody": "The root branch and the experiment prefix come from the repository's .researchtree.yml. One file per repository, so everyone who opens it sees the same tree.",
   "settings.save": "Save and reload",
-  "settings.defaults": "Defaults",
 
   // Detail panel
   "panel.path": "Path",
@@ -221,6 +218,42 @@ export const en: Record<MessageKey, string> = {
   "web.noClientId": "The OAuth App client ID is not configured (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "The OAuth App client ID is not configured.",
 
+  // Research intro reef, beside research v1
+  "intro.reef": "About this research",
+  "intro.reefSub": "what this research is",
+  "intro.title": "About this research",
+  "intro.overview": "Overview",
+  "intro.project": "Project goal",
+  "intro.research": "Research goal",
+  "intro.intent": "Intent",
+  "intro.spec": "Spec",
+  "intro.empty": "No documents to read. Put a README.md on the root branch and it shows up here.",
+  "intro.loading": "Reading the documents…",
+  "intro.failed": "Couldn't read the documents: {error}",
+  "intro.source": "{path} at {ref}",
+
+  // Island (docs/ISLAND.md): one map for everything an account researches
+  "world.title": "{user}'s research",
+  "world.researchCount": "{count} research",
+  "world.portal": "Into {name}",
+  "world.back": "Back to the map",
+  "world.empty": "No research on the map yet. `researchtree island add` puts some there.",
+  "world.noSettings": "{user} has no .researchisland repository.",
+  "world.noSettingsBody": "Say which research goes where in that repository's README and this map appears.",
+  "world.failed": "Couldn't read the map: {error}",
+  "world.land": "Island",
+  "world.locked": "Can't open {repo}. A private repository needs an account with access to it.",
+
+  // The researcher: their introduction and résumé
+  "profile.open": "About the researcher",
+  "profile.resume": "Résumé",
+  "profile.title": "{user}",
+  "profile.fromSettings": "PROFILE.md",
+  "profile.fromAccount": "GitHub profile README",
+
+  // The scroll that names where you just arrived
+  "banner.research": "Research",
+
   // Board view: the stages a PR actually goes through
   "board.draft": "Draft",
   "board.working": "In progress",
@@ -256,9 +289,6 @@ export const en: Record<MessageKey, string> = {
   "webview.timeout": "The VS Code extension did not respond in time ({type})",
 
   // Core
-  "config.invalidRoot": "The root branch name is invalid.",
-  "config.invalidPrefix": "The experiment branch prefix is invalid.",
-  "config.rootInPrefix": "The root branch must not start with the experiment branch prefix.",
   "prbody.parseError": "The YAML block in the PR body could not be parsed, so it was not modified.",
   "prbody.notMap": "The YAML block in the PR body is not in key: value form.",
   "github.invalidPath": "GitHub API path not allowed: {path}",
@@ -314,6 +344,7 @@ export const en: Record<MessageKey, string> = {
   "spec.expRunning": "The experiment is still running. If it is adopted, this change goes into research.",
   "spec.expNone": "This experiment didn't change the spec.",
   "spec.expNoFile": "This repo has no spec file ({path}).",
-  "config.repoFile": "This repo's .researchtree.yml sets the experiment prefix to {prefix}. The repo setting comes before the values below.",
+  "config.branches": "This repository is read with root {root} and experiments {prefix}*.",
+  "config.defaults": "The repository has no settings file, so the defaults are used.",
   "config.repoWarnings": "Ignored in .researchtree.yml: {items}",
 };

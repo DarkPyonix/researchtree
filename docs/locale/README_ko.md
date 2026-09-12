@@ -118,7 +118,7 @@ gitGraph
 
 > [!TIP]
 > 루트 브랜치 이름(`research`)과 실험 브랜치 접두사(`experiment/`)는 기본값일 뿐입니다.
-> 뷰어의 **브랜치 설정**에서 레포마다 바꿀 수 있습니다. 학습 스크립트 API도 같은 접두사를 쓰도록 `RESEARCHTREE_PREFIX`를 지정하세요.
+> 레포의 기본 브랜치에 `.researchtree.yml`을 두고 `root`와 `prefix`를 적으면 뷰어와 CLI, 학습 스크립트가 모두 그 이름을 씁니다.
 
 ### PR 본문이 실험 일지다
 
@@ -314,7 +314,6 @@ rt.conclude("rejected", "수렴이 느림")    # status 설정 + '## 결론' 섹
 | 환경변수 | 용도 |
 |---|---|
 | `RESEARCHTREE_TOKEN` | GitHub 토큰. `researchtree login`으로 저장한 토큰(OS 키체인 또는 `0600` 파일)보다 우선합니다 |
-| `RESEARCHTREE_PREFIX` | 실험 브랜치 접두사. 기본값 `experiment/` |
 | `RESEARCHTREE_REPO` | `origin` remote에서 알아낼 수 없을 때 쓸 `owner/name` |
 
 ## 🧠 에이전트를 위한 연구 기억

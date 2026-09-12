@@ -1,64 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_TREE_CONFIG } from "@researchtree/core";
-import { mergeConfig, parseSettings, settingParams } from "../../apps/ui/src/settings-url";
+import { parseSettings, settingParams } from "../../apps/ui/src/settings-url";
 
+// Branch names are not here on purpose: they belong to the repository's own .researchtree.yml
+// (docs/CONVENTIONS.md), so a link can never make two people see different trees.
 describe("parseSettings", () => {
-  it("reads every query the settings dialog can set", () => {
-    const s = parseSettings("?repo=lab/moshi&lang=en&root=trunk&prefix=try/");
-    expect(s.locale).toBe("en");
-    expect(s.config).toEqual({ root: "trunk", prefix: "try/" });
-    expect(s.ignored).toEqual([]);
-  });
-
-  it("takes one on its own and ignores spacing", () => {
+  it("reads the language a link asks for", () => {
+    expect(parseSettings("?repo=lab/moshi&lang=en").locale).toBe("en");
     expect(parseSettings("?lang=%20ko%20").locale).toBe("ko");
-    expect(parseSettings("?root=trunk").config).toEqual({ root: "trunk" });
+    expect(parseSettings("?lang=auto").locale).toBe("auto");
   });
 
-  it("keeps a value that contains a slash", () => {
-    expect(parseSettings("?prefix=team/exp/").config).toEqual({ prefix: "team/exp/" });
-  });
-
-  it("ignores empty values and bad languages, and never throws", () => {
-    const s = parseSettings("?lang=fr&root=&prefix=exp/");
-    expect(s.locale).toBeUndefined();
-    expect(s.config).toEqual({ prefix: "exp/" });
-    expect(s.ignored).toEqual(["lang", "root"]);
+  it("ignores an empty or unknown language, and never throws", () => {
+    expect(parseSettings("?lang=fr")).toEqual({ locale: undefined, ignored: ["lang"] });
+    expect(parseSettings("?lang=")).toEqual({ ignored: ["lang"] });
     expect(parseSettings("")).toEqual({ ignored: [] });
     expect(parseSettings("?repo=lab/moshi")).toEqual({ ignored: [] });
+  });
+
+  it("leaves branch queries alone: they are not settings any more", () => {
+    expect(parseSettings("?root=trunk&prefix=try/")).toEqual({ ignored: [] });
   });
 });
 
 describe("settingParams", () => {
-  const defaults = DEFAULT_TREE_CONFIG;
-
-  it("leaves out everything that is at its default", () => {
-    expect(settingParams({ locale: "auto", config: defaults, defaults })).toEqual({ lang: null, root: null, prefix: null });
+  it("writes nothing when the language follows the reader's own", () => {
+    expect(settingParams({ locale: "auto" })).toEqual({ lang: null });
   });
 
-  it("names only what differs", () => {
-    expect(settingParams({ locale: "en", config: { ...defaults, prefix: "try/" }, defaults })).toEqual({ lang: "en", root: null, prefix: "try/" });
-  });
-
-  it("round-trips through parseSettings", () => {
-    const config = { root: "trunk", prefix: "try/" };
+  it("round-trips a chosen language", () => {
     const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(settingParams({ locale: "ko", config, defaults }))) if (value) params.set(key, value);
-    expect(params.toString()).toBe("lang=ko&root=trunk&prefix=try%2F");
-    expect(parseSettings(params)).toEqual({ locale: "ko", config, ignored: [] });
-  });
-});
-
-describe("mergeConfig", () => {
-  const saved = DEFAULT_TREE_CONFIG;
-
-  it("fills the missing half from what is saved", () => {
-    expect(mergeConfig(saved, { root: "trunk" })).toEqual({ root: "trunk", prefix: saved.prefix });
-  });
-
-  it("is null when there is nothing to change or the value is invalid", () => {
-    expect(mergeConfig(saved, undefined)).toBeNull();
-    expect(mergeConfig(saved, { root: saved.root })).toBeNull();
-    expect(mergeConfig(saved, { root: "  " })).toBeNull();
+    for (const [key, value] of Object.entries(settingParams({ locale: "ko" }))) if (value) params.set(key, value);
+    expect(params.toString()).toBe("lang=ko");
+    expect(parseSettings(params)).toEqual({ locale: "ko", ignored: [] });
   });
 });

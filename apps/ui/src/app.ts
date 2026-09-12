@@ -2,6 +2,11 @@ import "./styles.css";
 import {
   buildTree,
   childrenOf,
+  DEFAULT_INTENT_PATH,
+  ISLAND_CONFIG_PATH,
+  ISLAND_CONFIG_REPO,
+  parseIslandMap,
+  type IslandMap,
   DEFAULT_SPEC_PATH,
   DEFAULT_TREE_CONFIG,
   GitHubClient,
@@ -9,7 +14,7 @@ import {
   isRateLimited,
   isTokenRejected,
   LOCALE_KEY,
-  normalizeTreeConfig,
+  repoFileConfig,
   parseRepoConfig,
   REPO_CONFIG_PATH,
   parentOf,
@@ -33,12 +38,17 @@ import { append, clear, h, icon } from "./dom";
 import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
 import { DEMO_REPO, loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
-import { mergeConfig, parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
+import { parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
+import { renderMarkdown } from "./markdown";
 import { statusLabel } from "./theme";
+import { repoBanner, ScrollBanner } from "./scroll-banner";
 import { parseViewState, type ViewState } from "./view-state";
+import { loadIntroDocs } from "./panel/intro-docs";
+import { loadProfile, type Profile } from "./panel/profile";
 import { Kanban } from "./views/kanban";
+import { World } from "./views/world";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
-import { Tree3D, type Heading } from "./views/tree3d";
+import { INTRO_ID, Tree3D, type Heading } from "./views/tree3d";
 import type { ViewFilter, ViewOptions } from "./views/view";
 
 const RECENT_KEY = "recentRepos";
@@ -47,7 +57,6 @@ const metricsKey = (repo: string) => `islandMetrics:${repo}`;
 const BOARD_KEY = "board";
 const MODE_KEY = "viewMode";
 const BRAND_KEY = "brandCollapsed";
-const configKey = (repo: string) => `config:${repo}`;
 const GUIDE_URL = "https://darkpyonix.github.io/researchtree/guide/";
 const PROJECT_URL = "https://github.com/DarkPyonix/researchtree";
 
@@ -104,9 +113,15 @@ class App {
   private kanban: Kanban | null = null;
   /** Camera from a saved view, waiting for the 3D view to exist. */
   private restoreCamera: number[] | null = null;
+  private banner: ScrollBanner | null = null;
+  /** The account map, when the viewer was opened with ?user=. */
+  private world: { user: string; map: IslandMap } | null = null;
+  private profile: Profile | null = null;
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
   /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
   private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
+  /** What the repository says about itself, for the scroll that names it. */
+  private repoDescription: string | null = null;
   private stage: { canvas: HTMLElement; hint: HTMLElement; options: ViewOptions; boardInsets: () => { top: number; right: number; bottom: number } } | null = null;
   private panel: Panel | null = null;
   private selected: string | null = null;
@@ -137,6 +152,8 @@ class App {
     this.view = null;
     this.kanban?.destroy();
     this.kanban = null;
+    this.banner?.destroy();
+    this.banner = null;
     this.stage = null;
     this.panel = null;
     this.shell = null;
@@ -159,6 +176,8 @@ class App {
       );
       return;
     }
+    const user = urlParam("user");
+    if (user && !urlParam("repo")) return this.showWorld(user);
     const saved = urlParam("repo") ? null : parseViewState(this.host.capabilities.viewState?.load());
     if (saved) this.applyViewState(saved);
     const repo = urlParam("repo") ?? saved?.repo ?? (await this.host.initialRepo()) ?? this.host.storage.get<string>(LAST_KEY) ?? null;
@@ -210,6 +229,9 @@ class App {
       return;
     }
     if (e instanceof HttpError && (e.status === 404 || e.status === 403)) {
+      // A map may hold research this reader cannot see (a private repository, or someone else's).
+      // Losing the whole map over one locked island would be the wrong trade, so we go back to it.
+      if (this.world) return this.renderWorld(t("world.locked", { repo }));
       if (!this.user) return this.showLogin(t("guest.needsSignIn", { repo }));
       this.showPicker(t("app.repoNotFound", { repo }));
       return;
@@ -229,8 +251,11 @@ class App {
   private async openRepo(repo: string): Promise<void> {
     if (!parseRepo(repo)) return this.showPicker(t("app.invalidRepo"));
     this.mount(loadingScreen(t("app.loadingRepo", { repo })));
-    this.applyUrlSettings(repo);
-    this.config = this.repoConfig(repo);
+    // The repository's own file decides the branches, so it is read before anything else.
+    const info = await this.gh.repoInfo(repo).catch(() => ({ description: null, defaultBranch: null }));
+    this.repoDescription = info.description;
+    this.repoFile = await this.readRepoFile(repo, info.defaultBranch).catch(() => ({ config: {}, warnings: [] }));
+    this.config = repoFileConfig(this.repoFile.config);
     const { root, prefix } = this.config;
     try {
       if (!(await this.gh.branchExists(repo, root))) {
@@ -252,9 +277,6 @@ class App {
         );
         return;
       }
-      this.repoFile = await this.readRepoFile(repo, root);
-      // The team's file wins over this browser's saved prefix.
-      if (this.repoFile.config.prefix) this.config = { root, prefix: this.repoFile.config.prefix };
       this.tree = await this.loadTree(repo);
     } catch (e) {
       this.handleError(e, repo);
@@ -266,6 +288,7 @@ class App {
     this.host.storage.set(RECENT_KEY, recent);
 
     this.renderMain();
+    this.announceRepo(repo);
     const want = urlParam("node");
     const known = want && (this.tree.nodes.has(want) || this.tree.versions.has(want) || want === this.tree.root);
     this.select(known ? want : null, false);
@@ -273,6 +296,127 @@ class App {
   }
 
   /** PRs plus research version tags. A repo without tags (or a failed tag lookup) still gets a tree. */
+  /**
+   * The account's map: every research it shows, as islands to walk between (docs/ISLAND.md).
+   * The map lives in the README of the account's `.researchisland` repository.
+   */
+  private async showWorld(user: string): Promise<void> {
+    this.mount(loadingScreen(t("app.loading")));
+    let text: string | null = null;
+    try {
+      text = await this.gh.getFileText(`${user}/${ISLAND_CONFIG_REPO}`, ISLAND_CONFIG_PATH, "HEAD");
+    } catch (e) {
+      if (isTokenRejected(e)) return this.showLogin(t("app.sessionExpired"));
+      if (!this.user && isRateLimited(e)) return this.showLogin(t("guest.rateLimited"));
+      this.mount(messageScreen({ title: t("world.failed", { error: errorText(e) }), body: [], actions: [{ label: t("common.retry"), primary: true, onClick: () => void this.showWorld(user) }] }));
+      return;
+    }
+    if (text === null) {
+      this.mount(
+        messageScreen({
+          eyebrow: user,
+          title: t("world.noSettings", { user }),
+          body: [t("world.noSettingsBody"), h("pre", { class: "code" }, "researchtree island init\nresearchtree island add owner/name")],
+          actions: [{ label: t("common.retry"), primary: true, onClick: () => void this.showWorld(user) }],
+        }),
+      );
+      return;
+    }
+    const map = parseIslandMap(text);
+    this.world = { user, map };
+    this.profile = null;
+    this.renderWorld();
+    // The researcher's own introduction is worth one more call, after the map is on screen.
+    void loadProfile(this.gh, user).then((profile) => {
+      if (this.world?.user !== user) return;
+      this.profile = profile;
+      if (this.shell === null) this.renderWorld();
+    });
+  }
+
+  private renderWorld(message?: string): void {
+    const world = this.world;
+    if (!world) return;
+    const canvas = h("div", { class: "canvas" });
+    const toast = h("div", { class: "toast", role: "status", "aria-live": "polite" });
+    const shellEl = h("div", { class: "shell" }, canvas, toast);
+    this.mount(shellEl);
+    this.banner = new ScrollBanner(shellEl);
+    const view = new World(canvas, {
+      onOpen: (research) => void this.openRepo(research.repo),
+      onLand: (land) => view.goTo(land.name),
+    });
+    view.render(world.map);
+    shellEl.append(this.worldCard(world.user));
+    if (message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 4200);
+    }
+    this.banner.show({ eyebrow: t("world.land"), title: t("world.title", { user: world.user }) });
+    if (world.map.islands.length === 0) canvas.append(h("p", { class: "world-empty muted" }, t("world.empty")));
+  }
+
+  /** Who the map belongs to: their own introduction, and their résumé when they published one. */
+  private worldCard(user: string): HTMLElement {
+    const profile = this.profile;
+    const open = () => this.openProfile(user);
+    return h(
+      "section",
+      { class: "card brand world-card" },
+      h("div", { class: "eyebrow" }, t("world.land")),
+      h("h1", { class: "world-user" }, user),
+      h(
+        "div",
+        { class: "row" },
+        profile?.text ? h("button", { class: "btn small", type: "button", onclick: open }, t("profile.open")) : null,
+        profile?.resumeUrl
+          ? h("button", { class: "btn small", type: "button", onclick: () => this.host.openExternal(profile.resumeUrl!) }, icon("external", 13), ` ${t("profile.resume")}`)
+          : null,
+      ),
+    );
+  }
+
+  private openProfile(user: string): void {
+    const profile = this.profile;
+    if (!profile?.text) return;
+    const body = h("div", { class: "prose" });
+    body.append(renderMarkdown(profile.text));
+    const dialog = h(
+      "div",
+      { class: "overlay", onclick: (e: Event) => e.target === dialog && dialog.remove() },
+      h(
+        "div",
+        { class: "card dialog profile-dialog", role: "dialog", "aria-modal": "true", "aria-label": t("profile.title", { user }) },
+        h(
+          "div",
+          { class: "panel-top" },
+          h("div", { class: "eyebrow accent" }, t(profile.source === "profile" ? "profile.fromSettings" : "profile.fromAccount")),
+          h("button", { class: "icon-btn", "aria-label": t("common.close"), onclick: () => dialog.remove() }, icon("close")),
+        ),
+        h("h2", { class: "screen-title" }, t("profile.title", { user })),
+        body,
+      ),
+    );
+    document.body.append(dialog);
+  }
+
+  /** What this research is, from the repository's own documents (docs/ISLAND.md). */
+  private showIntro(tree: ResearchTree): void {
+    const panel = this.panel;
+    if (!panel) return;
+    panel.showIntro(tree, { entries: [] });
+    const paths = { spec: this.repoFile.config.spec ?? DEFAULT_SPEC_PATH, intent: this.repoFile.config.intent ?? DEFAULT_INTENT_PATH };
+    void loadIntroDocs(this.gh, tree, paths).then((docs) => {
+      if (this.tree === tree) panel.showIntro(tree, docs);
+    });
+  }
+
+  /** The scroll that names the research you just walked into (docs/ISLAND.md). */
+  private announceRepo(repo: string): void {
+    this.banner?.show(repoBanner(repo, this.repoDescription, t("banner.research")));
+  }
+
   private async loadTree(repo: string): Promise<ResearchTree> {
     const [prs, tags, activity] = await Promise.all([
       this.gh.listPulls(repo),
@@ -284,10 +428,17 @@ class App {
     return buildTree(prs, repo, this.config, tags, activity);
   }
 
-  /** `.researchtree.yml` from the root branch. A missing or unreadable file means the defaults. */
-  private async readRepoFile(repo: string, root: string): Promise<{ config: RepoConfig; warnings: RepoConfigWarning[] }> {
-    const text = await this.gh.getFileText(repo, REPO_CONFIG_PATH, root).catch(() => null);
-    return text === null ? { config: {}, warnings: [] } : parseRepoConfig(text);
+  /**
+   * `.researchtree.yml`, which decides the branch names for everyone who opens this repository.
+   * It lives on the default branch, so it can name the root branch; older repositories keep it on
+   * the root branch instead, and those still work.
+   */
+  private async readRepoFile(repo: string, defaultBranch: string | null): Promise<{ config: RepoConfig; warnings: RepoConfigWarning[] }> {
+    for (const ref of [defaultBranch, DEFAULT_TREE_CONFIG.root].filter((b): b is string => Boolean(b))) {
+      const text = await this.gh.getFileText(repo, REPO_CONFIG_PATH, ref).catch(() => null);
+      if (text !== null) return parseRepoConfig(text);
+    }
+    return { config: {}, warnings: [] };
   }
 
   /** Branch settings from the link that opened the viewer, saved for this repo. Applies once. */
@@ -324,26 +475,13 @@ class App {
     }
   }
 
-  private applyUrlSettings(repo: string): void {
-    const wanted = this.urlSettings.config;
-    this.urlSettings = { ignored: this.urlSettings.ignored };
-    const config = mergeConfig(this.repoConfig(repo), wanted);
-    if (config) this.host.storage.set(configKey(repo), config);
-  }
-
-  /** Branch names for a repo: saved settings, or the defaults (research / experiment/). */
-  private repoConfig(repo: string): TreeConfig {
-    const saved = this.host.storage.get<Partial<TreeConfig>>(configKey(repo));
-    const c = saved ? normalizeTreeConfig(saved) : DEFAULT_TREE_CONFIG;
-    return "error" in c ? DEFAULT_TREE_CONFIG : c;
-  }
-
   /** What the repo's `.researchtree.yml` decides, shown in the settings dialog. */
   private repoFileNotes(repo: string): string[] {
     if (this.tree?.repo !== repo) return [];
     const notes: string[] = [];
     const { config, warnings } = this.repoFile;
-    if (config.prefix) notes.push(t("config.repoFile", { prefix: config.prefix }));
+    notes.push(t("config.branches", { root: this.config.root, prefix: this.config.prefix }));
+    if (!config.root && !config.prefix) notes.push(t("config.defaults"));
     if (warnings.length) notes.push(t("config.repoWarnings", { items: warnings.map((w) => ("key" in w ? `${w.key} (${w.code})` : w.code)).join(", ") }));
     return notes;
   }
@@ -351,12 +489,10 @@ class App {
   private openSettings(repo: string): void {
     const dialog = settingsDialog({
       repo,
-      config: this.repoConfig(repo),
       notes: this.repoFileNotes(repo),
       locale: localePreference(this.host),
       autoSource: t(this.host.kind === "extension" ? "settings.sourceVscode" : "settings.sourceBrowser"),
-      onSave: ({ config, locale }) => {
-        this.host.storage.set(configKey(repo), config);
+      onSave: ({ locale }) => {
         this.host.storage.set(LOCALE_KEY, locale);
         this.setUrl({ repo, node: this.selected });
         // Reloading the repo re-renders every screen in the new language.
@@ -436,8 +572,10 @@ class App {
     const toolbar = this.renderToolbar();
     const hint = h("div", { class: "hint" });
 
-    this.mount(h("div", { class: "shell" }, canvas, brandStack, toolbar, panelEl, gens, hint, toast));
+    const shellEl = h("div", { class: "shell" }, canvas, brandStack, toolbar, panelEl, gens, hint, toast);
+    this.mount(shellEl);
     this.shell = { brand, gens, toast };
+    this.banner = new ScrollBanner(shellEl);
 
     this.panel = new Panel(panelEl, {
       host: this.host,
@@ -535,6 +673,7 @@ class App {
     return h(
       "div",
       { class: "toolbar" },
+      this.world ? btn(t("world.back"), "island", () => this.renderWorld()) : null,
       btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
       this.board ? null : this.modeButton(),
       this.boardButton(btn),
@@ -705,7 +844,7 @@ class App {
           ? tree.versions.size
             ? t("brand.subVersions", { root: tree.root, count: tree.versions.size + 1, depth: maxDepth })
             : t("brand.subBranches", { root: tree.root, count: tree.rootChildren.length, depth: maxDepth })
-          : t("brand.empty", { prefix: tree.prefix, root: tree.root }),
+          : [t("brand.empty", { prefix: tree.prefix }), h("br"), t("brand.emptyNext", { root: tree.root })],
       ),
       layers,
       this.user ? null : h("p", { class: "muted small guest-note" }, t("guest.note"), h("br"), t("guest.noteDates")),
@@ -761,6 +900,8 @@ class App {
   private select(id: string | null, focus = true): void {
     const tree = this.tree;
     if (!tree || !this.panel || !this.current) return;
+    // The intro reef is not a node: it opens the research documents and selects nothing.
+    if (id === INTRO_ID) return this.showIntro(tree);
     const node = id ? tree.nodes.get(id) : undefined;
     const version = id ? tree.versions.get(id) : undefined;
     const isRoot = id === tree.root;
@@ -824,7 +965,7 @@ class App {
       else params.delete("node");
       // Settings come after repo and node, so the link reads "what to open" first, "how to show it" after.
       if (p.repo) {
-        const settings = settingParams({ locale: localePreference(this.host), config: this.repoConfig(p.repo), defaults: DEFAULT_TREE_CONFIG });
+        const settings = settingParams({ locale: localePreference(this.host) });
         for (const [key, value] of Object.entries(settings)) if (value) params.set(key, value);
       }
       const q = params.toString().replace(/=(&|$)/g, "$1");

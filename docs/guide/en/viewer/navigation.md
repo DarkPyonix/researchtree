@@ -86,5 +86,5 @@ Under **Branch settings** in the settings window (or the **Branch settings** but
 - For the detailed input rules, see [Branch setting rules](/rules/branches).
 
 ::: tip Match your training script
-If you changed the prefix, set the `RESEARCHTREE_PREFIX` environment variable to the same value in your training environment so `rt.log()` recognizes the current branch as an experiment ([Training script integration](/guide/tracking)).
+Branch names come from the repository's `.researchtree.yml`, so there is nothing to set in the viewer or in your training environment ([Research rules](/rules/branches)).
 :::

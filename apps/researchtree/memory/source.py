@@ -120,6 +120,17 @@ class Source:
         return self._cache[key]
 
     # files at a git ref (intent / spec documents) --------------------------------------------------
+    def default_branch(self) -> str | None:
+        """The repository's own default branch, where `.researchtree.yml` lives."""
+        key = ("repo", ())
+        if key not in self._cache:
+            try:
+                self._cache[key] = self._get(f"/repos/{self.repo}")
+            except api.GitHubError:
+                self._cache[key] = {}
+        data = self._cache[key]
+        return data.get("default_branch") if isinstance(data, dict) else None
+
     def file_text(self, path: str, ref: str) -> str | None:
         """A file's text at a branch, tag or commit; None when it does not exist there."""
         key = ("file", (ref, path))

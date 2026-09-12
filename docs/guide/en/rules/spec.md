@@ -59,8 +59,8 @@ prefix: experiment/      # experiment branch prefix (default experiment/)
 ```
 
 - The viewer, the CLI, the Python API, and the agent skill all read this file.
-- `prefix` takes precedence over the viewer's personal branch setting. In Python, `rt.load(prefix=…)` and `RESEARCHTREE_PREFIX` take precedence over this file.
-- The root branch name can't go in this file, because the file lives on that branch. Set the root branch in the viewer settings or with `RESEARCHTREE_ROOT`.
+- `root` and `prefix` are decided by this file; the viewer has no branch settings of its own. In Python, `rt.load(root=…, prefix=…)` reads one repository differently just this once.
+- Put this file on the repository's default branch (usually `main`). It is not inside the root branch, so it can name the root branch with `root`. A file left on the root branch is still read.
 - Unknown keys and invalid values are ignored, and the viewer's settings window shows you what it ignored.
 
 ## How to write a spec

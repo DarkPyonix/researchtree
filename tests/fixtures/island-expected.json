@@ -1,0 +1,152 @@
+{
+  "maps": [
+    {
+      "name": "two lands with prose around the block",
+      "islands": [
+        {
+          "name": "Speech",
+          "at": [
+            0,
+            0
+          ],
+          "repos": [
+            {
+              "repo": "lab/moshi",
+              "at": [
+                0,
+                0
+              ],
+              "root": "research",
+              "prefix": "experiment/"
+            },
+            {
+              "repo": "lab/tts",
+              "at": [
+                1,
+                0
+              ],
+              "root": "main",
+              "prefix": "try/"
+            }
+          ],
+          "intro": "SPEECH.md"
+        },
+        {
+          "name": "Vision",
+          "at": [
+            1,
+            0
+          ],
+          "repos": [
+            {
+              "repo": "lab/depth",
+              "at": [
+                0,
+                0
+              ],
+              "root": "research",
+              "prefix": "experiment/"
+            }
+          ]
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "name": "a prefix without its slash",
+      "islands": [
+        {
+          "name": "Speech",
+          "at": [
+            0,
+            0
+          ],
+          "repos": [
+            {
+              "repo": "lab/moshi",
+              "at": [
+                0,
+                0
+              ],
+              "root": "research",
+              "prefix": "exp/"
+            }
+          ]
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "name": "broken entries are dropped, the rest survives",
+      "islands": [
+        {
+          "name": "Speech",
+          "at": [
+            0,
+            0
+          ],
+          "repos": [
+            {
+              "repo": "lab/moshi",
+              "at": [
+                0,
+                0
+              ],
+              "root": "research",
+              "prefix": "experiment/"
+            }
+          ]
+        },
+        {
+          "name": "Empty",
+          "at": [
+            0,
+            0
+          ],
+          "repos": []
+        }
+      ],
+      "warnings": [
+        "islands[0]: at must be two whole numbers, e.g. [0, 1]",
+        "islands[0].repos[0]: repo must be owner/name",
+        "islands[0].repos[2]: lab/moshi is already on the map",
+        "islands[0].repos[3]: not a research entry",
+        "islands[1]: name is required",
+        "islands[2]: Empty has no research on it"
+      ]
+    },
+    {
+      "name": "no yaml block",
+      "islands": [],
+      "warnings": [
+        "no ```yaml block in the settings file"
+      ]
+    },
+    {
+      "name": "empty block",
+      "islands": [],
+      "warnings": []
+    },
+    {
+      "name": "not a mapping",
+      "islands": [],
+      "warnings": [
+        "the yaml block is not key: value pairs"
+      ]
+    },
+    {
+      "name": "islands is not a list",
+      "islands": [],
+      "warnings": [
+        "islands: must be a list of lands"
+      ]
+    },
+    {
+      "name": "broken yaml",
+      "islands": [],
+      "warnings": [
+        "the yaml block could not be read"
+      ]
+    }
+  ]
+}
