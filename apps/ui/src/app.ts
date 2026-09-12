@@ -42,6 +42,7 @@ import { applyLocale, localePreference } from "./locale";
 import { DEMO_REPO, loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
 import { parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
 import { renderMarkdown } from "./markdown";
+import { share } from "./share";
 import { statusLabel } from "./theme";
 import { repoBanner, ScrollBanner } from "./scroll-banner";
 import { readPlace, shortRepo } from "./url";
@@ -327,8 +328,15 @@ class App {
         messageScreen({
           eyebrow: user,
           title: t("world.noSettings", { user }),
-          body: [t("world.noSettingsBody"), h("pre", { class: "code" }, "researchtree island init\nresearchtree island add owner/name")],
-          actions: [{ label: t("common.retry"), primary: true, onClick: () => void this.showWorld(user) }],
+          body: [
+            t("world.noSettingsBody", { user }),
+            t("world.noSettingsHow"),
+            h("pre", { class: "code" }, "researchtree island init\nresearchtree island add owner/name"),
+          ],
+          actions: [
+            { label: t("world.share"), primary: true, onClick: (button) => void this.invite(user, button) },
+            { label: t("common.retry"), onClick: () => void this.showWorld(user) },
+          ],
         }),
       );
       return;
@@ -344,6 +352,21 @@ class App {
       this.profile = profile;
       if (this.shell === null) this.renderWorld();
     });
+  }
+
+  /**
+   * Invite a researcher who has no island yet. On a phone that is the system share sheet; on a desktop
+   * the invitation lands on the clipboard instead, and the button says so for a moment.
+   */
+  private async invite(user: string, button: HTMLButtonElement): Promise<void> {
+    const url = `${location.origin}${location.pathname}?user=${encodeURIComponent(user)}`;
+    const result = await share({ title: t("share.inviteTitle"), text: t("share.inviteText", { user, guide: GUIDE_URL }), url });
+    if (result === "shared") return;
+    button.dataset.label ??= button.textContent ?? "";
+    button.textContent = t(result === "copied" ? "world.shareCopied" : "world.shareFailed");
+    window.setTimeout(() => {
+      button.textContent = button.dataset.label ?? "";
+    }, 2600);
   }
 
   /**

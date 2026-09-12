@@ -23,7 +23,8 @@ export function messageScreen(opts: {
   eyebrow?: string;
   title: string;
   body: (string | Node)[];
-  actions: { label: string; onClick: () => void; primary?: boolean }[];
+  /** The button is handed to its own handler, so an action can report back on itself. */
+  actions: { label: string; onClick: (button: HTMLButtonElement) => void; primary?: boolean }[];
 }): HTMLElement {
   return screen(
     h("div", { class: "eyebrow" }, opts.eyebrow ?? "ResearchTree"),
@@ -32,7 +33,11 @@ export function messageScreen(opts: {
     h(
       "div",
       { class: "screen-actions" },
-      opts.actions.map((a) => h("button", { class: a.primary ? "btn primary" : "btn", onclick: a.onClick }, a.label)),
+      opts.actions.map((a) => {
+        const button = h("button", { class: a.primary ? "btn primary" : "btn" }, a.label) as HTMLButtonElement;
+        button.onclick = () => a.onClick(button);
+        return button;
+      }),
     ),
   );
 }
