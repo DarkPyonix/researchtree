@@ -232,7 +232,8 @@ export const en: Record<MessageKey, string> = {
   "toolbar.boardOff": "Back to the island",
 
   // Guest mode (reading a public repo without signing in)
-  "guest.note": "Read-only, because you are not signed in. Sign in to see when each experiment was worked on (commit dates).",
+  "guest.note": "Read-only, because you are not signed in.",
+  "guest.noteDates": "Sign in to see when each experiment was worked on (commit dates).",
   "guest.readOnly": "Sign in to edit",
   "guest.commentNeedsSignIn": "Sign in to write a comment.",
   "guest.signInTitle": "Sign in with GitHub for your own repositories and editing",

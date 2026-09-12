@@ -661,7 +661,7 @@ class App {
           : t("brand.empty", { prefix: tree.prefix, root: tree.root }),
       ),
       layers,
-      this.user ? null : h("p", { class: "muted small guest-note" }, t("guest.note")),
+      this.user ? null : h("p", { class: "muted small guest-note" }, t("guest.note"), h("br"), t("guest.noteDates")),
     ]);
   }
 

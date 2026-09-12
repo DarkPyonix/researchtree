@@ -10,8 +10,15 @@
 
 스토어 등록 전에도 매니페스트 파일 하나면 설치할 수 있고, 기능 제한은 없어요. 파일은 저장소의 [`apps/office/manifest.xml`](https://github.com/DarkPyonix/researchtree/blob/main/apps/office/manifest.xml)에 있습니다.
 
+- **Windows에서 가장 간단한 방법** (공유 폴더도, 관리자 권한도 필요 없어요):
+
+  ```bash
+  npx office-addin-dev-settings register apps/office/manifest.xml
+  ```
+
+  등록하면 PowerPoint의 삽입 → 내 추가 기능 → 개발자 추가 기능에 나타나요. `unregister`로 지울 수 있어요.
 - **웹 PowerPoint**: 삽입 → 추가 기능 → **내 추가 기능 업로드**에서 `manifest.xml`을 고르세요.
-- **Windows**: `manifest.xml`을 공유 폴더에 두고, 파일 → 옵션 → 보안 센터 → 보안 센터 설정 → 신뢰할 수 있는 추가 기능 카탈로그에 그 폴더를 등록한 뒤 **메뉴에 표시**를 켜요. PowerPoint를 다시 켜면 삽입 → 내 추가 기능에 보입니다.
+- **Windows, 공유 폴더 방식**: `manifest.xml`을 공유 폴더에 두고, 파일 → 옵션 → 보안 센터 → 보안 센터 설정 → 신뢰할 수 있는 추가 기능 카탈로그에 그 폴더를 등록한 뒤 **메뉴에 표시**를 켜요. 여러 사람에게 배포할 때 쓰는 방법이에요.
 - **Mac**: `manifest.xml`을 `~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef`에 복사한 뒤 삽입 → 내 추가 기능을 여세요.
 
 ## 발표할 때 알아둘 것

@@ -230,7 +230,8 @@ export const ko = {
   "toolbar.boardOff": "섬으로 돌아가기",
 
   // 손님 모드 (로그인 없이 공개 레포 읽기)
-  "guest.note": "로그인하지 않아 읽기 전용이에요. 실험이 언제 작업됐는지(커밋 날짜)는 로그인해야 보여요.",
+  "guest.note": "로그인하지 않아 읽기 전용이에요.",
+  "guest.noteDates": "실험이 언제 작업됐는지(커밋 날짜)는 로그인해야 보여요.",
   "guest.readOnly": "수정하려면 로그인",
   "guest.commentNeedsSignIn": "댓글을 쓰려면 로그인해 주세요.",
   "guest.signInTitle": "GitHub로 로그인하면 내 레포와 수정 기능을 쓸 수 있어요",

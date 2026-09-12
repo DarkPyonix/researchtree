@@ -13,10 +13,17 @@ still has to go through review.
 Before the store listing, one manifest file installs it, with nothing missing. The file is in the
 repository at [`apps/office/manifest.xml`](https://github.com/DarkPyonix/researchtree/blob/main/apps/office/manifest.xml).
 
+- **Windows, the short way** (no shared folder, no administrator):
+
+  ```bash
+  npx office-addin-dev-settings register apps/office/manifest.xml
+  ```
+
+  It then shows up under Insert → My Add-ins → Developer Add-ins. `unregister` removes it.
 - **PowerPoint on the web**: Insert → Add-ins → **Upload My Add-in**, then pick `manifest.xml`.
-- **Windows**: put `manifest.xml` in a shared folder and add that folder under File → Options →
-  Trust Center → Trust Center Settings → Trusted Add-in Catalogs, tick **Show in Menu**, restart
-  PowerPoint, then Insert → My Add-ins.
+- **Windows, the shared-folder way**: put `manifest.xml` in a shared folder and add that folder under
+  File → Options → Trust Center → Trust Center Settings → Trusted Add-in Catalogs, tick
+  **Show in Menu**, restart PowerPoint, then Insert → My Add-ins. Use this to hand it to other people.
 - **Mac**: copy `manifest.xml` into `~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef`,
   then Insert → My Add-ins.
 
