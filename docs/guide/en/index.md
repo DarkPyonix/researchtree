@@ -24,7 +24,7 @@ hero:
 
 features:
   - icon: 🌱
-    title: One branch = one experiment, one PR = one lab note
+    title: One branch, one PR
     details: Each experiment gets a branch holding one small, clear code change, and the YAML block at the top of its PR holds the hypothesis, the change and the metrics. How experiments derive from each other becomes the tree; merged means adopted, closed means rejected.
     link: /rules/branches
     linkText: How research is recorded
