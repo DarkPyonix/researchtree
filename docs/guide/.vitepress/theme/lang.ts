@@ -2,6 +2,8 @@
 // version is the file at the same path under docs/guide/en/. In English the theme swaps, in place:
 //   - the site data (title, nav, sidebar, labels) for the one built from i18n/en.ts, and
 //   - each page's component and data for the English file, when there is one (otherwise it stays Korean).
+// Switching back loads the Korean file the same way: a page that was swapped out cannot simply be put
+// back, its saved component renders nothing.
 // The prerendered HTML is Korean, so the swap waits until the app has mounted (hydration must match).
 import { markRaw, ref, watch, type Component } from "vue";
 import type { PageData, Router, SiteData } from "vitepress";
@@ -14,18 +16,20 @@ interface PageModule {
   __pageData: PageData;
 }
 
-const EN_PAGES = import.meta.glob<PageModule>("../../en/**/*.md");
+/** Both languages are loaded the same way, so both render the same way (a restored page did not). */
+const PAGES: Record<GuideLang, Record<string, () => Promise<PageModule>>> = {
+  en: import.meta.glob<PageModule>("../../en/**/*.md"),
+  ko: import.meta.glob<PageModule>("../../**/*.md"),
+};
 const loaded = new Map<string, PageModule>();
-const swapped = new WeakSet<object>();
+/** Which language each page data object is: the router's own is always the Korean one. */
+const shown = new WeakMap<object, GuideLang>();
 
-/** The language on screen. It starts as the prerender's Korean and changes after mount. */
 export const lang = ref<GuideLang>("ko");
 /** The reader's language: the page loads its English file ahead when this is "en". */
 let wanted: GuideLang = "ko";
 let router: Router | null = null;
 let koSite: SiteData | null = null;
-/** The Korean page behind the current English one, to restore on switching back. */
-let original: { component: Component | null; data: PageData } | null = null;
 let mounted = false;
 
 function preferred(): GuideLang {
@@ -47,9 +51,14 @@ function relativePathOf(href: string): string {
   return !path || path.endsWith("/") ? `${path}index.md` : `${path}.md`;
 }
 
-async function load(relativePath: string): Promise<PageModule | null> {
-  const key = `../../en/${relativePath}`;
-  const importer = EN_PAGES[key];
+/** `index.md` in English is `../../en/index.md`; in Korean it is the page itself. */
+function keyOf(l: GuideLang, relativePath: string): string {
+  return l === "en" ? `../../en/${relativePath}` : `../../${relativePath}`;
+}
+
+async function load(l: GuideLang, relativePath: string): Promise<PageModule | null> {
+  const key = keyOf(l, relativePath);
+  const importer = PAGES[l][key];
   if (!importer) return null;
   if (!loaded.has(key)) loaded.set(key, await importer());
   return loaded.get(key)!;
@@ -65,19 +74,17 @@ function applySite(l: GuideLang): void {
   document.documentElement.lang = text.lang;
 }
 
-/** Put the English page in place of the Korean one the router just loaded, if it is already loaded. */
+/** Put the page in the reader's language on screen, if that version is loaded and not already there. */
 function swapPage(): void {
   if (!router || !mounted) return;
   const route = router.route;
-  if (swapped.has(route.data)) return;
-  original = null;
-  if (lang.value !== "en") return;
-  const mod = loaded.get(`../../en/${route.data.relativePath}`);
+  const want = lang.value;
+  if ((shown.get(route.data) ?? "ko") === want) return;
+  const mod = loaded.get(keyOf(want, route.data.relativePath));
   if (!mod) return;
-  original = { component: route.component, data: route.data };
-  // The English page keeps the Korean page's path, so the sidebar, edit link and prev/next still match.
+  // Whichever language it is, the page keeps the Korean path, so sidebar, edit link and prev/next match.
   const data = markRaw({ ...mod.__pageData, relativePath: route.data.relativePath, filePath: route.data.filePath });
-  swapped.add(data);
+  shown.set(data, want);
   route.component = markRaw(mod.default);
   route.data = data;
 }
@@ -94,14 +101,8 @@ export async function setLang(l: GuideLang, save = true): Promise<void> {
   }
   applySite(l);
   if (!router) return;
-  if (l === "en") {
-    await load(router.route.data.relativePath);
-    swapPage();
-  } else if (original) {
-    router.route.component = original.component;
-    router.route.data = original.data;
-    original = null;
-  }
+  await load(l, router.route.data.relativePath);
+  swapPage();
   document.documentElement.classList.remove("rt-lang-pending");
 }
 
@@ -113,7 +114,7 @@ export function setupLang(r: Router): void {
   wanted = preferred();
   const before = r.onBeforePageLoad;
   r.onBeforePageLoad = async (href) => {
-    if (wanted === "en") await load(relativePathOf(href));
+    if (wanted === "en") await load(wanted, relativePathOf(href));
     return before?.(href);
   };
   watch(() => r.route.data, swapPage, { flush: "sync" });
