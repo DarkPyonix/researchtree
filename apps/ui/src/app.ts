@@ -39,10 +39,12 @@ import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
 import { DEMO_REPO, loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
 import { parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
+import { renderMarkdown } from "./markdown";
 import { statusLabel } from "./theme";
 import { repoBanner, ScrollBanner } from "./scroll-banner";
 import { parseViewState, type ViewState } from "./view-state";
 import { loadIntroDocs } from "./panel/intro-docs";
+import { loadProfile, type Profile } from "./panel/profile";
 import { Kanban } from "./views/kanban";
 import { World } from "./views/world";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
@@ -114,6 +116,7 @@ class App {
   private banner: ScrollBanner | null = null;
   /** The account map, when the viewer was opened with ?user=. */
   private world: { user: string; map: IslandMap } | null = null;
+  private profile: Profile | null = null;
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
   /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
   private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
@@ -318,7 +321,14 @@ class App {
     }
     const map = parseIslandMap(text);
     this.world = { user, map };
+    this.profile = null;
     this.renderWorld();
+    // The researcher's own introduction is worth one more call, after the map is on screen.
+    void loadProfile(this.gh, user).then((profile) => {
+      if (this.world?.user !== user) return;
+      this.profile = profile;
+      if (this.shell === null) this.renderWorld();
+    });
   }
 
   private renderWorld(): void {
@@ -334,8 +344,53 @@ class App {
       onLand: (land) => view.goTo(land.name),
     });
     view.render(world.map);
+    shellEl.append(this.worldCard(world.user));
     this.banner.show({ eyebrow: t("world.land"), title: t("world.title", { user: world.user }) });
     if (world.map.islands.length === 0) canvas.append(h("p", { class: "world-empty muted" }, t("world.empty")));
+  }
+
+  /** Who the map belongs to: their own introduction, and their résumé when they published one. */
+  private worldCard(user: string): HTMLElement {
+    const profile = this.profile;
+    const open = () => this.openProfile(user);
+    return h(
+      "section",
+      { class: "card brand world-card" },
+      h("div", { class: "eyebrow" }, t("world.land")),
+      h("h1", { class: "world-user" }, user),
+      h(
+        "div",
+        { class: "row" },
+        profile?.text ? h("button", { class: "btn small", type: "button", onclick: open }, t("profile.open")) : null,
+        profile?.resumeUrl
+          ? h("button", { class: "btn small", type: "button", onclick: () => this.host.openExternal(profile.resumeUrl!) }, icon("external", 13), ` ${t("profile.resume")}`)
+          : null,
+      ),
+    );
+  }
+
+  private openProfile(user: string): void {
+    const profile = this.profile;
+    if (!profile?.text) return;
+    const body = h("div", { class: "prose" });
+    body.append(renderMarkdown(profile.text));
+    const dialog = h(
+      "div",
+      { class: "overlay", onclick: (e: Event) => e.target === dialog && dialog.remove() },
+      h(
+        "div",
+        { class: "card dialog profile-dialog", role: "dialog", "aria-modal": "true", "aria-label": t("profile.title", { user }) },
+        h(
+          "div",
+          { class: "panel-top" },
+          h("div", { class: "eyebrow accent" }, t(profile.source === "profile" ? "profile.fromSettings" : "profile.fromAccount")),
+          h("button", { class: "icon-btn", "aria-label": t("common.close"), onclick: () => dialog.remove() }, icon("close")),
+        ),
+        h("h2", { class: "screen-title" }, t("profile.title", { user })),
+        body,
+      ),
+    );
+    document.body.append(dialog);
   }
 
   /** What this research is, from the repository's own documents (docs/ISLAND.md). */

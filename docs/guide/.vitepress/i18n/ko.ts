@@ -20,6 +20,7 @@ export const ko = {
     web: "중앙 웹",
     vscode: "VS Code 확장",
     powerpoint: "PowerPoint 확장",
+    island: "아일랜드",
     local: "로컬 실행",
     rules: "연구 기록 규칙",
     branches: "브랜치",

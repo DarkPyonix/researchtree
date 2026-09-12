@@ -241,6 +241,13 @@ export const ko = {
   "world.failed": "지도를 읽지 못했어요: {error}",
   "world.land": "아일랜드",
 
+  // 연구자 소개와 이력서
+  "profile.open": "연구자 소개",
+  "profile.resume": "이력서 보기",
+  "profile.title": "{user}",
+  "profile.fromSettings": "PROFILE.md",
+  "profile.fromAccount": "GitHub 프로필 소개",
+
   // 도착한 곳을 알리는 두루마리
   "banner.research": "연구",
 

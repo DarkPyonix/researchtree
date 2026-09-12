@@ -243,6 +243,13 @@ export const en: Record<MessageKey, string> = {
   "world.failed": "Couldn't read the map: {error}",
   "world.land": "Island",
 
+  // The researcher: their introduction and résumé
+  "profile.open": "About the researcher",
+  "profile.resume": "Résumé",
+  "profile.title": "{user}",
+  "profile.fromSettings": "PROFILE.md",
+  "profile.fromAccount": "GitHub profile README",
+
   // The scroll that names where you just arrived
   "banner.research": "Research",
 

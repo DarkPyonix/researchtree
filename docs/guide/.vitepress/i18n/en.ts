@@ -20,6 +20,7 @@ export const en: GuideText = {
     web: "Hosted web",
     vscode: "VS Code extension",
     powerpoint: "PowerPoint add-in",
+    island: "Island",
     local: "Running locally",
     rules: "Research rules",
     branches: "Branches",

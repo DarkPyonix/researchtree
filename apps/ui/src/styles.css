@@ -960,3 +960,8 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .world-minimap { position: absolute; inset: 0; }
 .world-dot { position: absolute; border-radius: 6px; background: color-mix(in srgb, var(--accent-2) 55%, transparent); }
 .world-here { position: absolute; border: 1.5px solid var(--accent-2); border-radius: 6px; }
+
+/* Who the world map belongs to, and the way into their introduction and résumé. */
+.world-card { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 4; padding: 14px 18px 16px; }
+.world-user { margin: 2px 0 10px; font: 700 22px/1.2 var(--display); }
+.profile-dialog { max-width: 680px; max-height: min(80vh, 720px); overflow-y: auto; }

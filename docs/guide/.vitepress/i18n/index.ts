@@ -27,6 +27,7 @@ export function themeText(l: GuideText): DefaultTheme.Config {
           { text: s.web, link: "/guide/web" },
           { text: s.vscode, link: "/guide/vscode" },
           { text: s.powerpoint, link: "/guide/powerpoint" },
+          { text: s.island, link: "/guide/island" },
           { text: s.local, link: "/guide/local" },
         ],
       },

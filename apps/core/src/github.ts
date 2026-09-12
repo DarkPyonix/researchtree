@@ -193,6 +193,21 @@ export class GitHubClient {
     return this.call<PullRequest>({ method: "GET", path: `/repos/${repo}/pulls/${number}` }).then((r) => r.data);
   }
 
+  /** File names directly inside a folder, at a branch, tag or commit. Empty when there is no such folder. */
+  async listDir(repo: string, path: string, ref: string): Promise<string[]> {
+    try {
+      const res = await this.call<{ name?: string; type?: string }[]>({
+        method: "GET",
+        path: `/repos/${repo}/contents/${path.split("/").filter(Boolean).map(encodeURIComponent).join("/")}`,
+        query: { ref },
+      });
+      return Array.isArray(res.data) ? res.data.flatMap((e) => (e.type === "file" && e.name ? [e.name] : [])) : [];
+    } catch (e) {
+      if (e instanceof HttpError && e.status === 404) return [];
+      throw e;
+    }
+  }
+
   /** A text file at a branch, tag or commit; null when it does not exist there (or is not a file). */
   async getFileText(repo: string, path: string, ref: string): Promise<string | null> {
     try {
