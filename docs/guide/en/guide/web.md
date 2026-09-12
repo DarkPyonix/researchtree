@@ -68,23 +68,23 @@ https://darkpyonix.github.io/researchtree/?repo=lab/moshi&node=experiment/depth-
 |---|---|
 | `repo` | The repo to open (`owner/name`) |
 | `node` | The node to select. An experiment is the branch name (`experiment/...`); a version looks like `research@v2` |
-| `setting` | Settings, always last in the address (see below) |
+| `lang` · `root` · `prefix` | Settings, written after `repo` and `node` (see below) |
 
 ### Putting settings in the link
 
-Everything the settings dialog can set can also go in the `setting` query: `key:value` pairs joined by commas, at the end of the address.
+Everything the settings dialog can set has a query of its own.
 
 ```
-https://darkpyonix.github.io/researchtree/?repo=lab/moshi&setting=lang:en,root:trunk,prefix:try/
+https://darkpyonix.github.io/researchtree/?repo=lab/moshi&lang=en&root=trunk&prefix=try/
 ```
 
-| Key | Value | Meaning |
+| Query | Value | Meaning |
 |---|---|---|
 | `lang` | `auto` · `ko` · `en` | Viewer language |
 | `root` | A branch name | Root branch (`research` by default) |
 | `prefix` | A prefix ending in `/` | Experiment branch prefix (`experiment/` by default) |
 
-Any setting that is not at its default shows up in the address bar on its own, so you can copy the address and the other person opens it the same way. Settings that arrive in a link are saved in that browser, and the settings dialog can change them at any time. Unknown keys and invalid values are ignored.
+Any setting that is not at its default shows up in the address bar on its own, so you can copy the address and the other person opens it the same way. Settings that arrive in a link are saved in that browser, and the settings dialog can change them at any time. Invalid values are ignored.
 
 A prefix set in the repo's `.researchtree.yml` still wins: a link never overrides what the team agreed on.
 

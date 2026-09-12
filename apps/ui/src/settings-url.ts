@@ -1,59 +1,51 @@
 /**
  * Settings carried in the URL, so a link can open the viewer configured the way the sender sees it:
- * `?repo=lab/moshi&node=…&setting=lang:en,root:research,prefix:experiment/`.
+ * `?repo=lab/moshi&node=…&lang=en&root=trunk&prefix=try/`.
  *
- * Everything the settings dialog can set has a key here. The `setting` query always goes last, and
- * holds `key:value` pairs separated by commas. Unknown keys and invalid values are ignored, so an
- * old link never breaks the viewer.
+ * Everything the settings dialog can set has a query of its own, written after `repo` and `node`.
+ * Unknown values are ignored, so an old link never breaks the viewer.
  */
 import { isLocalePreference, normalizeTreeConfig, type LocalePreference, type TreeConfig } from "@researchtree/core";
 
-export const SETTING_PARAM = "setting";
+/** Settings queries, in the order they are written to the address. */
+export const SETTING_PARAMS = ["lang", "root", "prefix"] as const;
 
 export interface UrlSettings {
   locale?: LocalePreference;
-  /** Branch settings, only when the link carries a valid pair of them. */
+  /** Branch settings, only when the link carries at least one valid one. */
   config?: Partial<TreeConfig>;
-  /** Keys the link asked for that this version does not know, or whose value was rejected. */
+  /** Queries the link asked for whose value was rejected. */
   ignored: string[];
 }
 
-/** Read `lang:en,root:research,prefix:experiment/`. A value may be empty (`lang:`), which is ignored. */
-export function parseSettings(raw: string | null | undefined): UrlSettings {
+export function parseSettings(search: string | URLSearchParams): UrlSettings {
+  const params = typeof search === "string" ? new URLSearchParams(search) : search;
   const out: UrlSettings = { ignored: [] };
   const config: Partial<TreeConfig> = {};
-  for (const item of (raw ?? "").split(",")) {
-    const text = item.trim();
-    if (!text) continue;
-    const at = text.indexOf(":");
-    const key = (at < 0 ? text : text.slice(0, at)).trim().toLowerCase();
-    const value = at < 0 ? "" : text.slice(at + 1).trim();
+  for (const key of SETTING_PARAMS) {
+    const value = params.get(key)?.trim();
     if (!value) {
-      out.ignored.push(key);
+      if (params.has(key)) out.ignored.push(key);
       continue;
     }
     if (key === "lang") {
       if (isLocalePreference(value)) out.locale = value;
       else out.ignored.push(key);
-    } else if (key === "root" || key === "prefix") {
-      config[key] = value;
     } else {
-      out.ignored.push(key);
+      config[key] = value;
     }
   }
-  if (config.root !== undefined || config.prefix !== undefined) {
-    out.config = config;
-  }
+  if (config.root !== undefined || config.prefix !== undefined) out.config = config;
   return out;
 }
 
-/** The `setting` value for the current settings, or null when they are all at their default. */
-export function settingParam(s: { locale: LocalePreference; config: TreeConfig; defaults: TreeConfig }): string | null {
-  const parts: string[] = [];
-  if (s.locale !== "auto") parts.push(`lang:${s.locale}`);
-  if (s.config.root !== s.defaults.root) parts.push(`root:${s.config.root}`);
-  if (s.config.prefix !== s.defaults.prefix) parts.push(`prefix:${s.config.prefix}`);
-  return parts.length ? parts.join(",") : null;
+/** What the address should say about the current settings; a null value means "leave it out". */
+export function settingParams(s: { locale: LocalePreference; config: TreeConfig; defaults: TreeConfig }): Record<(typeof SETTING_PARAMS)[number], string | null> {
+  return {
+    lang: s.locale === "auto" ? null : s.locale,
+    root: s.config.root === s.defaults.root ? null : s.config.root,
+    prefix: s.config.prefix === s.defaults.prefix ? null : s.config.prefix,
+  };
 }
 
 /** The branch settings a link asks for, merged onto what is saved here. Invalid pairs are dropped. */

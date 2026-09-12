@@ -32,7 +32,7 @@ import { append, clear, h, icon } from "./dom";
 import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
 import { loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
-import { mergeConfig, parseSettings, SETTING_PARAM, settingParam, type UrlSettings } from "./settings-url";
+import { mergeConfig, parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
 import { statusLabel } from "./theme";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
 import { Tree3D, type Heading } from "./views/tree3d";
@@ -69,8 +69,8 @@ const hint = (mode: ViewMode) => t(isFlatMode(mode) ? "hint.2d" : "hint.3d");
 /** Start the viewer on the given host (web / extension / local). */
 export async function startApp(host: Host, root: HTMLElement): Promise<void> {
   document.body.classList.add(`host-${host.kind}`);
-  // A link may carry settings (`?setting=lang:en,…`); the language has to be in place before any screen.
-  const urlSettings = parseSettings(urlParam(SETTING_PARAM));
+  // A link may carry settings (`?lang=en&root=…`); the language has to be in place before any screen.
+  const urlSettings = parseSettings(location.search);
   if (urlSettings.locale) host.storage.set(LOCALE_KEY, urlSettings.locale);
   applyLocale(host);
   followColorScheme();
@@ -690,14 +690,16 @@ class App {
     if (this.host.kind === "extension") return;
     try {
       const params = new URLSearchParams(location.search);
-      for (const k of ["code", "state", SETTING_PARAM]) params.delete(k);
+      for (const k of ["code", "state", ...SETTING_PARAMS]) params.delete(k);
       if (p.repo) params.set("repo", p.repo);
       else params.delete("repo");
       if (p.node) params.set("node", p.node);
       else params.delete("node");
-      // Settings go last, so the link reads "what to open" first and "how to show it" after.
-      const setting = p.repo && settingParam({ locale: localePreference(this.host), config: this.repoConfig(p.repo), defaults: DEFAULT_TREE_CONFIG });
-      if (setting) params.set(SETTING_PARAM, setting);
+      // Settings come after repo and node, so the link reads "what to open" first, "how to show it" after.
+      if (p.repo) {
+        const settings = settingParams({ locale: localePreference(this.host), config: this.repoConfig(p.repo), defaults: DEFAULT_TREE_CONFIG });
+        for (const [key, value] of Object.entries(settings)) if (value) params.set(key, value);
+      }
       const q = params.toString().replace(/=(&|$)/g, "$1");
       history.replaceState(null, "", location.pathname + (q ? `?${q}` : ""));
     } catch {
