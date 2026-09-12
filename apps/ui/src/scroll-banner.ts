@@ -48,6 +48,7 @@ export class ScrollBanner {
     );
     this.el = el;
     this.parent.append(el);
+    this.keepClearOfRepoCard(el);
 
     if (reducedMotion()) {
       el.classList.add("open", "instant");
@@ -57,6 +58,24 @@ export class ScrollBanner {
     // One frame with the sheet still rolled up, so the opening actually animates.
     requestAnimationFrame(() => el.classList.add("open"));
     this.timers.push(window.setTimeout(() => this.hide(), OPEN_MS + HOLD_MS));
+  }
+
+  /**
+   * On a phone the repo card spans the whole width, so a scroll at the top of the screen would
+   * unroll over it. Where they would collide, the scroll hangs below the card instead.
+   */
+  private keepClearOfRepoCard(el: HTMLElement): void {
+    const card = this.parent.querySelector(".brand-stack");
+    if (!card) return;
+    // Next frame: the sheet has to be laid out before its box means anything.
+    requestAnimationFrame(() => {
+      const parent = this.parent.getBoundingClientRect();
+      const c = card.getBoundingClientRect();
+      const b = el.getBoundingClientRect();
+      const sideBySide = b.left >= c.right || b.right <= c.left;
+      if (sideBySide || b.top >= c.bottom) return;
+      el.style.top = `${Math.round(c.bottom - parent.top + 12)}px`;
+    });
   }
 
   /** Roll it up now. Safe to call when nothing is showing. */

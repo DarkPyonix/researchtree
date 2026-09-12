@@ -722,7 +722,8 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 @supports (corner-shape: squircle) {
   :root { --radius: 30px; }
   .card, .btn, .icon-btn, .select, .input, .gen-btn, .tab, .tabs, .label3d, .menu, .menu-item, .chip, .pill, .branch,
-  .panel, .gens, .toast, .dialog, .comment, .file, .file-status, .commit, .prose pre, .warn-box, .island-metric, .year3d {
+  .panel, .gens, .toast, .dialog, .comment, .file, .file-status, .commit, .prose pre, .warn-box, .island-metric, .year3d,
+  .board-col, .board-card, .scroll-sheet {
     corner-shape: squircle;
   }
   .card { border-radius: 30px; }
@@ -733,8 +734,13 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   .icon-btn, .gen-btn, .tab, .menu-item, .commit { border-radius: 14px; }
   .tabs { border-radius: 20px; }
   .label3d, .comment, .file { border-radius: 18px; }
+  /* Between the map's chips and a full card: the banner is card-sized but sits over the scene. */
+  .scroll-sheet { border-radius: 24px; }
   .chip, .pill { border-radius: 14px; }
   .branch, .file-status { border-radius: 10px; }
+  /* The board reads as cards on a board: the column like a card, the cards a size down. */
+  .board-col { border-radius: 30px; }
+  .board-card { border-radius: 22px; }
 }
 .textarea.mono { font: 12.5px/1.55 var(--mono); }
 .field-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 10px; }
@@ -766,13 +772,12 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
  * request moves through them. It replaces the island inside .canvas, so the brand card, the panel
  * and the toolbar stay exactly where they are.
  */
-.canvas.is-board { background: var(--bg); overflow: auto; -webkit-overflow-scrolling: touch; }
+.canvas.is-board { background: var(--bg); overflow: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
 .board {
   display: flex;
   gap: 14px;
   align-items: flex-start;
-  min-height: 100%;
-  /* Padding comes from the view (views/kanban.ts) so the columns clear the floating cards. */
+  /* No min-height: the board's own box shrinks around the panel, and a minimum would fight that. */
   padding: 16px;
 }
 .board-col {
@@ -785,6 +790,8 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   /* One inset for the whole column, so the heading, the cards and the empty line share a left edge. */
   padding: 14px 12px 12px;
 }
+/* Half a screen of empty board at each end, so even the first and last column can sit in the middle. */
+.board-spacer { flex: 0 0 50%; align-self: stretch; }
 .board-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 2px 0 10px; }
 .board-head h2 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
 .board-count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -940,8 +947,10 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 
 /*
  * Scroll banner (scroll-banner.ts): the name of the place you just entered, unrolled at the top of
- * the screen. It is a card like every other surface here (paper, one border, the same shadow), held
- * between two wooden rods, and it never takes a click away from the scene behind it.
+ * the screen. The sheet is the same surface as every card and chip on the map (--card, one --line
+ * border, var(--shadow)) so arriving somewhere does not look like another application; only the two
+ * rods it hangs from, and the way it widens out of them, say "scroll". It never takes a click away
+ * from the scene behind it.
  */
 .scroll-banner {
   position: absolute;
@@ -953,48 +962,51 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   z-index: 7;
   cursor: pointer;
   max-width: min(560px, calc(100% - 32px));
-  filter: drop-shadow(0 10px 28px rgba(40, 30, 20, 0.14));
 }
+/* The rods are the accent bar the toolbar's primary button and the active generation already use.
+   They stand a little proud of the sheet at both ends, so it reads as hung between them. */
 .scroll-rod {
   position: relative;
-  width: 13px;
+  width: 9px;
   flex: none;
-  align-self: center;
-  height: 54px;
-  border-radius: 7px;
-  background: linear-gradient(180deg, #b8865a 0%, #9a6b42 45%, #7a5333 100%);
+  margin: -7px 0;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: var(--shadow);
 }
 .scroll-rod::before, .scroll-rod::after {
   content: "";
   position: absolute;
   left: -2px;
   right: -2px;
-  height: 6px;
-  border-radius: 3px;
-  background: #6f4a2c;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--accent-2);
 }
-.scroll-rod::before { top: -3px; }
-.scroll-rod::after { bottom: -3px; }
-.scroll-rod.left { margin-right: -5px; }
-.scroll-rod.right { margin-left: -5px; }
+.scroll-rod::before { top: -2px; }
+.scroll-rod::after { bottom: -2px; }
+/* The rods tuck under the sheet's rounded ends, so a collapsed sheet is nothing but its own border. */
+.scroll-rod.left { margin-right: -4px; }
+.scroll-rod.right { margin-left: -4px; }
 .scroll-sheet {
   overflow: hidden;
   max-width: 0;
-  background: linear-gradient(180deg, #fbf6e9 0%, #f3ead4 100%);
-  border-top: 1px solid rgba(154, 107, 66, 0.35);
-  border-bottom: 1px solid rgba(154, 107, 66, 0.35);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
   transition: max-width 620ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .scroll-banner.open .scroll-sheet { max-width: 560px; }
 .scroll-banner.closing .scroll-sheet { max-width: 0; transition-duration: 460ms; }
 .scroll-banner.instant .scroll-sheet { transition: none; }
-.scroll-paper { width: max-content; max-width: 520px; padding: 12px 30px 13px; text-align: center; color: #46341d; }
-.scroll-eyebrow { margin: 0; font: 600 10.5px/1.2 var(--font); letter-spacing: 0.2em; text-transform: uppercase; color: #97744a; }
-.scroll-title { margin: 3px 0 0; font: 700 20px/1.25 var(--display); }
+.scroll-paper { width: max-content; max-width: 520px; padding: 14px 26px 15px; text-align: center; color: var(--ink); }
+.scroll-eyebrow { margin: 0; font: 600 11px/1.2 var(--font); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.scroll-title { margin: 5px 0 0; font: 700 21px/1.25 var(--display); letter-spacing: -0.005em; }
 .scroll-body {
-  margin: 4px 0 0;
+  margin: 5px 0 0;
   font: 12.5px/1.5 var(--font);
-  color: #6b5430;
+  color: var(--ink-soft);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -1003,8 +1015,9 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 }
 @media (max-width: 640px) {
   .scroll-banner { top: calc(58px + env(safe-area-inset-top, 0px)); }
-  .scroll-paper { padding: 10px 20px; }
-  .scroll-title { font-size: 17px; }
+  .scroll-rod { width: 8px; margin: -6px 0; }
+  .scroll-paper { padding: 11px 18px 12px; }
+  .scroll-title { font-size: 17.5px; }
 }
 
 /* A sea of islands: only each research's own name is shown, not every plant's chip. */

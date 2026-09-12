@@ -1004,6 +1004,8 @@ class App {
     else this.panel.hide();
     this.shell?.brand.closest(".shell")?.classList.toggle("panel-open", Boolean(this.selected));
     this.current.select(this.selected, focus);
+    // The panel takes room on the board rather than covering it, so the columns re-measure.
+    this.kanban?.layout();
     this.setUrl({ repo: tree.repo, node: this.selected });
   }
 
