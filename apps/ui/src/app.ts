@@ -445,7 +445,7 @@ class App {
       toast.classList.add("show");
       setTimeout(() => toast.classList.remove("show"), 4200);
     }
-    this.banner.show({ eyebrow: t("world.land"), title: t("world.title", { user: world.user }) });
+    this.banner.show({ eyebrow: t("world.land"), title: t("world.title", { user: world.user }), kind: "island" });
     if (!islandResearch(world.map).length) {
       canvas.append(h("p", { class: "world-empty muted" }, t("world.empty")));
       return;
