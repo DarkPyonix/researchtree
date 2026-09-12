@@ -2,7 +2,7 @@
 
 **Effective date: September 11, 2026** · [한국어](#개인정보-처리방침)
 
-ResearchTree is an open-source tool published by DarkPyonix. It shows the experiment branches and pull requests of a GitHub repository as a tree. This policy covers every way ResearchTree is offered: the hosted web viewer at `https://darkpyonix.github.io/researchtree/`, the VS Code extension, the Python package (`researchtree`, including the local server), and the authentication proxy at `https://researchtree.thisisthepy.workers.dev`.
+ResearchTree is an open-source tool published by DarkPyonix. It shows the experiment branches and pull requests of a GitHub repository as a tree. This policy covers every way ResearchTree is offered: the hosted web viewer at `https://darkpyonix.dev/researchtree/`, the VS Code extension, the Python package (`researchtree`, including the local server), and the authentication proxy at `https://researchtree.thisisthepy.workers.dev`.
 
 ## Summary
 
@@ -58,7 +58,7 @@ Questions or requests: open an issue at [github.com/DarkPyonix/researchtree/issu
 
 **시행일: 2026년 9월 11일**
 
-ResearchTree는 DarkPyonix가 공개하는 오픈소스 도구로, GitHub 레포의 실험 브랜치와 PR을 트리로 보여줘요. 이 방침은 ResearchTree를 제공하는 모든 형태에 적용돼요. 중앙 웹 뷰어(`https://darkpyonix.github.io/researchtree/`), VS Code 확장, Python 패키지(`researchtree`, 로컬 서버 포함), 인증 프록시(`https://researchtree.thisisthepy.workers.dev`)예요.
+ResearchTree는 DarkPyonix가 공개하는 오픈소스 도구로, GitHub 레포의 실험 브랜치와 PR을 트리로 보여줘요. 이 방침은 ResearchTree를 제공하는 모든 형태에 적용돼요. 중앙 웹 뷰어(`https://darkpyonix.dev/researchtree/`), VS Code 확장, Python 패키지(`researchtree`, 로컬 서버 포함), 인증 프록시(`https://researchtree.thisisthepy.workers.dev`)예요.
 
 ### 요약
 

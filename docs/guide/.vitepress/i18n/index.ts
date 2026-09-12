@@ -16,7 +16,7 @@ export function themeText(l: GuideText): DefaultTheme.Config {
       { text: l.nav.rules, link: "/rules/branches", activeMatch: "^/rules/" },
       { text: l.nav.viewer, link: "/viewer/island", activeMatch: "^/viewer/" },
       { text: l.nav.dev, link: "/dev/structure", activeMatch: "^/dev/" },
-      { text: l.nav.openViewer, link: "https://darkpyonix.github.io/researchtree/" },
+      { text: l.nav.openViewer, link: "https://darkpyonix.dev/researchtree/" },
     ],
     sidebar: [
       {

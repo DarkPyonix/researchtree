@@ -4,7 +4,7 @@
 지금까지 해온 연구가 모두 보입니다.
 
 ```
-https://darkpyonix.github.io/researchtree/?user=b-re-w
+https://darkpyonix.dev/researchtree/?user=b-re-w
 ```
 
 ::: info 준비 중

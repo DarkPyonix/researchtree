@@ -2,7 +2,7 @@
 
 **Effective date: September 11, 2026**
 
-ResearchTree is an open-source tool published by DarkPyonix that shows the experiment branches and PRs of a GitHub repo as a tree. This policy applies to every form in which ResearchTree is offered: the central web viewer (`https://darkpyonix.github.io/researchtree/`), the VS Code extension, the Python package (`researchtree`, including the local server), and the authentication proxy (`https://researchtree.thisisthepy.workers.dev`).
+ResearchTree is an open-source tool published by DarkPyonix that shows the experiment branches and PRs of a GitHub repo as a tree. This policy applies to every form in which ResearchTree is offered: the central web viewer (`https://darkpyonix.dev/researchtree/`), the VS Code extension, the Python package (`researchtree`, including the local server), and the authentication proxy (`https://researchtree.thisisthepy.workers.dev`).
 
 ## Summary
 

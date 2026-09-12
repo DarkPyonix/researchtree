@@ -18,7 +18,7 @@
 | **Flat view → Tree view → 3D view → Island view** | Each press moves to the next view: flat, flat turned so versions grow from bottom to top, the same direction in 3D, and back to the first screen ([The flat view](/viewer/flat)) |
 | **Settings** | Opens the [language and branch settings](#settings) window |
 | **Fit all** | Frames the whole tree so it fits on screen |
-| **@account** | The account menu. Hover to open it (on a touch screen, tap to open and close); it sits above the detail panel. Items: open this repo on GitHub, open another repo, [User guide](https://darkpyonix.github.io/researchtree/guide/), [ResearchTree repository](https://github.com/DarkPyonix/researchtree), sign out |
+| **@account** | The account menu. Hover to open it (on a touch screen, tap to open and close); it sits above the detail panel. Items: open this repo on GitHub, open another repo, [User guide](https://darkpyonix.dev/researchtree/guide/), [ResearchTree repository](https://github.com/DarkPyonix/researchtree), sign out |
 
 ## Status layers
 

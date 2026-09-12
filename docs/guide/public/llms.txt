@@ -2,8 +2,8 @@
 
 > Every Git branch is an experiment and every pull request is its lab note. ResearchTree draws a repository's `research` branch, its version tags (`research/v1`, `research/v2`, ...) and its `experiment/*` pull requests as a tree, and reads the record back as typed Python objects for coding agents. GitHub is the only data store.
 
-- Viewer: https://darkpyonix.github.io/researchtree/ (sign in with GitHub; `?repo=owner/name` opens a repository)
-- Demo project: https://darkpyonix.github.io/researchtree/?repo=DarkPyonix/researchtree-demo
+- Viewer: https://darkpyonix.dev/researchtree/ (sign in with GitHub; `?repo=owner/name` opens a repository)
+- Demo project: https://darkpyonix.dev/researchtree/?repo=DarkPyonix/researchtree-demo
 - Source: https://github.com/DarkPyonix/researchtree (Apache-2.0)
 - Python package: `pip install researchtree` (CLI `researchtree`, API `import researchtree as rt`)
 - VS Code extension: `darkpyonix.researchtree`
@@ -13,24 +13,24 @@ The guide below is written in Korean.
 
 ## Recording rules
 
-- [Branches](https://darkpyonix.github.io/researchtree/guide/rules/branches): `research` root, one `experiment/<name>` branch per experiment
-- [Pull requests and the YAML block](https://darkpyonix.github.io/researchtree/guide/rules/pull-requests): `parent`, `hypothesis`, `change`, `metrics`, `status`, `tags`, `claims`, `started`, `ended`
-- [Research version tags](https://darkpyonix.github.io/researchtree/guide/rules/versions): `research/vN`, and `researchtree release` for cleaning up finished branches
-- [Tree rules](https://darkpyonix.github.io/researchtree/guide/rules/tree-rules): how status, parents and versions are resolved
-- [Intent- and spec-driven development](https://darkpyonix.github.io/researchtree/guide/rules/spec): spec-driven development adapted to research (a spec change is a hypothesis; adoption decides whether it enters the spec), `INTENT.md` claims, `SPEC.md`, `.researchtree`, section ids and includes
+- [Branches](https://darkpyonix.dev/researchtree/guide/rules/branches): `research` root, one `experiment/<name>` branch per experiment
+- [Pull requests and the YAML block](https://darkpyonix.dev/researchtree/guide/rules/pull-requests): `parent`, `hypothesis`, `change`, `metrics`, `status`, `tags`, `claims`, `started`, `ended`
+- [Research version tags](https://darkpyonix.dev/researchtree/guide/rules/versions): `research/vN`, and `researchtree release` for cleaning up finished branches
+- [Tree rules](https://darkpyonix.dev/researchtree/guide/rules/tree-rules): how status, parents and versions are resolved
+- [Intent- and spec-driven development](https://darkpyonix.dev/researchtree/guide/rules/spec): spec-driven development adapted to research (a spec change is a hypothesis; adoption decides whether it enters the spec), `INTENT.md` claims, `SPEC.md`, `.researchtree`, section ids and includes
 
 ## Using it
 
-- [Introduction](https://darkpyonix.github.io/researchtree/guide/guide/introduction)
-- [Preparing a repository](https://darkpyonix.github.io/researchtree/guide/guide/repo-setup)
-- [Logging from a training script](https://darkpyonix.github.io/researchtree/guide/guide/tracking): `rt.log`, `rt.set`, `rt.conclude`
-- [Agent memory](https://darkpyonix.github.io/researchtree/guide/guide/memory): `rt.load()`, `researchtree memory`, `researchtree spec`
-- [Local server](https://darkpyonix.github.io/researchtree/guide/guide/local): `researchtree serve`
-- [Security and privacy](https://darkpyonix.github.io/researchtree/guide/guide/security)
+- [Introduction](https://darkpyonix.dev/researchtree/guide/guide/introduction)
+- [Preparing a repository](https://darkpyonix.dev/researchtree/guide/guide/repo-setup)
+- [Logging from a training script](https://darkpyonix.dev/researchtree/guide/guide/tracking): `rt.log`, `rt.set`, `rt.conclude`
+- [Agent memory](https://darkpyonix.dev/researchtree/guide/guide/memory): `rt.load()`, `researchtree memory`, `researchtree spec`
+- [Local server](https://darkpyonix.dev/researchtree/guide/guide/local): `researchtree serve`
+- [Security and privacy](https://darkpyonix.dev/researchtree/guide/guide/security)
 
 ## Viewer
 
-- [Research island](https://darkpyonix.github.io/researchtree/guide/viewer/island)
-- [Flat and tree views](https://darkpyonix.github.io/researchtree/guide/viewer/flat)
-- [Detail and version panels](https://darkpyonix.github.io/researchtree/guide/viewer/panels)
-- [Navigation](https://darkpyonix.github.io/researchtree/guide/viewer/navigation)
+- [Research island](https://darkpyonix.dev/researchtree/guide/viewer/island)
+- [Flat and tree views](https://darkpyonix.dev/researchtree/guide/viewer/flat)
+- [Detail and version panels](https://darkpyonix.dev/researchtree/guide/viewer/panels)
+- [Navigation](https://darkpyonix.dev/researchtree/guide/viewer/navigation)

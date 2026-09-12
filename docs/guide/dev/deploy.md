@@ -39,14 +39,14 @@ git tag -a v1.0.0 -m "v1.0.0" && git push origin v1.0.0
 
 | 주소 | 내용 |
 |---|---|
-| `https://darkpyonix.github.io/researchtree/` | 뷰어 |
-| `https://darkpyonix.github.io/researchtree/guide/` | 이 가이드 (VitePress `base: "/researchtree/guide/"`) |
+| `https://darkpyonix.dev/researchtree/` | 뷰어 |
+| `https://darkpyonix.dev/researchtree/guide/` | 이 가이드 (VitePress `base: "/researchtree/guide/"`) |
 
 **처음 한 번 설정**
 
 - 레포 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 지정해 주세요.
 - OAuth App을 등록한 뒤 **Settings → Secrets and variables → Actions → Variables**에서 OAuth App client ID(공개 값)를 `RESEARCHTREE_CLIENT_ID`로 추가해요. GitHub는 `GITHUB_`로 시작하는 새 변수 이름을 받지 않아서 이 이름을 사용합니다. 설정하지 않으면 PAT 로그인만 되는 뷰어가 배포돼요.
-- OAuth App 콜백 URL은 `https://darkpyonix.github.io/researchtree/`입니다. 콜백 URL이 하나로 고정되어 있어 프리뷰 배포는 따로 두지 않아요. 로컬 개발은 `localhost:5173`과 개발용 OAuth App으로 진행합니다.
+- OAuth App 콜백 URL은 `https://darkpyonix.dev/researchtree/`입니다. 콜백 URL이 하나로 고정되어 있어 프리뷰 배포는 따로 두지 않아요. 로컬 개발은 `localhost:5173`과 개발용 OAuth App으로 진행합니다.
 
 ## 인증 프록시 (Cloudflare Worker)
 

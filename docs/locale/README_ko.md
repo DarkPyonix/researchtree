@@ -27,7 +27,7 @@
   <a href="#-사용하는-세-가지-방법">시작하기</a> ·
   <a href="#-학습-스크립트에서-기록하기">학습 연동 API</a> ·
   <a href="#-오픈-사이언스">오픈 사이언스</a> ·
-  <a href="https://darkpyonix.github.io/researchtree/guide/">가이드</a>
+  <a href="https://darkpyonix.dev/researchtree/guide/">가이드</a>
 </p>
 
 <p align="center">
@@ -35,9 +35,9 @@
 </p>
 
 > [!NOTE]
-> **지금 쓸 수 있는 것:** [중앙 웹 뷰어](https://darkpyonix.github.io/researchtree/), [VS Code 확장](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree), [Python 패키지](https://pypi.org/project/researchtree/)([설치](#-설치) 참고). Open VSX 등록은 곧 할 예정입니다.
+> **지금 쓸 수 있는 것:** [중앙 웹 뷰어](https://darkpyonix.dev/researchtree/), [VS Code 확장](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree), [Python 패키지](https://pypi.org/project/researchtree/)([설치](#-설치) 참고). Open VSX 등록은 곧 할 예정입니다.
 >
-> **데모 프로젝트로 보기:** [researchtree-demo](https://darkpyonix.github.io/researchtree/?user=DarkPyonix&repo=researchtree-demo). 가상의 음성 합성(TTS) 연구 1년치로, 버전 다섯 개, 나란히 비교한 경쟁 가설들, 근거에 따라 바뀌는 의도·스펙 문서를 담았습니다([레포](https://github.com/DarkPyonix/researchtree-demo)).
+> **데모 프로젝트로 보기:** [researchtree-demo](https://darkpyonix.dev/researchtree/?user=DarkPyonix&repo=researchtree-demo). 가상의 음성 합성(TTS) 연구 1년치로, 버전 다섯 개, 나란히 비교한 경쟁 가설들, 근거에 따라 바뀌는 의도·스펙 문서를 담았습니다([레포](https://github.com/DarkPyonix/researchtree-demo)).
 >
 > 뷰어와 VS Code 확장은 한국어와 영어를 지원합니다. 기본은 브라우저(또는 VS Code) 언어이고 **설정**에서 바꿀 수 있습니다. Python CLI는 시스템 언어(한국어 또는 영어)를 따르고, `RESEARCHTREE_LANG=en` 또는 `ko`로 정할 수 있습니다.
 
@@ -253,7 +253,7 @@ researchtree island show                 # 지금 지도에 올라간 연구
 ```
 
 공개 연구는 로그인 없이 그대로 보이니, 이 주소 하나가 누구에게나 건넬 수 있는 연구 포트폴리오가
-됩니다. [가이드](https://darkpyonix.github.io/researchtree/guide/guide/island)
+됩니다. [가이드](https://darkpyonix.dev/researchtree/guide/guide/island)
 
 ## 🚀 사용하는 세 가지 방법
 
@@ -262,7 +262,7 @@ researchtree island show                 # 지금 지도에 올라간 연구
 | | 중앙 웹 | VS Code 확장 | 로컬 서버 |
 |---|---|---|---|
 | **설치** | 없음 | `darkpyonix.researchtree` | `uv tool install researchtree` |
-| **열기** | `https://darkpyonix.github.io/researchtree/` | `ResearchTree: Open Tree` | `researchtree serve` |
+| **열기** | `https://darkpyonix.dev/researchtree/` | `ResearchTree: Open Tree` | `researchtree serve` |
 | **로그인** | GitHub 또는 PAT | VS Code 내장 GitHub 계정 | Device Flow 또는 `RESEARCHTREE_TOKEN` |
 | **레포 선택** | `?repo=` 또는 선택 화면 | 워크스페이스의 `origin` remote | 현재 디렉토리의 remote 또는 `--repo` |
 | **추가 기능** | 공유 링크 | 브랜치 체크아웃, 부모 대비 diff | 중앙 서버를 전혀 거치지 않음 |
@@ -381,7 +381,7 @@ researchtree spec --diff        # 직전 버전 대비 바뀐 섹션
 researchtree spec --claims      # 주장별로 검증한 실험
 ```
 
-뷰어에서는 버전 패널의 **스펙** 탭이 그 버전의 스펙을 전체, 요약, 직전 버전 대비 변경으로 보여주고 섹션마다 이력을 펼칠 수 있습니다. 실험 패널의 **스펙** 탭은 그 브랜치가 바꾼 섹션을 보여줍니다. 다른 경로는 루트 브랜치의 `.researchtree`에 적습니다(`spec:`, `intent:`, `prefix:`). 자세한 내용은 [가이드](https://darkpyonix.github.io/researchtree/guide/rules/spec)에 있습니다.
+뷰어에서는 버전 패널의 **스펙** 탭이 그 버전의 스펙을 전체, 요약, 직전 버전 대비 변경으로 보여주고 섹션마다 이력을 펼칠 수 있습니다. 실험 패널의 **스펙** 탭은 그 브랜치가 바꾼 섹션을 보여줍니다. 다른 경로는 루트 브랜치의 `.researchtree`에 적습니다(`spec:`, `intent:`, `prefix:`). 자세한 내용은 [가이드](https://darkpyonix.dev/researchtree/guide/rules/spec)에 있습니다.
 
 ## 📦 설치
 
@@ -441,7 +441,7 @@ uv build                    # Python wheel
 
 </details>
 
-아키텍처와 자세한 내용은 <b><a href="https://darkpyonix.github.io/researchtree/guide/">가이드</a></b>에 있습니다.
+아키텍처와 자세한 내용은 <b><a href="https://darkpyonix.dev/researchtree/guide/">가이드</a></b>에 있습니다.
 
 ## 🤝 기여하기
 

@@ -18,7 +18,7 @@
 | **평면 보기 → 트리 보기 → 입체 보기 → 섬 보기** | 누를 때마다 다음 보기로 바뀌어요: 평면, 버전이 아래에서 위로 자라는 트리 방향의 평면, 같은 방향의 입체, 처음 화면([평면 보기](/viewer/flat#평면-보기)) |
 | **설정** | [언어와 브랜치 설정](#설정) 창 열기 |
 | **전체 보기** | 트리 전체가 화면에 들어오도록 구도를 맞춥니다 |
-| **@계정** | 계정 메뉴. 마우스를 올리면 열리고(터치 화면에서는 눌러서 여닫기), 상세 패널보다 위에 나타납니다. 메뉴 항목: 이 레포 GitHub에서 열기, 다른 레포 열기, [사용 가이드](https://darkpyonix.github.io/researchtree/guide/), [ResearchTree 저장소](https://github.com/DarkPyonix/researchtree), 로그아웃 |
+| **@계정** | 계정 메뉴. 마우스를 올리면 열리고(터치 화면에서는 눌러서 여닫기), 상세 패널보다 위에 나타납니다. 메뉴 항목: 이 레포 GitHub에서 열기, 다른 레포 열기, [사용 가이드](https://darkpyonix.dev/researchtree/guide/), [ResearchTree 저장소](https://github.com/DarkPyonix/researchtree), 로그아웃 |
 
 ## 상태 레이어
 

@@ -39,14 +39,14 @@ The `.github/workflows/pages.yml` workflow runs on a push to `main` or when you 
 
 | Address | What |
 |---|---|
-| `https://darkpyonix.github.io/researchtree/` | the viewer |
-| `https://darkpyonix.github.io/researchtree/guide/` | this guide (VitePress `base: "/researchtree/guide/"`) |
+| `https://darkpyonix.dev/researchtree/` | the viewer |
+| `https://darkpyonix.dev/researchtree/guide/` | this guide (VitePress `base: "/researchtree/guide/"`) |
 
 **One-time setup**
 
 - Set the repo's **Settings → Pages → Build and deployment → Source** to **GitHub Actions**.
 - After registering the OAuth App, add its client ID (a public value) as `RESEARCHTREE_CLIENT_ID` under **Settings → Secrets and variables → Actions → Variables**. GitHub won't accept new variable names that start with `GITHUB_`, which is why we use this name. If you leave it unset, the deployed viewer only supports PAT sign-in.
-- The OAuth App callback URL is `https://darkpyonix.github.io/researchtree/`. Since there is exactly one callback URL, we don't keep preview deployments. Local development runs on `localhost:5173` with a development OAuth App.
+- The OAuth App callback URL is `https://darkpyonix.dev/researchtree/`. Since there is exactly one callback URL, we don't keep preview deployments. Local development runs on `localhost:5173` with a development OAuth App.
 
 ## The auth proxy (Cloudflare Worker)
 

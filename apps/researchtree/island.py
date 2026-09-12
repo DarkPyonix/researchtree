@@ -206,7 +206,7 @@ def new_readme(user: str, island_map: IslandMap) -> str:
         f"# {user}'s ResearchIsland\n\n"
         "The map below decides which research this account shows, how the repositories are grouped, "
         "and where each one sits. Everything outside the block is for people to read.\n\n"
-        f"Open it: https://darkpyonix.github.io/researchtree/?user={user}\n\n"
+        f"Open it: https://darkpyonix.dev/researchtree/?user={user}\n\n"
         f"```yaml\n{dump_map(island_map)}\n```\n"
     )
 

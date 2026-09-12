@@ -26,7 +26,7 @@
   <a href="#-three-ways-to-use-it">Get started</a> ·
   <a href="#-log-from-your-training-script">Training API</a> ·
   <a href="#-open-science">Open science</a> ·
-  <a href="https://darkpyonix.github.io/researchtree/guide/">Guide</a>
+  <a href="https://darkpyonix.dev/researchtree/guide/">Guide</a>
 </p>
 
 <p align="center">
@@ -34,9 +34,9 @@
 </p>
 
 > [!NOTE]
-> **Available now:** the [hosted viewer](https://darkpyonix.github.io/researchtree/), the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree), and the [Python package](https://pypi.org/project/researchtree/) (see [Install](#-install)). An Open VSX listing is coming.
+> **Available now:** the [hosted viewer](https://darkpyonix.dev/researchtree/), the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree), and the [Python package](https://pypi.org/project/researchtree/) (see [Install](#-install)). An Open VSX listing is coming.
 >
-> **See it on a demo project:** [researchtree-demo](https://darkpyonix.github.io/researchtree/?user=DarkPyonix&repo=researchtree-demo), a year of made-up text-to-speech research with five versions, competing hypotheses side by side, and intent and spec documents that evolve with the evidence ([repository](https://github.com/DarkPyonix/researchtree-demo)).
+> **See it on a demo project:** [researchtree-demo](https://darkpyonix.dev/researchtree/?user=DarkPyonix&repo=researchtree-demo), a year of made-up text-to-speech research with five versions, competing hypotheses side by side, and intent and spec documents that evolve with the evidence ([repository](https://github.com/DarkPyonix/researchtree-demo)).
 >
 > The viewer and the VS Code extension speak Korean and English: they follow your browser (or VS Code) language, and you can switch in **Settings**. The Python CLI follows your system language (Korean or English); set `RESEARCHTREE_LANG=en` or `ko` to choose.
 
@@ -252,7 +252,7 @@ researchtree island show                 # what the map holds now
 ```
 
 Public research needs no sign-in to read, so the address is a portfolio you can hand to anyone.
-[Guide](https://darkpyonix.github.io/researchtree/guide/guide/island)
+[Guide](https://darkpyonix.dev/researchtree/guide/guide/island)
 
 ## 🚀 Three ways to use it
 
@@ -261,7 +261,7 @@ One viewer, three hosts. Pick whichever fits your setup.
 | | Hosted web | VS Code extension | Local server |
 |---|---|---|---|
 | **Install** | Nothing | `darkpyonix.researchtree` | `uv tool install researchtree` |
-| **Open** | `https://darkpyonix.github.io/researchtree/` | `ResearchTree: Open Tree` | `researchtree serve` |
+| **Open** | `https://darkpyonix.dev/researchtree/` | `ResearchTree: Open Tree` | `researchtree serve` |
 | **Sign in** | GitHub or a PAT | VS Code's built-in GitHub account | Device Flow or `RESEARCHTREE_TOKEN` |
 | **Repository** | `?repo=` or the picker | Workspace `origin` remote | Current directory's remote or `--repo` |
 | **Extras** | Share links | Checkout a branch, diff vs. parent | Nothing goes through a central server |
@@ -381,7 +381,7 @@ researchtree spec --diff        # what changed since the previous version
 researchtree spec --claims      # each claim with the experiments that tested it
 ```
 
-In the viewer, the version panel's **Spec** tab shows each version's spec in full, as a summary, or as changes since the previous version, with a history per section, and the experiment panel's **Spec** tab shows what that branch changed. Set other paths in `.researchtree` on the root branch (`spec:`, `intent:`, `prefix:`). See the [guide](https://darkpyonix.github.io/researchtree/guide/rules/spec).
+In the viewer, the version panel's **Spec** tab shows each version's spec in full, as a summary, or as changes since the previous version, with a history per section, and the experiment panel's **Spec** tab shows what that branch changed. Set other paths in `.researchtree` on the root branch (`spec:`, `intent:`, `prefix:`). See the [guide](https://darkpyonix.dev/researchtree/guide/rules/spec).
 
 ## 📦 Install
 
@@ -441,7 +441,7 @@ uv build                    # Python wheel
 
 </details>
 
-The **[guide](https://darkpyonix.github.io/researchtree/guide/)** covers architecture and details.
+The **[guide](https://darkpyonix.dev/researchtree/guide/)** covers architecture and details.
 
 ## 🤝 Contributing
 

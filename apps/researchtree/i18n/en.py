@@ -102,7 +102,7 @@ EN = {
     "island.needRepo": "Can't tell which repository. Give it as owner/name.",
     "island.noSettings": "There is no {repo} repository yet. `researchtree island init` makes one.",
     "island.alreadySet": "{repo} is already there.",
-    "island.created": "Made {repo}. Put research on it with `researchtree island add`.\n  https://darkpyonix.github.io/researchtree/?user={user}",
+    "island.created": "Made {repo}. Put research on it with `researchtree island add`.\n  https://darkpyonix.dev/researchtree/?user={user}",
     "island.land": "{name}  [{x}, {y}]",
     "island.empty": "No research on the map yet.",
     "island.warning": "warning: {text}",

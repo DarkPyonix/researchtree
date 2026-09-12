@@ -14,7 +14,7 @@ hero:
       link: /guide/introduction
     - theme: alt
       text: 데모 보기
-      link: "https://darkpyonix.github.io/researchtree/?user=DarkPyonix&repo=researchtree-demo"
+      link: "https://darkpyonix.dev/researchtree/?user=DarkPyonix&repo=researchtree-demo"
     - theme: alt
       text: 연구 기록 규칙
       link: /rules/branches
@@ -51,7 +51,7 @@ features:
 ---
 
 ::: tip 바로 시작하기
-[중앙 웹](https://darkpyonix.github.io/researchtree/)은 지금 바로 GitHub 로그인으로 쓸 수 있어요. Python 패키지는 `pip install researchtree`로, VS Code 확장은 [Marketplace](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree)에서 설치해요. 자세한 내용은 [시작하기](/guide/introduction)를 참고해 주세요. 먼저 눈으로 보고 싶다면 [데모 연구](https://darkpyonix.github.io/researchtree/?user=DarkPyonix&repo=researchtree-demo)를 열어보세요. 로그인 없이 바로 둘러볼 수 있어요.
+[중앙 웹](https://darkpyonix.dev/researchtree/)은 지금 바로 GitHub 로그인으로 쓸 수 있어요. Python 패키지는 `pip install researchtree`로, VS Code 확장은 [Marketplace](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree)에서 설치해요. 자세한 내용은 [시작하기](/guide/introduction)를 참고해 주세요. 먼저 눈으로 보고 싶다면 [데모 연구](https://darkpyonix.dev/researchtree/?user=DarkPyonix&repo=researchtree-demo)를 열어보세요. 로그인 없이 바로 둘러볼 수 있어요.
 :::
 
 <div class="rt-showcase">
