@@ -782,10 +782,11 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .canvas.is-board { background: var(--bg); overflow: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
 .board {
   display: flex;
+  /* The same gap between columns and around them: see BOARD_GAP in views/kanban.ts. */
   gap: 14px;
   align-items: flex-start;
   /* No min-height: the board's own box shrinks around the panel, and a minimum would fight that. */
-  padding: 16px;
+  padding: 14px;
 }
 .board-col {
   flex: 1 1 0;
