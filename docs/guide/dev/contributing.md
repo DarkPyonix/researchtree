@@ -39,7 +39,7 @@ npm run build:extension && code --extensionDevelopmentPath="$PWD/apps/extension"
 - TS(`prbody.ts`)와 Python(`body.py`)은 같은 규칙으로 동작해요. 규칙을 바꿀 때는 fixture를 먼저 고친 뒤 두 언어의 구현을 함께 수정해 주세요.
 - 모든 GitHub 호출은 `assertApiPath`를 거쳐요. 인증 토큰이 호스트 경계 밖으로 새어나가지 않도록 합니다.
 - PR 본문은 `renderMarkdown`(DOMPurify)으로만 렌더링하고, DOM 요소는 `h()` 헬퍼로 만들어요. 외부 문자열을 `innerHTML`로 바로 넣지 않습니다.
-- CDN에서 런타임 스크립트를 불러오지 않아요. 의존성은 모두 빌드 번들에 포함하고, `apps/ui/vite.config.ts`의 CSP 설정을 엄격하게 유지합니다.
+- CDN에서 런타임 스크립트를 불러오지 않아요. 의존성은 모두 빌드 번들에 포함하고, `apps/ui/vite.config.ts`의 CSP 설정을 엄격하게 유지합니다. 예외는 PowerPoint 애드인 페이지의 `office.js` 하나예요. 애드인은 이 스크립트를 번들에 넣을 수 없어요. 그래서 애드인은 토큰을 저장하지 않고 메모리에만 둡니다.
 - 브랜치와 PR 작성 규칙([연구 기록 규칙](/rules/branches))은 코드가 따라야 하는 약속이에요. 규칙을 바꿀 때는 이 가이드를 먼저 수정합니다.
 - 주변 코드의 네이밍, 코딩 관용구, 주석 밀도를 맞추고 작고 명확한 모듈을 선호해요.
 - `.dev.vars`, 토큰, client secret 같은 민감한 비밀 정보는 절대 커밋하지 않습니다.

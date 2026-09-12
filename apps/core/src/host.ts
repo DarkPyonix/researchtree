@@ -65,6 +65,16 @@ export function isTokenRejected(e: unknown): boolean {
   return /bad credentials|token expired|token has expired|revoked|requires authentication/i.test(message);
 }
 
+/**
+ * True when GitHub turned the call away for asking too often. Anonymous callers get 60 an hour per
+ * address, which a guest can run into; signing in raises it to 5,000.
+ */
+export function isRateLimited(e: unknown): boolean {
+  if (!(e instanceof HttpError) || (e.status !== 403 && e.status !== 429)) return false;
+  const message = (e.data as { message?: string } | undefined)?.message ?? e.message;
+  return /rate limit|too many requests/i.test(message);
+}
+
 export class HttpError extends Error {
   constructor(
     public readonly status: number,

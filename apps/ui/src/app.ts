@@ -6,6 +6,7 @@ import {
   DEFAULT_TREE_CONFIG,
   GitHubClient,
   HttpError,
+  isRateLimited,
   isTokenRejected,
   LOCALE_KEY,
   normalizeTreeConfig,
@@ -147,9 +148,13 @@ class App {
       );
       return;
     }
-    if (!this.user) return this.showLogin(loginError);
-
     const repo = urlParam("repo") ?? (await this.host.initialRepo()) ?? this.host.storage.get<string>(LAST_KEY) ?? null;
+    // Guest mode: a link to a public repo opens read-only, without a sign-in first. GitHub allows
+    // 60 anonymous calls an hour per address, so the sign-in screen is still one click away.
+    if (!this.user) {
+      if (loginError || !repo) return this.showLogin(loginError);
+      return this.openRepo(repo);
+    }
     if (!repo) return this.showPicker();
     await this.openRepo(repo);
   }
@@ -159,6 +164,7 @@ class App {
   }
 
   private showPicker(error?: string): void {
+    if (!this.user) return this.showLogin(error);
     this.mount(
       repoPicker({
         gh: this.gh,
@@ -183,7 +189,12 @@ class App {
       void this.host.auth.signOut().then(() => this.showLogin(t("app.sessionExpired")));
       return;
     }
+    if (!this.user && isRateLimited(e)) {
+      this.showLogin(t("guest.rateLimited"));
+      return;
+    }
     if (e instanceof HttpError && (e.status === 404 || e.status === 403)) {
+      if (!this.user) return this.showLogin(t("guest.needsSignIn", { repo }));
       this.showPicker(t("app.repoNotFound", { repo }));
       return;
     }
@@ -250,8 +261,9 @@ class App {
     const [prs, tags, activity] = await Promise.all([
       this.gh.listPulls(repo),
       this.gh.listVersionTags(repo, this.config.root).catch(() => []),
-      // Commit dates place experiments on the time axis; without them PR dates are used.
-      this.gh.listPullActivity(repo).catch(() => new Map()),
+      // Commit dates place experiments on the time axis; without them PR dates are used. They come
+      // from the GraphQL API, which turns away anonymous callers, so a guest never has them.
+      this.user ? this.gh.listPullActivity(repo).catch(() => new Map()) : Promise.resolve(new Map()),
     ]);
     return buildTree(prs, repo, this.config, tags, activity);
   }
@@ -371,6 +383,7 @@ class App {
       gh: this.gh,
       onNavigate: (id) => this.select(id),
       onUpdated: (message) => this.refresh(message),
+      signedIn: () => this.user !== null,
       islandMetric: (island) => ({ keys: islandMetricKeys(this.tree!, island), current: this.islandMetrics().get(island) ?? null }),
       onIslandMetric: (island, metric) => this.setIslandMetric(island, metric),
       specPath: () => this.repoFile.config.spec ?? DEFAULT_SPEC_PATH,
@@ -407,6 +420,22 @@ class App {
   private renderToolbar(): HTMLElement {
     const btn = (label: string, iconName: Parameters<typeof icon>[0], onClick: () => void, title?: string) =>
       h("button", { class: "btn", onclick: onClick, title: title ?? label, "aria-label": title ?? label }, icon(iconName, 15), h("span", { class: "btn-label" }, label));
+
+    if (!this.user) {
+      return h(
+        "div",
+        { class: "toolbar" },
+        btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
+        this.modeButton(),
+        btn(t("toolbar.settings"), "gear", () => this.tree && this.openSettings(this.tree.repo)),
+        h(
+          "button",
+          { class: "btn primary", onclick: () => this.showLogin(), title: t("guest.signInTitle") },
+          icon("github", 15),
+          h("span", { class: "btn-label" }, t("login.withGitHub")),
+        ),
+      );
+    }
 
     // Opens on hover (and keyboard focus); a click toggles it for touch screens.
     const userEl = h(
@@ -586,6 +615,7 @@ class App {
           : t("brand.empty", { prefix: tree.prefix, root: tree.root }),
       ),
       layers,
+      this.user ? null : h("p", { class: "muted small guest-note" }, t("guest.note")),
     ]);
   }
 

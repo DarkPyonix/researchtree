@@ -33,6 +33,7 @@ Details: [docs/CONVENTIONS.md](docs/CONVENTIONS.md). Do not change these without
 - Every GitHub call goes through `assertApiPath` (paths only, no full URLs).
 - PR bodies are untrusted input. Render markdown only through `renderMarkdown` (DOMPurify). Build DOM with the `h()` helper; do not use `innerHTML` with external strings.
 - No runtime scripts from CDNs. Bundle all dependencies. Keep the CSP in `apps/ui/vite.config.ts` strict.
+  - One exception: the PowerPoint add-in pages (`apps/ui/office*.html`) load `office.js` from Microsoft's CDN, because an add-in may not bundle its own copy and would not run without it. Their CSP allows that one origin and nothing else. In exchange the add-in host keeps the GitHub token in memory only (`apps/ui/src/hosts/office.ts`): those pages share an origin with the web app, so a token in browser storage would be readable from that script.
 - The auth proxy (`apps/proxy`) only exchanges OAuth codes. It must not store or log tokens, and only allows listed origins.
 - The local server binds to `127.0.0.1`, checks the `Host` header, and requires the per-run session token.
 

@@ -221,6 +221,14 @@ export const en: Record<MessageKey, string> = {
   "web.noClientId": "The OAuth App client ID is not configured (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "The OAuth App client ID is not configured.",
 
+  // Guest mode (reading a public repo without signing in)
+  "guest.note": "Read-only, because you are not signed in. Sign in to see when each experiment was worked on (commit dates).",
+  "guest.readOnly": "Sign in to edit",
+  "guest.commentNeedsSignIn": "Sign in to write a comment.",
+  "guest.signInTitle": "Sign in with GitHub for your own repositories and editing",
+  "guest.rateLimited": "That is all the anonymous views GitHub allows for now (60 an hour). Signing in gives you plenty.",
+  "guest.needsSignIn": "Couldn't open {repo}. A private repository needs a sign-in.",
+
   // PowerPoint add-in
   "office.signingIn": "Signing in to GitHub…",
   "office.dialogFailed": "Couldn't open the sign-in window.",

@@ -219,6 +219,14 @@ export const ko = {
   "web.noClientId": "OAuth App client ID가 설정되지 않았습니다 (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "OAuth App client ID가 설정되지 않았습니다.",
 
+  // 손님 모드 (로그인 없이 공개 레포 읽기)
+  "guest.note": "로그인하지 않아 읽기 전용이에요. 실험이 언제 작업됐는지(커밋 날짜)는 로그인해야 보여요.",
+  "guest.readOnly": "수정하려면 로그인",
+  "guest.commentNeedsSignIn": "댓글을 쓰려면 로그인해 주세요.",
+  "guest.signInTitle": "GitHub로 로그인하면 내 레포와 수정 기능을 쓸 수 있어요",
+  "guest.rateLimited": "로그인 없이 볼 수 있는 횟수(시간당 60번)를 다 썼어요. 로그인하면 넉넉해져요.",
+  "guest.needsSignIn": "{repo}를 열지 못했어요. 비공개 레포라면 로그인이 필요해요.",
+
   // PowerPoint 애드인
   "office.signingIn": "GitHub 로그인 중이에요…",
   "office.dialogFailed": "로그인 창을 열지 못했습니다.",

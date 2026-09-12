@@ -26,6 +26,8 @@ export interface PanelDeps {
   onIslandMetric(island: string, metric: string | null): void;
   /** Path of the spec document in this repo (from .researchtree.yml, else SPEC.md). */
   specPath(): string;
+  /** False for a guest reading a public repo: writing to GitHub needs a sign-in. */
+  signedIn(): boolean;
 }
 
 /** Right-hand detail panel, modeled on the reference travel app's info panel. */
@@ -514,18 +516,20 @@ export class Panel {
       node.meta.wandb
         ? h("button", { class: "link-btn", onclick: () => host.openExternal(node.meta.wandb!) }, `${t("panel.wandb")} `, icon("external", 13))
         : null,
-      h(
-        "button",
-        {
-          class: "btn small link-row-end",
-          title: t("panel.editTitle"),
-          onclick: () => {
-            this.editing = true;
-            this.render();
-          },
-        },
-        t("panel.edit"),
-      ),
+      this.deps.signedIn()
+        ? h(
+            "button",
+            {
+              class: "btn small link-row-end",
+              title: t("panel.editTitle"),
+              onclick: () => {
+                this.editing = true;
+                this.render();
+              },
+            },
+            t("panel.edit"),
+          )
+        : h("span", { class: "muted small link-row-end" }, t("guest.readOnly")),
     );
     body.append(actions);
 
@@ -771,7 +775,7 @@ export class Panel {
       error,
       h("div", { class: "row end" }, submit),
     );
-    body.append(list, form);
+    body.append(list, this.deps.signedIn() ? form : h("p", { class: "muted small" }, t("guest.commentNeedsSignIn")));
     void load();
   }
 

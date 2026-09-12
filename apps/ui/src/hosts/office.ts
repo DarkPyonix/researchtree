@@ -5,15 +5,17 @@
  * - Sign-in happens in an Office dialog. A redirect would navigate the slide's frame away, and
  *   `window.open` is not supported in add-ins.
  * - Links open with `openBrowserWindow`, the only way an add-in may send the reader to a browser.
- * - Storage may be blocked outright in the add-in frame (partitioned third-party storage), so the
- *   token falls back to memory: sign-in then lasts as long as the slideshow, which is enough.
+ * - Nothing is written to browser storage. These pages are the one place that loads a script from
+ *   someone else's server (Office.js, which add-ins may not bundle), and they sit on the same origin
+ *   as the web app, so a stored token would be readable from that script. The add-in keeps the token
+ *   in memory only: sign-in lasts as long as the slideshow, which is enough, and a guest reading a
+ *   public repo needs none at all.
  */
 import { t, type GitHubUser, type Host } from "@researchtree/core";
 import { repoFromUrl } from "../host-utils";
 import { CLIENT_ID } from "./github-oauth";
 import { fetchUser, githubRequest, TOKEN_KEY } from "./web";
 
-const PREFIX = "researchtree.";
 const AUTH_PAGE = "office-auth.html";
 
 /** The message the dialog page sends back (see office-auth.ts). */
@@ -22,28 +24,16 @@ interface AuthMessage {
   error?: string;
 }
 
-/** localStorage when the add-in frame allows it, memory when it does not. */
+/** Memory only, for the life of the page: nothing an add-in holds is written to browser storage. */
 function officeStore(): Host["storage"] {
   const memory = new Map<string, unknown>();
   return {
     get<T>(key: string): T | undefined {
-      try {
-        const raw = localStorage.getItem(PREFIX + key);
-        if (raw != null) return JSON.parse(raw) as T;
-      } catch {
-        /* Blocked: fall through to memory. */
-      }
       return memory.get(key) as T | undefined;
     },
     set(key: string, value: unknown) {
       if (value === undefined) memory.delete(key);
       else memory.set(key, value);
-      try {
-        if (value === undefined) localStorage.removeItem(PREFIX + key);
-        else localStorage.setItem(PREFIX + key, JSON.stringify(value));
-      } catch {
-        /* Memory already holds it. */
-      }
     },
   };
 }
