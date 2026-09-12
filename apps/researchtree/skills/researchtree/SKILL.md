@@ -133,7 +133,7 @@ researchtree memory                                # prints the manifest; fails 
 
 - Authentication: `researchtree login` (GitHub Device Flow, token stored in the OS keyring or a `0600` file), or the `RESEARCHTREE_TOKEN` environment variable. Public repositories can be read without a token.
 - The repository comes from the `origin` remote; override with `RESEARCHTREE_REPO=owner/name`.
-- The root branch (`research`) and experiment prefix (`experiment/`) are defaults. If the team changed them, set `RESEARCHTREE_ROOT` and `RESEARCHTREE_PREFIX` (for example `trunk` and `exp/`) and read every `research` / `experiment/` below with those names.
+- The root branch (`research`) and experiment prefix (`experiment/`) are defaults. A repository changes them in `.researchtree.yml` on its default branch (`root: trunk`, `prefix: exp/`); everything reads that file, so there is nothing to set per machine. Read every `research` / `experiment/` below as whatever that file says.
 - `main`, `develop` and every other branch are ignored by the tree. Never open experiment PRs against them.
 
 ## Before you propose an experiment: read the memory

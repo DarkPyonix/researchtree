@@ -782,13 +782,14 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   background: color-mix(in srgb, var(--card) 60%, transparent);
   border: 1px solid var(--line);
   border-radius: var(--radius, 16px);
-  padding: 12px;
+  /* One inset for the whole column, so the heading, the cards and the empty line share a left edge. */
+  padding: 14px 12px 12px;
 }
-.board-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.board-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 2px 0 10px; }
 .board-head h2 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
 .board-count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .board-list { display: flex; flex-direction: column; gap: 8px; }
-.board-empty { margin: 6px 2px; }
+.board-empty { margin: 6px 0; }
 .board-card {
   display: flex;
   flex-direction: column;

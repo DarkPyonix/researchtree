@@ -4,6 +4,8 @@ import warnings
 
 import pytest
 
+from base64 import b64encode
+
 from researchtree import git
 from researchtree.experiment import tracking as log
 from researchtree.github import api, tokens
@@ -12,13 +14,20 @@ from researchtree.i18n import set_locale
 
 @pytest.fixture
 def fake_repo(monkeypatch):
-    state = {"body": "```yaml\nhypothesis: h\n```\n", "patches": [], "calls": []}
+    state = {"body": "```yaml\nhypothesis: h\n```\n", "patches": [], "calls": [], "config": None}
     monkeypatch.setattr(git, "current_branch", lambda cwd=None: "experiment/a")
     monkeypatch.setattr(git, "origin_repo", lambda cwd=None: "o/r")
     monkeypatch.setattr(tokens, "load_token", lambda: "tok")
+    log._prefix_cache.clear()  # the prefix is read once per repository per process
 
     def call(method, path, *, token, query=None, body=None, **kw):
         state["calls"].append((method, path, query))
+        if path == "/repos/o/r":
+            return {"default_branch": "main"}
+        if path.startswith("/repos/o/r/contents/"):
+            if state["config"] is None:
+                raise api.GitHubError(404, "not found")
+            return {"type": "file", "encoding": "base64", "content": b64encode(state["config"].encode()).decode()}
         if path == "/repos/o/r/pulls":
             return [{"number": 7, "state": "open"}]
         if method == "GET":
@@ -34,7 +43,7 @@ def fake_repo(monkeypatch):
 def test_log_merges_metrics(fake_repo):
     log.log(val_loss=2.5)
     assert fake_repo["patches"] == ["```yaml\nhypothesis: h\nmetrics:\n  val_loss: 2.5\n```\n"]
-    assert fake_repo["calls"][0] == ("GET", "/repos/o/r/pulls", {"head": "o:experiment/a", "state": "all", "per_page": 10})
+    assert ("GET", "/repos/o/r/pulls", {"head": "o:experiment/a", "state": "all", "per_page": 10}) in fake_repo["calls"]
 
 
 def test_set_field(fake_repo):
@@ -72,7 +81,9 @@ def test_non_experiment_branch_warns(fake_repo, monkeypatch):
     monkeypatch.setattr(git, "current_branch", lambda cwd=None: "main")
     with pytest.warns(RuntimeWarning, match="experiment/"):
         log.log(a=1)
-    assert fake_repo["calls"] == []
+    # Reading the repository's prefix is allowed; touching the PR is not.
+    assert fake_repo["patches"] == []
+    assert not [c for c in fake_repo["calls"] if "/pulls" in c[1]]
 
 
 def test_missing_pr_warns(fake_repo, monkeypatch):
@@ -93,7 +104,8 @@ def test_failures_never_raise(monkeypatch, fake_repo):
     monkeypatch.setattr(api, "call", boom)
     with pytest.warns(RuntimeWarning, match="boom"):
         log.log(a=1)
-    assert len(attempts) == 3  # PR lookup + two GET attempts (one retry)
+    pr_calls = [a for a in attempts if "/pulls" in a[1]]
+    assert len(pr_calls) == 3  # PR lookup + two GET attempts (one retry)
 
 
 def test_retry_succeeds(monkeypatch, fake_repo):
@@ -126,8 +138,17 @@ def test_invalid_status_warns(fake_repo):
     assert fake_repo["calls"] == []
 
 
-def test_custom_prefix_from_env(monkeypatch, fake_repo):
-    monkeypatch.setenv("RESEARCHTREE_PREFIX", "exp")
+def test_the_prefix_comes_from_the_repositorys_own_file(monkeypatch, fake_repo):
+    # docs/CONVENTIONS.md: the branch names live in .researchtree.yml on the default branch.
+    fake_repo["config"] = "prefix: exp\n"
     monkeypatch.setattr(git, "current_branch", lambda cwd=None: "exp/a")
     log.log(a=1)
     assert fake_repo["patches"]
+    assert ("GET", "/repos/o/r", None) in fake_repo["calls"]
+
+
+def test_a_branch_outside_the_prefix_is_left_alone(monkeypatch, fake_repo):
+    monkeypatch.setattr(git, "current_branch", lambda cwd=None: "exp/a")
+    with pytest.warns(RuntimeWarning):
+        log.log(a=1)
+    assert fake_repo["patches"] == []

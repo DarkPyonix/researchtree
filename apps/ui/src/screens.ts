@@ -1,5 +1,5 @@
 import type { GitHubClient, GitHubUser, Host, LocalePreference, TreeConfig } from "@researchtree/core";
-import { DEFAULT_TREE_CONFIG, LOCALE_NAMES, LOCALES, normalizeTreeConfig, parseRepo, t } from "@researchtree/core";
+import { LOCALE_NAMES, LOCALES, parseRepo, t } from "@researchtree/core";
 import logoUrl from "./assets/logo.svg";
 import { clear, h, icon, type Child } from "./dom";
 
@@ -245,13 +245,12 @@ export function repoPicker(opts: {
  */
 export function settingsDialog(opts: {
   repo: string;
-  config: TreeConfig;
-  /** Lines about the repo's `.researchtree.yml` (what it sets, what was ignored). */
+  /** Lines about the repo's `.researchtree.yml`: the branches it sets, and anything it got wrong. */
   notes?: string[];
   locale: LocalePreference;
   /** Where the automatic language comes from, e.g. "browser language". */
   autoSource: string;
-  onSave: (settings: { config: TreeConfig; locale: LocalePreference }) => void;
+  onSave: (settings: { locale: LocalePreference }) => void;
   onCancel: () => void;
 }): HTMLElement {
   const language = h(
@@ -261,18 +260,6 @@ export function settingsDialog(opts: {
     LOCALES.map((l) => h("option", { value: l, lang: l }, LOCALE_NAMES[l])),
   );
   language.value = opts.locale;
-  const root = h("input", { class: "input", value: opts.config.root, "aria-label": t("settings.rootBranch"), spellcheck: "false", autocomplete: "off" });
-  const prefix = h("input", { class: "input", value: opts.config.prefix, "aria-label": t("settings.prefix"), spellcheck: "false", autocomplete: "off" });
-  const errorBox = h("p", { class: "form-error", role: "alert", hidden: true });
-  const preview = h("p", { class: "muted small" });
-  const update = () => {
-    const c = normalizeTreeConfig({ root: root.value, prefix: prefix.value });
-    preview.textContent = "error" in c ? "" : t("settings.preview", { root: c.root, prefix: c.prefix });
-  };
-  root.addEventListener("input", update);
-  prefix.addEventListener("input", update);
-  update();
-
   const close = (e: Event) => {
     if (e.target === overlay) opts.onCancel();
   };
@@ -285,13 +272,7 @@ export function settingsDialog(opts: {
       "aria-label": t("settings.title"),
       onsubmit: (e: SubmitEvent) => {
         e.preventDefault();
-        const c = normalizeTreeConfig({ root: root.value, prefix: prefix.value });
-        if ("error" in c) {
-          errorBox.textContent = c.error;
-          errorBox.hidden = false;
-          return;
-        }
-        opts.onSave({ config: c, locale: language.value as LocalePreference });
+        opts.onSave({ locale: language.value as LocalePreference });
       },
     },
     h("div", { class: "eyebrow" }, opts.repo),
@@ -301,15 +282,10 @@ export function settingsDialog(opts: {
     h("div", { class: "section-label" }, t("settings.branchTitle")),
     h("p", { class: "screen-body" }, t("settings.branchBody")),
     (opts.notes ?? []).map((note) => h("p", { class: "muted small repo-note" }, note)),
-    h("label", { class: "field" }, h("span", null, t("settings.rootBranch")), root),
-    h("label", { class: "field" }, h("span", null, t("settings.prefix")), prefix),
-    preview,
-    errorBox,
     h(
       "div",
       { class: "screen-actions" },
       h("button", { class: "btn primary", type: "submit" }, t("settings.save")),
-      h("button", { class: "btn", type: "button", onclick: () => { root.value = DEFAULT_TREE_CONFIG.root; prefix.value = DEFAULT_TREE_CONFIG.prefix; update(); } }, t("settings.defaults")),
       h("button", { class: "btn ghost", type: "button", onclick: opts.onCancel }, t("common.cancel")),
     ),
   );

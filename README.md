@@ -117,7 +117,7 @@ gitGraph
 
 > [!TIP]
 > The root branch name (`research`) and the experiment prefix (`experiment/`) are only defaults.
-> You can change both per repository in the viewer's **branch settings**. Set `RESEARCHTREE_PREFIX` so the training-script API uses the same prefix.
+> To change either, put a `.researchtree.yml` on the repository's default branch with `root` and `prefix`. The viewer, the CLI and the training-script API all read it.
 
 ### The PR body is the lab note
 
@@ -314,7 +314,6 @@ rt.conclude("rejected", "Converged too slowly", heading="Conclusion")  # set sta
 | Environment variable | Purpose |
 |---|---|
 | `RESEARCHTREE_TOKEN` | GitHub token. Takes precedence over the token saved by `researchtree login` (OS keyring or a `0600` file) |
-| `RESEARCHTREE_PREFIX` | Experiment branch prefix. Default: `experiment/` |
 | `RESEARCHTREE_REPO` | `owner/name`, if it can't be inferred from the `origin` remote |
 
 ## 🧠 Research memory for agents

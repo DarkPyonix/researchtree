@@ -45,7 +45,6 @@ In any process where `RANK` or `LOCAL_RANK` isn't `0`, it does nothing at all. O
 | Variable | What it's for |
 |---|---|
 | `RESEARCHTREE_TOKEN` | A GitHub token. When set, it wins over the saved token. Handy for putting a PAT on a GPU server or in CI |
-| `RESEARCHTREE_PREFIX` | The experiment branch prefix (default: `experiment/`). If you changed the viewer's [branch settings](/viewer/navigation), use the same value here. A trailing `/` is added for you |
 | `RESEARCHTREE_REPO` | The repo (`owner/name`). Set it when the `origin` remote can't tell us |
 | `RESEARCHTREE_CLIENT_ID` | The OAuth App client ID used by `researchtree login` (Device Flow). Set it to use your own app instead of the default one |
 

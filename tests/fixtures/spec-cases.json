@@ -1,5 +1,13 @@
 {
-  "slugify": ["Phase 1: Text Injection", "영어 및 듀플렉스 능력 보존 전략", "  Loss (λ · β)  ", "R 부착 기준", "C++ / CUDA", "---", "Mixed 한글 and English 2"],
+  "slugify": [
+    "Phase 1: Text Injection",
+    "영어 및 듀플렉스 능력 보존 전략",
+    "  Loss (λ · β)  ",
+    "R 부착 기준",
+    "C++ / CUDA",
+    "---",
+    "Mixed 한글 and English 2"
+  ],
   "parse": [
     {
       "name": "headings, summaries, nesting and duplicate titles",
@@ -60,12 +68,30 @@
       "name": "a section added, changed, renamed and removed across versions",
       "key": "loss",
       "versions": [
-        { "name": "v1", "text": "# Spec\n## Model\nx\n" },
-        { "name": "v2", "text": "# Spec\n## Loss <!-- id: loss -->\nL1\n" },
-        { "name": "v3", "text": "# Spec\n## Loss <!-- id: loss -->\nL1 + adversarial\n" },
-        { "name": "v4", "text": null },
-        { "name": "v5", "text": "# Spec\n## Loss <!-- id: loss -->\nL1 + adversarial\n" },
-        { "name": "v6", "text": "# Spec\n## Objective <!-- id: loss -->\nL1 + adversarial\n" }
+        {
+          "name": "v1",
+          "text": "# Spec\n## Model\nx\n"
+        },
+        {
+          "name": "v2",
+          "text": "# Spec\n## Loss <!-- id: loss -->\nL1\n"
+        },
+        {
+          "name": "v3",
+          "text": "# Spec\n## Loss <!-- id: loss -->\nL1 + adversarial\n"
+        },
+        {
+          "name": "v4",
+          "text": null
+        },
+        {
+          "name": "v5",
+          "text": "# Spec\n## Loss <!-- id: loss -->\nL1 + adversarial\n"
+        },
+        {
+          "name": "v6",
+          "text": "# Spec\n## Objective <!-- id: loss -->\nL1 + adversarial\n"
+        }
       ]
     }
   ],
@@ -73,14 +99,35 @@
     {
       "name": "missing summaries, long sections and missing includes",
       "text": "# Spec\nNo summary needed at level 1.\n\n## Has summary\n> Yes.\n\n## No summary\ntext\n\n## Long\n> Long one.\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n",
-      "missing": ["parts/gone.md"]
+      "missing": [
+        "parts/gone.md"
+      ]
     }
   ],
   "config": [
-    { "name": "full", "text": "prefix: exp\nspec: docs/../SPEC.md\nintent: INTENT.md\n" },
-    { "name": "bad values and unknown keys", "text": "prefix: \"/bad//\"\nspec: ../../etc/passwd\nintent: 3\nroot: trunk\n" },
-    { "name": "empty file", "text": "" },
-    { "name": "not a mapping", "text": "- a\n- b\n" },
-    { "name": "broken yaml", "text": "spec: [unclosed\n" }
+    {
+      "name": "full",
+      "text": "root: trunk\nprefix: exp\nspec: docs/../SPEC.md\nintent: INTENT.md\n"
+    },
+    {
+      "name": "bad values and unknown keys",
+      "text": "root: \"/bad\"\nprefix: \"/bad//\"\nspec: ../../etc/passwd\nintent: 3\nwhat: 1\n"
+    },
+    {
+      "name": "root the prefix would swallow",
+      "text": "root: exp/main\nprefix: exp/\n"
+    },
+    {
+      "name": "empty file",
+      "text": ""
+    },
+    {
+      "name": "not a mapping",
+      "text": "- a\n- b\n"
+    },
+    {
+      "name": "broken yaml",
+      "text": "spec: [unclosed\n"
+    }
   ]
 }

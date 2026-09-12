@@ -45,7 +45,6 @@ rt.conclude("rejected", "수렴이 느림")  # status 설정 + '## 결론' 섹�
 | 변수 | 설명 |
 |---|---|
 | `RESEARCHTREE_TOKEN` | GitHub 토큰. 설정 시 저장된 토큰보다 우선 적용돼요. GPU 서버나 CI에서 PAT를 넣을 때 유용합니다 |
-| `RESEARCHTREE_PREFIX` | 실험 브랜치 접두사(기본값: `experiment/`). 뷰어의 [브랜치 설정](/viewer/navigation#브랜치-설정)을 바꿨다면 같은 값을 넣어주세요. `/`로 끝나지 않으면 자동으로 붙여줍니다 |
 | `RESEARCHTREE_REPO` | 레포(`owner/name`). `origin` remote로 알아낼 수 없을 때 직접 지정합니다 |
 | `RESEARCHTREE_CLIENT_ID` | `researchtree login`(Device Flow)에 쓸 OAuth App client ID. 기본 앱 대신 직접 등록한 앱을 쓸 때 지정해요 |
 

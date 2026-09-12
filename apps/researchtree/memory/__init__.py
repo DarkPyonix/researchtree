@@ -23,6 +23,20 @@ from .source import Source
 from .spec import REPO_CONFIG_PATH, Section, SectionChange, Spec, parse_repo_config
 
 
+def _repo_config(src: Source) -> tuple[dict[str, str], list[dict[str, str]]]:
+    """`.researchtree.yml` from the default branch, falling back to the root branch for older repos."""
+    for ref in (src.default_branch(), DEFAULT_ROOT):
+        if not ref:
+            continue
+        try:
+            text = src.file_text(REPO_CONFIG_PATH, ref)
+        except Exception:  # no access, or no such branch: try the next place
+            continue
+        if text is not None:
+            return parse_repo_config(text)
+    return {}, []
+
+
 def load(
     repo: str | None = None,
     *,
@@ -33,25 +47,18 @@ def load(
 ) -> Research:
     """Read a repo's research tree from GitHub.
 
-    `repo` defaults to RESEARCHTREE_REPO, then the current directory's `origin`. `root` defaults to
-    RESEARCHTREE_ROOT, then `research`. `prefix` defaults to RESEARCHTREE_PREFIX, then the repo's
-    `.researchtree.yml` on the root branch, then `experiment/`. The token comes from
-    `researchtree login` or RESEARCHTREE_TOKEN; public repos also work without one.
+    `repo` defaults to RESEARCHTREE_REPO, then the current directory's `origin`. The branch names
+    come from the repository's own `.researchtree.yml` (`root`, `prefix`) on its default branch, so
+    everyone reading the repository sees the same tree; passing `root` or `prefix` here overrides it.
+    The token comes from `researchtree login` or RESEARCHTREE_TOKEN; public repos work without one.
     """
     repo = repo or os.environ.get("RESEARCHTREE_REPO") or git.origin_repo()
     if not repo:
         raise ValueError("no repo given and no GitHub `origin` remote here; pass load('owner/name')")
-    root = root or os.environ.get("RESEARCHTREE_ROOT", "").strip() or DEFAULT_ROOT
     src = Source(repo, token if token is not None else tokens.load_token())
-    config: dict[str, str] = {}
-    warnings: list[dict[str, str]] = []
-    try:
-        text = src.file_text(REPO_CONFIG_PATH, root)
-        if text is not None:
-            config, warnings = parse_repo_config(text)
-    except Exception:  # no access to the file (or no root branch yet): run on the defaults
-        pass
-    prefix = prefix or os.environ.get("RESEARCHTREE_PREFIX", "").strip() or config.get("prefix") or DEFAULT_PREFIX
+    config, warnings = _repo_config(src)
+    root = root or config.get("root") or DEFAULT_ROOT
+    prefix = prefix or config.get("prefix") or DEFAULT_PREFIX
     if not prefix.endswith("/"):
         prefix += "/"
     prs = src.pulls()

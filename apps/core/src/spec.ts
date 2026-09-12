@@ -16,6 +16,8 @@ export const SECTION_LINE_BUDGET = 40;
 const MAX_INCLUDE_DEPTH = 5;
 
 export interface RepoConfig {
+  /** Root branch of the research tree. The file sits on the default branch, so it can name it. */
+  root?: string;
   prefix?: string;
   spec?: string;
   intent?: string;
@@ -24,7 +26,7 @@ export interface RepoConfig {
 export type RepoConfigWarning =
   | { code: "invalid-yaml" }
   | { code: "not-mapping" }
-  | { code: "invalid-prefix"; key: "prefix" }
+  | { code: "invalid-branch"; key: "root" | "prefix" }
   | { code: "invalid-path"; key: "spec" | "intent" }
   | { code: "unknown-key"; key: string };
 
@@ -288,6 +290,7 @@ export function specSummary(spec: Pick<Spec, "sections">): string {
 }
 
 const PREFIX_RE = /^(?!\/)(?!.*\/\/)(?!.*\.\.)[A-Za-z0-9._\-/]+\/$/;
+const BRANCH_RE = /^(?!\/)(?!.*\/\/)(?!.*\.\.)(?!.*\/$)[A-Za-z0-9._\-/]+$/;
 
 /** Parse `.researchtree.yml`. Unknown keys are reported but otherwise ignored; bad values are dropped. */
 export function parseRepoConfig(text: string): { config: RepoConfig; warnings: RepoConfigWarning[] } {
@@ -299,16 +302,24 @@ export function parseRepoConfig(text: string): { config: RepoConfig; warnings: R
   if (data === null || data === undefined) return { config, warnings };
   if (!isMap(doc.contents) || typeof data !== "object" || Array.isArray(data)) return { config, warnings: [{ code: "not-mapping" }] };
   for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-    if (key === "prefix") {
+    if (key === "root") {
+      const root = typeof value === "string" ? value.trim() : "";
+      if (root && BRANCH_RE.test(root)) config.root = root;
+      else warnings.push({ code: "invalid-branch", key: "root" });
+    } else if (key === "prefix") {
       let p = typeof value === "string" ? value.trim() : "";
       if (p && !p.endsWith("/")) p += "/";
       if (PREFIX_RE.test(p)) config.prefix = p;
-      else warnings.push({ code: "invalid-prefix", key: "prefix" });
+      else warnings.push({ code: "invalid-branch", key: "prefix" });
     } else if (key === "spec" || key === "intent") {
       const path = typeof value === "string" ? joinPath("", value.trim()) : null;
       if (path) config[key] = path;
       else warnings.push({ code: "invalid-path", key });
     } else warnings.push({ code: "unknown-key", key });
+  }
+  if (config.root && config.prefix && config.root.startsWith(config.prefix)) {
+    delete config.root;
+    warnings.push({ code: "invalid-branch", key: "root" });
   }
   return { config, warnings };
 }

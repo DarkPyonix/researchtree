@@ -221,13 +221,16 @@ export class GitHubClient {
     return res.data.merge_base_commit.sha;
   }
 
-  /** The repository's own one-line description, or null when it has none (or cannot be read). */
-  async repoDescription(repo: string): Promise<string | null> {
+  /**
+   * What the repository says about itself: its one-line description and its default branch, which is
+   * where `.researchtree.yml` lives. Never throws: the viewer works without either.
+   */
+  async repoInfo(repo: string): Promise<{ description: string | null; defaultBranch: string | null }> {
     try {
-      const res = await this.call<{ description?: string | null }>({ method: "GET", path: `/repos/${repo}` });
-      return res.data.description?.trim() || null;
+      const res = await this.call<{ description?: string | null; default_branch?: string }>({ method: "GET", path: `/repos/${repo}` });
+      return { description: res.data.description?.trim() || null, defaultBranch: res.data.default_branch ?? null };
     } catch {
-      return null;
+      return { description: null, defaultBranch: null };
     }
   }
 

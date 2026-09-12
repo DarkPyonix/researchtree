@@ -295,6 +295,7 @@
     {
       "name": "full",
       "config": {
+        "root": "trunk",
         "prefix": "exp/",
         "spec": "SPEC.md",
         "intent": "INTENT.md"
@@ -306,7 +307,11 @@
       "config": {},
       "warnings": [
         {
-          "code": "invalid-prefix",
+          "code": "invalid-branch",
+          "key": "root"
+        },
+        {
+          "code": "invalid-branch",
           "key": "prefix"
         },
         {
@@ -319,6 +324,18 @@
         },
         {
           "code": "unknown-key",
+          "key": "what"
+        }
+      ]
+    },
+    {
+      "name": "root the prefix would swallow",
+      "config": {
+        "prefix": "exp/"
+      },
+      "warnings": [
+        {
+          "code": "invalid-branch",
           "key": "root"
         }
       ]

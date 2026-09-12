@@ -10,7 +10,7 @@ import {
   isRateLimited,
   isTokenRejected,
   LOCALE_KEY,
-  normalizeTreeConfig,
+  repoFileConfig,
   parseRepoConfig,
   REPO_CONFIG_PATH,
   parentOf,
@@ -34,7 +34,7 @@ import { append, clear, h, icon } from "./dom";
 import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
 import { DEMO_REPO, loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
-import { mergeConfig, parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
+import { parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
 import { statusLabel } from "./theme";
 import { repoBanner, ScrollBanner } from "./scroll-banner";
 import { parseViewState, type ViewState } from "./view-state";
@@ -50,7 +50,6 @@ const metricsKey = (repo: string) => `islandMetrics:${repo}`;
 const BOARD_KEY = "board";
 const MODE_KEY = "viewMode";
 const BRAND_KEY = "brandCollapsed";
-const configKey = (repo: string) => `config:${repo}`;
 const GUIDE_URL = "https://darkpyonix.github.io/researchtree/guide/";
 const PROJECT_URL = "https://github.com/DarkPyonix/researchtree";
 
@@ -111,6 +110,8 @@ class App {
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
   /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
   private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
+  /** What the repository says about itself, for the scroll that names it. */
+  private repoDescription: string | null = null;
   private stage: { canvas: HTMLElement; hint: HTMLElement; options: ViewOptions; boardInsets: () => { top: number; right: number; bottom: number } } | null = null;
   private panel: Panel | null = null;
   private selected: string | null = null;
@@ -235,8 +236,11 @@ class App {
   private async openRepo(repo: string): Promise<void> {
     if (!parseRepo(repo)) return this.showPicker(t("app.invalidRepo"));
     this.mount(loadingScreen(t("app.loadingRepo", { repo })));
-    this.applyUrlSettings(repo);
-    this.config = this.repoConfig(repo);
+    // The repository's own file decides the branches, so it is read before anything else.
+    const info = await this.gh.repoInfo(repo).catch(() => ({ description: null, defaultBranch: null }));
+    this.repoDescription = info.description;
+    this.repoFile = await this.readRepoFile(repo, info.defaultBranch).catch(() => ({ config: {}, warnings: [] }));
+    this.config = repoFileConfig(this.repoFile.config);
     const { root, prefix } = this.config;
     try {
       if (!(await this.gh.branchExists(repo, root))) {
@@ -258,9 +262,6 @@ class App {
         );
         return;
       }
-      this.repoFile = await this.readRepoFile(repo, root);
-      // The team's file wins over this browser's saved prefix.
-      if (this.repoFile.config.prefix) this.config = { root, prefix: this.repoFile.config.prefix };
       this.tree = await this.loadTree(repo);
     } catch (e) {
       this.handleError(e, repo);
@@ -293,13 +294,7 @@ class App {
 
   /** The scroll that names the research you just walked into (docs/ISLAND.md). */
   private announceRepo(repo: string): void {
-    const banner = this.banner;
-    if (!banner) return;
-    banner.show(repoBanner(repo, null, t("banner.research")));
-    // The description is one more call, so the scroll opens first and fills in if it arrives in time.
-    void this.gh.repoDescription(repo).then((description) => {
-      if (description && this.tree?.repo === repo) banner.show(repoBanner(repo, description, t("banner.research")));
-    });
+    this.banner?.show(repoBanner(repo, this.repoDescription, t("banner.research")));
   }
 
   private async loadTree(repo: string): Promise<ResearchTree> {
@@ -313,10 +308,17 @@ class App {
     return buildTree(prs, repo, this.config, tags, activity);
   }
 
-  /** `.researchtree.yml` from the root branch. A missing or unreadable file means the defaults. */
-  private async readRepoFile(repo: string, root: string): Promise<{ config: RepoConfig; warnings: RepoConfigWarning[] }> {
-    const text = await this.gh.getFileText(repo, REPO_CONFIG_PATH, root).catch(() => null);
-    return text === null ? { config: {}, warnings: [] } : parseRepoConfig(text);
+  /**
+   * `.researchtree.yml`, which decides the branch names for everyone who opens this repository.
+   * It lives on the default branch, so it can name the root branch; older repositories keep it on
+   * the root branch instead, and those still work.
+   */
+  private async readRepoFile(repo: string, defaultBranch: string | null): Promise<{ config: RepoConfig; warnings: RepoConfigWarning[] }> {
+    for (const ref of [defaultBranch, DEFAULT_TREE_CONFIG.root].filter((b): b is string => Boolean(b))) {
+      const text = await this.gh.getFileText(repo, REPO_CONFIG_PATH, ref).catch(() => null);
+      if (text !== null) return parseRepoConfig(text);
+    }
+    return { config: {}, warnings: [] };
   }
 
   /** Branch settings from the link that opened the viewer, saved for this repo. Applies once. */
@@ -353,26 +355,13 @@ class App {
     }
   }
 
-  private applyUrlSettings(repo: string): void {
-    const wanted = this.urlSettings.config;
-    this.urlSettings = { ignored: this.urlSettings.ignored };
-    const config = mergeConfig(this.repoConfig(repo), wanted);
-    if (config) this.host.storage.set(configKey(repo), config);
-  }
-
-  /** Branch names for a repo: saved settings, or the defaults (research / experiment/). */
-  private repoConfig(repo: string): TreeConfig {
-    const saved = this.host.storage.get<Partial<TreeConfig>>(configKey(repo));
-    const c = saved ? normalizeTreeConfig(saved) : DEFAULT_TREE_CONFIG;
-    return "error" in c ? DEFAULT_TREE_CONFIG : c;
-  }
-
   /** What the repo's `.researchtree.yml` decides, shown in the settings dialog. */
   private repoFileNotes(repo: string): string[] {
     if (this.tree?.repo !== repo) return [];
     const notes: string[] = [];
     const { config, warnings } = this.repoFile;
-    if (config.prefix) notes.push(t("config.repoFile", { prefix: config.prefix }));
+    notes.push(t("config.branches", { root: this.config.root, prefix: this.config.prefix }));
+    if (!config.root && !config.prefix) notes.push(t("config.defaults"));
     if (warnings.length) notes.push(t("config.repoWarnings", { items: warnings.map((w) => ("key" in w ? `${w.key} (${w.code})` : w.code)).join(", ") }));
     return notes;
   }
@@ -380,12 +369,10 @@ class App {
   private openSettings(repo: string): void {
     const dialog = settingsDialog({
       repo,
-      config: this.repoConfig(repo),
       notes: this.repoFileNotes(repo),
       locale: localePreference(this.host),
       autoSource: t(this.host.kind === "extension" ? "settings.sourceVscode" : "settings.sourceBrowser"),
-      onSave: ({ config, locale }) => {
-        this.host.storage.set(configKey(repo), config);
+      onSave: ({ locale }) => {
         this.host.storage.set(LOCALE_KEY, locale);
         this.setUrl({ repo, node: this.selected });
         // Reloading the repo re-renders every screen in the new language.
@@ -736,7 +723,7 @@ class App {
           ? tree.versions.size
             ? t("brand.subVersions", { root: tree.root, count: tree.versions.size + 1, depth: maxDepth })
             : t("brand.subBranches", { root: tree.root, count: tree.rootChildren.length, depth: maxDepth })
-          : t("brand.empty", { prefix: tree.prefix, root: tree.root }),
+          : [t("brand.empty", { prefix: tree.prefix }), h("br"), t("brand.emptyNext", { root: tree.root })],
       ),
       layers,
       this.user ? null : h("p", { class: "muted small guest-note" }, t("guest.note"), h("br"), t("guest.noteDates")),
@@ -857,7 +844,7 @@ class App {
       else params.delete("node");
       // Settings come after repo and node, so the link reads "what to open" first, "how to show it" after.
       if (p.repo) {
-        const settings = settingParams({ locale: localePreference(this.host), config: this.repoConfig(p.repo), defaults: DEFAULT_TREE_CONFIG });
+        const settings = settingParams({ locale: localePreference(this.host) });
         for (const [key, value] of Object.entries(settings)) if (value) params.set(key, value);
       }
       const q = params.toString().replace(/=(&|$)/g, "$1");

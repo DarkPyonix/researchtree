@@ -76,10 +76,7 @@ describe("locale", () => {
   });
 
   it("core error messages are localized", () => {
-    setLocale("ko");
-    expect(normalizeTreeConfig({ root: "a..b" })).toEqual({ error: "루트 브랜치 이름이 올바르지 않습니다." });
     setLocale("en");
-    expect(normalizeTreeConfig({ root: "a..b" })).toEqual({ error: "The root branch name is invalid." });
     expect(() => updateMeta("```yaml\na: [\n```\n", { hypothesis: "x" })).toThrow("could not be parsed");
   });
 });

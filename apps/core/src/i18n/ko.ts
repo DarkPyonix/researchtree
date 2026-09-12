@@ -68,7 +68,8 @@ export const ko = {
   "brand.dimStatus": "{status} 실험 흐리게",
   "brand.subVersions": "{root} {count}개 버전 · 총 {depth}세대",
   "brand.subBranches": "{root}에서 뻗은 가지 {count}개 · 총 {depth}세대",
-  "brand.empty": "아직 {prefix}* PR이 없습니다. 첫 실험 브랜치를 {root}에서 따서 PR을 열어 보세요.",
+  "brand.empty": "아직 {prefix}* PR이 없습니다.",
+  "brand.emptyNext": "첫 실험 브랜치를 {root}에서 따서 PR을 열어 보세요.",
   "gens.nav": "세대 이동",
   "gens.label": "세대",
   "gens.prev": "이전 세대",
@@ -108,13 +109,9 @@ export const ko = {
   "settings.sourceBrowser": "브라우저 언어",
   "settings.sourceVscode": "VS Code 언어",
   "settings.languageNote": "언어는 모든 레포에 공통으로 적용됩니다.",
-  "settings.branchTitle": "브랜치 설정",
-  "settings.branchBody": "이 레포에서 연구 트리의 루트로 쓸 브랜치와, 실험 브랜치 이름 앞에 붙는 접두사를 정합니다. 설정은 이 브라우저에 레포별로 저장됩니다.",
-  "settings.rootBranch": "루트 브랜치",
-  "settings.prefix": "실험 브랜치 접두사",
-  "settings.preview": "예: {root} ← {prefix}my-idea (PR base: {root}, 태그: {root}/v1, {root}/v2 …)",
+  "settings.branchTitle": "브랜치",
+  "settings.branchBody": "루트 브랜치와 실험 브랜치 접두사는 레포의 .researchtree.yml이 정합니다. 레포 하나에 설정 하나라서, 이 레포를 여는 사람은 모두 같은 트리를 봅니다.",
   "settings.save": "저장하고 다시 불러오기",
-  "settings.defaults": "기본값",
 
   // Detail panel
   "panel.path": "경로",
@@ -271,9 +268,6 @@ export const ko = {
   "webview.timeout": "VS Code 확장 응답 시간 초과 ({type})",
 
   // Core
-  "config.invalidRoot": "루트 브랜치 이름이 올바르지 않습니다.",
-  "config.invalidPrefix": "실험 브랜치 접두사가 올바르지 않습니다.",
-  "config.rootInPrefix": "루트 브랜치가 실험 브랜치 접두사로 시작하면 안 됩니다.",
   "prbody.parseError": "PR 본문의 YAML 블록을 파싱할 수 없어 수정하지 않았습니다.",
   "prbody.notMap": "PR 본문의 YAML 블록이 key: value 형식이 아닙니다.",
   "github.invalidPath": "허용되지 않는 GitHub API 경로: {path}",
@@ -329,7 +323,8 @@ export const ko = {
   "spec.expRunning": "진행 중인 실험이에요. 채택되면 이 변경이 research에 들어가요.",
   "spec.expNone": "이 실험은 스펙을 바꾸지 않았어요.",
   "spec.expNoFile": "이 레포에는 스펙 파일({path})이 없어요.",
-  "config.repoFile": "이 레포의 .researchtree.yml이 실험 접두사를 {prefix}로 정하고 있어요. 아래 값보다 레포 설정이 먼저예요.",
+  "config.branches": "이 레포는 루트 {root}, 실험 {prefix}* 로 읽어요.",
+  "config.defaults": "레포에 설정 파일이 없어서 기본값을 씁니다.",
   "config.repoWarnings": ".researchtree.yml을 읽다가 무시한 항목: {items}",
 } as const;
 
