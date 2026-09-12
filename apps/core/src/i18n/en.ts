@@ -232,7 +232,8 @@ export const en: Record<MessageKey, string> = {
   "toolbar.boardOff": "Back to the island",
 
   // Guest mode (reading a public repo without signing in)
-  "guest.note": "Read-only, because you are not signed in. Sign in to see when each experiment was worked on (commit dates).",
+  "guest.note": "Read-only, because you are not signed in.",
+  "guest.noteDates": "Sign in to see when each experiment was worked on (commit dates).",
   "guest.readOnly": "Sign in to edit",
   "guest.commentNeedsSignIn": "Sign in to write a comment.",
   "guest.signInTitle": "Sign in with GitHub for your own repositories and editing",
@@ -243,6 +244,11 @@ export const en: Record<MessageKey, string> = {
   "office.signingIn": "Signing in to GitHub…",
   "office.dialogFailed": "Couldn't open the sign-in window.",
   "office.dialogClosed": "The sign-in window was closed.",
+  "office.saveView": "Save this view",
+  "office.saveViewTitle": "Save what you are looking at with this slide, so the deck opens on this screen next time.",
+  "office.viewSaved": "Saved with this slide.",
+  "office.saveFailed": "Couldn't save. Settings can't be written during a slideshow.",
+  "office.demo": "Explore the demo repository",
   "local.serverError": "Local server error ({status})",
   "local.userFailed": "Signed in, but couldn't load your user info.",
   "local.codeExpired": "The sign-in code has expired. Please try again.",

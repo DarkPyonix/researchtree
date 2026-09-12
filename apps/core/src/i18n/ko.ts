@@ -230,7 +230,8 @@ export const ko = {
   "toolbar.boardOff": "섬으로 돌아가기",
 
   // 손님 모드 (로그인 없이 공개 레포 읽기)
-  "guest.note": "로그인하지 않아 읽기 전용이에요. 실험이 언제 작업됐는지(커밋 날짜)는 로그인해야 보여요.",
+  "guest.note": "로그인하지 않아 읽기 전용이에요.",
+  "guest.noteDates": "실험이 언제 작업됐는지(커밋 날짜)는 로그인해야 보여요.",
   "guest.readOnly": "수정하려면 로그인",
   "guest.commentNeedsSignIn": "댓글을 쓰려면 로그인해 주세요.",
   "guest.signInTitle": "GitHub로 로그인하면 내 레포와 수정 기능을 쓸 수 있어요",
@@ -241,6 +242,11 @@ export const ko = {
   "office.signingIn": "GitHub 로그인 중이에요…",
   "office.dialogFailed": "로그인 창을 열지 못했습니다.",
   "office.dialogClosed": "로그인 창이 닫혔습니다.",
+  "office.saveView": "이 화면 저장",
+  "office.saveViewTitle": "지금 보고 있는 화면을 이 슬라이드에 저장해요. 다음에 파일을 열면 이 화면으로 시작해요.",
+  "office.viewSaved": "이 슬라이드에 저장했어요.",
+  "office.saveFailed": "저장하지 못했어요. 슬라이드 쇼 중에는 저장할 수 없어요.",
+  "office.demo": "데모 레포 둘러보기",
   "local.serverError": "로컬 서버 오류 ({status})",
   "local.userFailed": "로그인은 끝났지만 사용자 정보를 불러오지 못했습니다.",
   "local.codeExpired": "로그인 코드가 만료되었습니다. 다시 시도해 주세요.",

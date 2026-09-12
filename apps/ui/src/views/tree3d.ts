@@ -1248,6 +1248,21 @@ export class Tree3D implements TreeViewApi {
     return sph;
   }
 
+  /** Where the camera is, in numbers small enough to save: theta, phi, radius, target, zoom. */
+  camera6(): readonly number[] {
+    const c = this.cameraState();
+    return [c.sph.theta, c.sph.phi, c.sph.radius, c.target.x, c.target.z, c.zoom].map((n) => Math.round(n * 1000) / 1000);
+  }
+
+  /** Put the camera back where camera6() found it. The view does not animate into place. */
+  restoreCamera(v: readonly number[]): void {
+    if (v.length !== 6 || v.some((n) => !Number.isFinite(n))) return;
+    const [theta, phi, radius, x, z, zoom] = v as [number, number, number, number, number, number];
+    this.tween = null;
+    this.setCamera(new THREE.Spherical(radius, phi, theta), new THREE.Vector3(x, 0, z), zoom);
+    this.controls.update();
+  }
+
   private cameraState(): CameraState {
     const offset = this.camera.position.clone().sub(this.controls.target);
     return { sph: new THREE.Spherical().setFromVector3(offset), target: this.controls.target.clone(), zoom: this.camera.zoom, flat: this.flat };

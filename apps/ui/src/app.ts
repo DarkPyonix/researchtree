@@ -32,9 +32,10 @@ import { paintSystemBars } from "./systembars";
 import { append, clear, h, icon } from "./dom";
 import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
-import { loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
+import { DEMO_REPO, loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
 import { mergeConfig, parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
 import { statusLabel } from "./theme";
+import { parseViewState, type ViewState } from "./view-state";
 import { Kanban } from "./views/kanban";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
 import { Tree3D, type Heading } from "./views/tree3d";
@@ -101,6 +102,8 @@ class App {
   /** The board replaces the island while it is open; both show the same tree and panel. */
   private board: boolean;
   private kanban: Kanban | null = null;
+  /** Camera from a saved view, waiting for the 3D view to exist. */
+  private restoreCamera: number[] | null = null;
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
   /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
   private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
@@ -156,7 +159,9 @@ class App {
       );
       return;
     }
-    const repo = urlParam("repo") ?? (await this.host.initialRepo()) ?? this.host.storage.get<string>(LAST_KEY) ?? null;
+    const saved = urlParam("repo") ? null : parseViewState(this.host.capabilities.viewState?.load());
+    if (saved) this.applyViewState(saved);
+    const repo = urlParam("repo") ?? saved?.repo ?? (await this.host.initialRepo()) ?? this.host.storage.get<string>(LAST_KEY) ?? null;
     // Guest mode: a link to a public repo opens read-only, without a sign-in first. GitHub allows
     // 60 anonymous calls an hour per address, so the sign-in screen is still one click away.
     if (!this.user) {
@@ -168,7 +173,10 @@ class App {
   }
 
   private showLogin(error?: string): void {
-    this.mount(loginScreen({ host: this.host, error, onSignedIn: () => void this.boot() }));
+    // Without an address bar (the PowerPoint add-in) a guest has no other way in, and a reviewer or
+    // a first-time reader can see what the viewer does before signing in.
+    const onDemo = this.host.capabilities.viewState ? () => void this.openRepo(DEMO_REPO) : undefined;
+    this.mount(loginScreen({ host: this.host, error, onSignedIn: () => void this.boot(), onDemo }));
   }
 
   private showPicker(error?: string): void {
@@ -283,6 +291,39 @@ class App {
   }
 
   /** Branch settings from the link that opened the viewer, saved for this repo. Applies once. */
+  /** Put back the view a saved state describes. The camera is restored once the view exists. */
+  private applyViewState(state: ViewState): void {
+    this.mode = savedMode(state.mode);
+    this.board = state.board;
+    this.hidden = new Set(state.hidden);
+    this.selected = state.node;
+    this.restoreCamera = state.camera.length === 6 ? state.camera : null;
+  }
+
+  private viewState(): ViewState | null {
+    if (!this.tree) return null;
+    return {
+      repo: this.tree.repo,
+      node: this.selected,
+      mode: this.mode,
+      board: this.board,
+      hidden: [...this.hidden],
+      camera: this.board ? [] : [...(this.view?.camera6() ?? [])],
+    };
+  }
+
+  private async saveViewState(): Promise<void> {
+    const state = this.viewState();
+    const save = this.host.capabilities.viewState?.save;
+    if (!state || !save) return;
+    try {
+      await save(state);
+      this.toast(t("office.viewSaved"));
+    } catch (e) {
+      this.toast(errorText(e));
+    }
+  }
+
   private applyUrlSettings(repo: string): void {
     const wanted = this.urlSettings.config;
     this.urlSettings = { ignored: this.urlSettings.ignored };
@@ -455,6 +496,7 @@ class App {
         btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
         this.board ? null : this.modeButton(),
         this.boardButton(btn),
+        this.host.capabilities.viewState ? btn(t("office.saveView"), "pin", () => void this.saveViewState(), t("office.saveViewTitle")) : null,
         btn(t("toolbar.settings"), "gear", () => this.tree && this.openSettings(this.tree.repo)),
         h(
           "button",
@@ -496,6 +538,7 @@ class App {
       btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
       this.board ? null : this.modeButton(),
       this.boardButton(btn),
+      this.host.capabilities.viewState ? btn(t("office.saveView"), "pin", () => void this.saveViewState(), t("office.saveViewTitle")) : null,
       btn(t("toolbar.settings"), "gear", () => this.tree && this.openSettings(this.tree.repo)),
       this.board
         ? null
@@ -535,6 +578,10 @@ class App {
     paintSystemBars(!isFlatMode(this.mode));
     this.view.render(this.tree, this.filter());
     this.view.select(this.selected, false);
+    if (this.restoreCamera) {
+      this.view.restoreCamera(this.restoreCamera);
+      this.restoreCamera = null;
+    }
   }
 
   private boardButton(btn: (label: string, iconName: Parameters<typeof icon>[0], onClick: () => void, title?: string) => HTMLElement): HTMLElement {
@@ -661,7 +708,7 @@ class App {
           : t("brand.empty", { prefix: tree.prefix, root: tree.root }),
       ),
       layers,
-      this.user ? null : h("p", { class: "muted small guest-note" }, t("guest.note")),
+      this.user ? null : h("p", { class: "muted small guest-note" }, t("guest.note"), h("br"), t("guest.noteDates")),
     ]);
   }
 

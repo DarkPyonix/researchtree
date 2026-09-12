@@ -22,9 +22,18 @@ npm run build            # emits office.html into apps/ui/dist
 npx office-addin-manifest validate apps/office/manifest.xml
 ```
 
+- **Windows**, the short way (no shared folder, no administrator):
+
+  ```bash
+  npx office-addin-dev-settings register apps/office/manifest.xml
+  ```
+
+  It writes the manifest path under `HKCU\Software\Microsoft\Office.0\WEF\Developer`, and the
+  add-in then appears in PowerPoint under Insert → My Add-ins → Developer Add-ins.
+  `npx office-addin-dev-settings unregister apps/office/manifest.xml` removes it again.
 - **PowerPoint on the web**: Insert → Add-ins → **Upload My Add-in** → pick `manifest.xml`.
-- **Windows**: put `manifest.xml` in a shared folder, add that folder under
-  File → Options → Trust Center → Trust Center Settings → Trusted Add-in Catalogs, tick
+- **Windows**, the way an organization would: put `manifest.xml` in a shared folder, add that folder
+  under File → Options → Trust Center → Trust Center Settings → Trusted Add-in Catalogs, tick
   **Show in Menu**, restart PowerPoint, then Insert → My Add-ins → Shared Folder.
 - **Mac**: copy `manifest.xml` into `~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef`,
   then Insert → My Add-ins.
