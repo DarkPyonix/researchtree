@@ -63,20 +63,6 @@ export class Kanban {
     this.root.style.paddingTop = `${Math.round(top)}px`;
     this.root.style.right = `${Math.round(Math.max(0, right - 16))}px`;
     this.root.style.bottom = `${Math.round(Math.max(0, bottom - 16))}px`;
-    this.sizeSpacers();
-  }
-
-  /**
-   * The empty half-board at each end is what lets the first and last column sit in the middle, but it
-   * is also a screenful of width: with it there, a board that fits would still scroll sideways. So it
-   * is only there once the columns themselves are wider than the space they have.
-   */
-  private sizeSpacers(): void {
-    const spacers = this.root.querySelectorAll<HTMLElement>(".board-spacer");
-    if (!spacers.length) return;
-    for (const s of spacers) s.style.flexBasis = "0px";
-    const fits = this.root.scrollWidth <= this.root.clientWidth + 1;
-    for (const s of spacers) s.style.flexBasis = fits ? "0px" : "50%";
   }
 
   render(tree: ResearchTree, filter: ViewFilter): void {
@@ -84,8 +70,6 @@ export class Kanban {
     this.cards.clear();
     clear(this.root);
 
-    // Half a board of empty space at each end, so the first and last column can centre too.
-    this.root.append(h("div", { class: "board-spacer" }));
     const nodes = [...tree.nodes.values()];
     const byColumn = new Map<Column, TreeNode[]>(COLUMNS.map((c) => [c, []]));
     for (const node of nodes) byColumn.get(columnOf(node))!.push(node);
@@ -103,7 +87,6 @@ export class Kanban {
         ),
       );
     }
-    this.root.append(h("div", { class: "board-spacer" }));
     this.applyInsets();
     this.select(this.selected, false);
   }
@@ -154,8 +137,8 @@ export class Kanban {
 
   /**
    * Put the chosen card in the middle of what is still visible, so the next one is a glance away
-   * instead of behind the panel. On a phone the panel is a sheet along the bottom, so the middle is
-   * the middle of the strip above it.
+   * instead of behind the panel. The board is only as wide as its columns, so a card near either end
+   * lands as close to the middle as the scroll allows, which is where it would be anyway.
    */
   private scrollToSelected(): void {
     // One frame later: the board has just been resized around the panel, and the scroll has to be

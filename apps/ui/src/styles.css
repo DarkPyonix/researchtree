@@ -797,8 +797,6 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   /* One inset for the whole column, so the heading, the cards and the empty line share a left edge. */
   padding: 14px 12px 12px;
 }
-/* Half a screen of empty board at each end, so even the first and last column can sit in the middle. */
-.board-spacer { flex: 0 0 50%; align-self: stretch; }
 .board-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 2px 0 10px; }
 .board-head h2 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
 .board-count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
