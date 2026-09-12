@@ -24,15 +24,10 @@ hero:
 
 features:
   - icon: 🌱
-    title: One branch = one experiment
-    details: Each experiment gets a branch holding one small, clear code change. How experiments derive from each other becomes the tree.
+    title: One branch = one experiment, one PR = one lab note
+    details: Each experiment gets a branch holding one small, clear code change, and the YAML block at the top of its PR holds the hypothesis, the change and the metrics. How experiments derive from each other becomes the tree; merged means adopted, closed means rejected.
     link: /rules/branches
-    linkText: Branch rules
-  - icon: 📓
-    title: One PR = one lab note
-    details: The YAML block at the top of the PR body holds the hypothesis, the change and the metrics. Merged means adopted, closed means rejected.
-    link: /rules/pull-requests
-    linkText: PR format
+    linkText: How research is recorded
   - icon: 📐
     title: Intent- and spec-driven development
     details: Spec-driven development (SDD), adapted to research. A spec change is the hypothesis, and adopting or rejecting the experiment decides whether it goes into the spec. Claims in the intent document link to experiments too.
