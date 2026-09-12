@@ -28,8 +28,8 @@ npm run build:extension && code --extensionDevelopmentPath="$PWD/apps/extension"
 ## 언어
 
 - **코드 주석과 docstring**: 영어만 사용해요.
-- 사용자에게 보이는 문구(UI, CLI 출력, 오류 메시지): 한국어로 작성해요. 뷰어와 VS Code 확장의 UI 문구는 `apps/core/src/i18n`에 한국어(`ko.ts`)와 영어(`en.ts`)를 함께 둡니다.
-- 이 가이드: 한국어로 작성하되, 코드 예시 안의 주석은 영어를 써요.
+- 사용자에게 보이는 문구(UI, CLI 출력, 오류 메시지): 한국어와 영어를 함께 넣어요. 뷰어와 VS Code 확장은 `apps/core/src/i18n`에, Python 패키지는 `apps/researchtree/i18n`에 `ko`와 `en`을 나란히 둡니다.
+- 이 가이드: 한국어가 원문이고, 같은 경로의 영어판을 `docs/guide/en/`에 둬요. 코드 예시 안의 주석은 영어를 씁니다.
 - 커밋 메시지: 영어로 작성합니다.
 
 ## 코드 규칙
