@@ -1,7 +1,8 @@
 name: Release
 
-# Push a tag like v1.0.0 on main to publish the Python package to PyPI and the
-# VS Code extension to the Visual Studio Marketplace and Open VSX.
+# Push a tag like v1.0.0 on main to publish the Python package to PyPI and the VS Code extension to
+# the Visual Studio Marketplace and Open VSX, and to draw a GitHub release holding every file a
+# person might install by hand (wheel, .vsix, PowerPoint add-in).
 # The tag must match the versions in pyproject.toml and apps/extension/package.json.
 on:
   push:
@@ -42,7 +43,11 @@ jobs:
         run: npm run build:local
       - uses: astral-sh/setup-uv@v10.0.1
       - run: uv build
-      - run: uv publish --trusted-publishing always
+      - run: uv publish --trusted-publishing always --check-url https://pypi.org/simple/researchtree/
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheel
+          path: dist/*
 
   extension:
     needs: check
@@ -69,7 +74,34 @@ jobs:
         if: env.OVSX_PAT != ''
         working-directory: apps/extension
         run: npx ovsx publish researchtree-*.vsix
+      # Open VSX takes the same .vsix; there is no second file to build.
       - uses: actions/upload-artifact@v7
         with:
           name: vsix
           path: apps/extension/researchtree-*.vsix
+
+  # One GitHub release per version, holding everything a person might install by hand: the wheel and
+  # source archive, the VS Code extension (the same file Open VSX takes), and the PowerPoint add-in.
+  release:
+    needs: [pypi, extension]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          path: assets
+          merge-multiple: true
+      - name: Pack the PowerPoint add-in
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p addin
+          cp apps/office/manifest.xml apps/office/README.md addin/
+          (cd addin && zip -r "../assets/researchtree-powerpoint-$version.zip" .)
+          cp apps/office/manifest.xml "assets/researchtree-powerpoint-$version-manifest.xml"
+          ls -l assets
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" assets/* --title "$GITHUB_REF_NAME" --generate-notes --verify-tag
