@@ -230,6 +230,17 @@ export const ko = {
   "intro.failed": "문서를 읽지 못했어요: {error}",
   "intro.source": "{ref}의 {path}",
 
+  // 아일랜드 (docs/ISLAND.md): 계정의 연구 전체를 한 지도로
+  "world.title": "{user}의 연구",
+  "world.researchCount": "연구 {count}개",
+  "world.portal": "{name} 안으로",
+  "world.back": "지도로 돌아가기",
+  "world.empty": "지도에 올린 연구가 없어요. `researchtree island add`로 올릴 수 있어요.",
+  "world.noSettings": "{user} 계정에 .researchisland 레포가 없어요.",
+  "world.noSettingsBody": "그 레포의 README에 어떤 연구를 어디에 놓을지 적으면 이 지도가 만들어져요.",
+  "world.failed": "지도를 읽지 못했어요: {error}",
+  "world.land": "아일랜드",
+
   // 도착한 곳을 알리는 두루마리
   "banner.research": "연구",
 

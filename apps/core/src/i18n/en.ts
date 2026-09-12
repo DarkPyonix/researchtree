@@ -232,6 +232,17 @@ export const en: Record<MessageKey, string> = {
   "intro.failed": "Couldn't read the documents: {error}",
   "intro.source": "{path} at {ref}",
 
+  // Island (docs/ISLAND.md): one map for everything an account researches
+  "world.title": "{user}'s research",
+  "world.researchCount": "{count} research",
+  "world.portal": "Into {name}",
+  "world.back": "Back to the map",
+  "world.empty": "No research on the map yet. `researchtree island add` puts some there.",
+  "world.noSettings": "{user} has no .researchisland repository.",
+  "world.noSettingsBody": "Say which research goes where in that repository's README and this map appears.",
+  "world.failed": "Couldn't read the map: {error}",
+  "world.land": "Island",
+
   // The scroll that names where you just arrived
   "banner.research": "Research",
 

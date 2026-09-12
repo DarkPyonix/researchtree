@@ -123,8 +123,12 @@ def parse_map(text: str) -> IslandMap:
         return IslandMap(warnings=["no ```yaml block in the settings file"])
     try:
         data = _yaml().load(StringIO(block))
-    except YAMLError as e:
-        return IslandMap(warnings=[f"the yaml block could not be read: {e}"])
+    except YAMLError:
+        # The reason comes from the yaml library and reads differently in each language, so the
+        # message stays the same on both sides (tests/fixtures/island-cases.json).
+        return IslandMap(warnings=["the yaml block could not be read"])
+    if data is None:
+        return IslandMap()
     if not isinstance(data, dict):
         return IslandMap(warnings=["the yaml block is not key: value pairs"])
 
@@ -157,12 +161,15 @@ def parse_map(text: str) -> IslandMap:
                 warnings.append(f"{spot}: {repo} is already on the map")
                 continue
             seen.add(repo)
+            prefix = str(item.get("prefix") or DEFAULT_PREFIX).strip() or DEFAULT_PREFIX
+            if not prefix.endswith("/"):
+                prefix += "/"
             land.repos.append(
                 Research(
                     repo=repo,
                     at=_coords(item.get("at"), spot, warnings),
                     root=str(item.get("root") or DEFAULT_ROOT).strip() or DEFAULT_ROOT,
-                    prefix=str(item.get("prefix") or DEFAULT_PREFIX).strip() or DEFAULT_PREFIX,
+                    prefix=prefix,
                 )
             )
         if not land.repos:

@@ -881,3 +881,82 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 /* The research intro reef's chip, out in the water beside the first version. */
 .label3d.reef .label3d-name { color: var(--accent-2); }
 .label3d.reef { border-color: color-mix(in srgb, var(--accent-2) 40%, var(--line)); }
+
+/*
+ * World map (views/world.ts): every research an account shows, as islands on one sea. Drag to move.
+ * A land is a project you step into through a portal; the islands inside it are its repositories.
+ */
+.world { position: absolute; inset: 0; overflow: hidden; cursor: grab; background: var(--sea, #a5dddb); touch-action: none; }
+.world.dragging { cursor: grabbing; }
+.world-surface { position: absolute; left: 0; top: 0; will-change: transform; }
+.world-land {
+  position: absolute;
+  padding: 14px 18px 18px;
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lift, var(--shadow));
+}
+.world-land-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.world-land-head h2 { margin: 0; font: 600 17px/1.2 var(--display); }
+.world-islands { position: relative; }
+.world-island {
+  position: absolute;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 10px 12px;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.14s, background 0.14s;
+}
+.world-island:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--accent-2) 8%, transparent); }
+.world-island-shape {
+  width: 96px;
+  height: 58px;
+  border-radius: 46% 46% 40% 40% / 58% 58% 42% 42%;
+  background: linear-gradient(180deg, #b7dd9c 0%, #a7d38b 58%, #efdcae 58%, #e6d09a 100%);
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--sea, #a5dddb) 70%, #6aa8a6);
+}
+.world-island-name { font-weight: 600; font-size: 14px; margin-top: 8px; }
+.world-portal {
+  position: absolute;
+  right: 18px;
+  bottom: -16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--accent-2);
+  background: var(--card);
+  color: var(--accent-2);
+  font: 600 12px/1 var(--font);
+  cursor: pointer;
+}
+.world-empty { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+
+/* Minimap: where you are on the sea, and where the other lands sit. */
+.world-minimap-frame {
+  position: absolute;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  width: 150px;
+  height: 150px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--card) 80%, transparent);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  z-index: 3;
+  pointer-events: none;
+}
+.world-minimap { position: absolute; inset: 0; }
+.world-dot { position: absolute; border-radius: 6px; background: color-mix(in srgb, var(--accent-2) 55%, transparent); }
+.world-here { position: absolute; border: 1.5px solid var(--accent-2); border-radius: 6px; }

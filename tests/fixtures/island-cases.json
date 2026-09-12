@@ -1,0 +1,21 @@
+{
+  "maps": [
+    {
+      "name": "two lands with prose around the block",
+      "text": "# My research\n\nSome prose that belongs to me.\n\n```yaml\nislands:\n  - name: Speech\n    at: [0, 0]\n    intro: SPEECH.md\n    repos:\n      - repo: lab/moshi\n        at: [0, 0]\n      - repo: lab/tts\n        at: [1, 0]\n        root: main\n        prefix: try/\n  - name: Vision\n    at: [1, 0]\n    repos:\n      - repo: lab/depth\n        at: [0, 0]\n```\n\nMore prose, after the block.\n"
+    },
+    {
+      "name": "a prefix without its slash",
+      "text": "```yaml\nislands:\n  - name: Speech\n    repos:\n      - repo: lab/moshi\n        prefix: exp\n```\n"
+    },
+    {
+      "name": "broken entries are dropped, the rest survives",
+      "text": "```yaml\nislands:\n  - name: Speech\n    at: [0]\n    repos:\n      - repo: not-a-repo\n      - repo: lab/moshi\n      - repo: lab/moshi\n      - nonsense\n  - at: [0, 0]\n  - name: Empty\n    repos: []\n```\n"
+    },
+    { "name": "no yaml block", "text": "# just prose\n" },
+    { "name": "empty block", "text": "```yaml\n```\n" },
+    { "name": "not a mapping", "text": "```yaml\n- a\n- b\n```\n" },
+    { "name": "islands is not a list", "text": "```yaml\nislands: 3\n```\n" },
+    { "name": "broken yaml", "text": "```yaml\nislands: [oops\n```\n" }
+  ]
+}

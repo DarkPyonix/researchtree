@@ -3,6 +3,10 @@ import {
   buildTree,
   childrenOf,
   DEFAULT_INTENT_PATH,
+  ISLAND_CONFIG_PATH,
+  ISLAND_CONFIG_REPO,
+  parseIslandMap,
+  type IslandMap,
   DEFAULT_SPEC_PATH,
   DEFAULT_TREE_CONFIG,
   GitHubClient,
@@ -40,6 +44,7 @@ import { repoBanner, ScrollBanner } from "./scroll-banner";
 import { parseViewState, type ViewState } from "./view-state";
 import { loadIntroDocs } from "./panel/intro-docs";
 import { Kanban } from "./views/kanban";
+import { World } from "./views/world";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
 import { INTRO_ID, Tree3D, type Heading } from "./views/tree3d";
 import type { ViewFilter, ViewOptions } from "./views/view";
@@ -107,6 +112,8 @@ class App {
   /** Camera from a saved view, waiting for the 3D view to exist. */
   private restoreCamera: number[] | null = null;
   private banner: ScrollBanner | null = null;
+  /** The account map, when the viewer was opened with ?user=. */
+  private world: { user: string; map: IslandMap } | null = null;
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
   /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
   private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
@@ -166,6 +173,8 @@ class App {
       );
       return;
     }
+    const user = urlParam("user");
+    if (user && !urlParam("repo")) return this.showWorld(user);
     const saved = urlParam("repo") ? null : parseViewState(this.host.capabilities.viewState?.load());
     if (saved) this.applyViewState(saved);
     const repo = urlParam("repo") ?? saved?.repo ?? (await this.host.initialRepo()) ?? this.host.storage.get<string>(LAST_KEY) ?? null;
@@ -281,6 +290,54 @@ class App {
   }
 
   /** PRs plus research version tags. A repo without tags (or a failed tag lookup) still gets a tree. */
+  /**
+   * The account's map: every research it shows, as islands to walk between (docs/ISLAND.md).
+   * The map lives in the README of the account's `.researchisland` repository.
+   */
+  private async showWorld(user: string): Promise<void> {
+    this.mount(loadingScreen(t("app.loading")));
+    let text: string | null = null;
+    try {
+      text = await this.gh.getFileText(`${user}/${ISLAND_CONFIG_REPO}`, ISLAND_CONFIG_PATH, "HEAD");
+    } catch (e) {
+      if (isTokenRejected(e)) return this.showLogin(t("app.sessionExpired"));
+      if (!this.user && isRateLimited(e)) return this.showLogin(t("guest.rateLimited"));
+      this.mount(messageScreen({ title: t("world.failed", { error: errorText(e) }), body: [], actions: [{ label: t("common.retry"), primary: true, onClick: () => void this.showWorld(user) }] }));
+      return;
+    }
+    if (text === null) {
+      this.mount(
+        messageScreen({
+          eyebrow: user,
+          title: t("world.noSettings", { user }),
+          body: [t("world.noSettingsBody"), h("pre", { class: "code" }, "researchtree island init\nresearchtree island add owner/name")],
+          actions: [{ label: t("common.retry"), primary: true, onClick: () => void this.showWorld(user) }],
+        }),
+      );
+      return;
+    }
+    const map = parseIslandMap(text);
+    this.world = { user, map };
+    this.renderWorld();
+  }
+
+  private renderWorld(): void {
+    const world = this.world;
+    if (!world) return;
+    const canvas = h("div", { class: "canvas" });
+    const toast = h("div", { class: "toast", role: "status", "aria-live": "polite" });
+    const shellEl = h("div", { class: "shell" }, canvas, toast);
+    this.mount(shellEl);
+    this.banner = new ScrollBanner(shellEl);
+    const view = new World(canvas, {
+      onOpen: (research) => void this.openRepo(research.repo),
+      onLand: (land) => view.goTo(land.name),
+    });
+    view.render(world.map);
+    this.banner.show({ eyebrow: t("world.land"), title: t("world.title", { user: world.user }) });
+    if (world.map.islands.length === 0) canvas.append(h("p", { class: "world-empty muted" }, t("world.empty")));
+  }
+
   /** What this research is, from the repository's own documents (docs/ISLAND.md). */
   private showIntro(tree: ResearchTree): void {
     const panel = this.panel;
@@ -553,6 +610,7 @@ class App {
     return h(
       "div",
       { class: "toolbar" },
+      this.world ? btn(t("world.back"), "island", () => this.renderWorld()) : null,
       btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
       this.board ? null : this.modeButton(),
       this.boardButton(btn),
