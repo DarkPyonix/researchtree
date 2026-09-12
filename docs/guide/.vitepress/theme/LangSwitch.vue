@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { TEXTS } from "../i18n";
 import { lang, setLang } from "./lang";
 
-defineProps<{ screen?: boolean }>();
+defineProps<{ screen?: boolean; menu?: boolean }>();
 const text = computed(() => TEXTS[lang.value]);
 </script>
 
@@ -11,7 +11,7 @@ const text = computed(() => TEXTS[lang.value]);
   <button
     type="button"
     class="rt-lang"
-    :class="{ screen }"
+    :class="{ screen, menu }"
     :lang="lang === 'ko' ? 'en' : 'ko'"
     :aria-label="text.switchLabel"
     :title="text.switchLabel"
