@@ -1121,10 +1121,12 @@ export class Tree3D implements TreeViewApi {
     const g = new THREE.Group();
     if (!scope) this.reefPos = null;
     // Out from the first version along -x, which the camera draws as the diagonal below and to the
-    // left of it: it keeps walking until the island is five cells behind, so it stands in open sea.
+    // left of it. It walks until the island is five cells behind it and it is a good way offshore,
+    // so the reef reads as its own landmark in open sea rather than a rock on the beach.
+    const OFFSHORE = 24;
     let x = rootPos.x - 3;
     const z = rootPos.z;
-    for (let i = 0; i < 40 && !openWater(x, z, ground, 5); i++) x -= 1;
+    for (let i = 0; i < 60 && (rootPos.x - x < OFFSHORE || !openWater(x, z, ground, 5)); i++) x -= 1;
     g.position.set(x, SEA_Y, z);
     g.userData.nodeId = scope ? `${scope}\u0000${INTRO_ID}` : INTRO_ID;
     const [rock, rockLight, moss, board, post] = this.nodeMaterials([COLORS.rock[0]!, COLORS.rock[1]!, COLORS.bush[0]!, "#f3e7c9", COLORS.trunk]);
