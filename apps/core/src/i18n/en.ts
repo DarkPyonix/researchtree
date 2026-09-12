@@ -221,6 +221,9 @@ export const en: Record<MessageKey, string> = {
   "web.noClientId": "The OAuth App client ID is not configured (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "The OAuth App client ID is not configured.",
 
+  // The scroll that names where you just arrived
+  "banner.research": "Research",
+
   // Board view: the stages a PR actually goes through
   "board.draft": "Draft",
   "board.working": "In progress",

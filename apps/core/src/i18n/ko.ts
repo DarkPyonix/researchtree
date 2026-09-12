@@ -219,6 +219,9 @@ export const ko = {
   "web.noClientId": "OAuth App client ID가 설정되지 않았습니다 (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "OAuth App client ID가 설정되지 않았습니다.",
 
+  // 도착한 곳을 알리는 두루마리
+  "banner.research": "연구",
+
   // 칸반 보기: PR이 실제로 거치는 단계
   "board.draft": "초안",
   "board.working": "작업 중",

@@ -221,6 +221,16 @@ export class GitHubClient {
     return res.data.merge_base_commit.sha;
   }
 
+  /** The repository's own one-line description, or null when it has none (or cannot be read). */
+  async repoDescription(repo: string): Promise<string | null> {
+    try {
+      const res = await this.call<{ description?: string | null }>({ method: "GET", path: `/repos/${repo}` });
+      return res.data.description?.trim() || null;
+    } catch {
+      return null;
+    }
+  }
+
   async branchExists(repo: string, branch: string): Promise<boolean> {
     try {
       await this.call({ method: "GET", path: `/repos/${repo}/branches/${encodeURIComponent(branch)}` });

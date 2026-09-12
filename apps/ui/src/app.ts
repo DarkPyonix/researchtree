@@ -35,6 +35,7 @@ import { applyLocale, localePreference } from "./locale";
 import { DEMO_REPO, loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
 import { mergeConfig, parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
 import { statusLabel } from "./theme";
+import { repoBanner, ScrollBanner } from "./scroll-banner";
 import { parseViewState, type ViewState } from "./view-state";
 import { Kanban } from "./views/kanban";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
@@ -104,6 +105,7 @@ class App {
   private kanban: Kanban | null = null;
   /** Camera from a saved view, waiting for the 3D view to exist. */
   private restoreCamera: number[] | null = null;
+  private banner: ScrollBanner | null = null;
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
   /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
   private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
@@ -137,6 +139,8 @@ class App {
     this.view = null;
     this.kanban?.destroy();
     this.kanban = null;
+    this.banner?.destroy();
+    this.banner = null;
     this.stage = null;
     this.panel = null;
     this.shell = null;
@@ -266,6 +270,7 @@ class App {
     this.host.storage.set(RECENT_KEY, recent);
 
     this.renderMain();
+    this.announceRepo(repo);
     const want = urlParam("node");
     const known = want && (this.tree.nodes.has(want) || this.tree.versions.has(want) || want === this.tree.root);
     this.select(known ? want : null, false);
@@ -273,6 +278,17 @@ class App {
   }
 
   /** PRs plus research version tags. A repo without tags (or a failed tag lookup) still gets a tree. */
+  /** The scroll that names the research you just walked into (docs/ISLAND.md). */
+  private announceRepo(repo: string): void {
+    const banner = this.banner;
+    if (!banner) return;
+    banner.show(repoBanner(repo, null, t("banner.research")));
+    // The description is one more call, so the scroll opens first and fills in if it arrives in time.
+    void this.gh.repoDescription(repo).then((description) => {
+      if (description && this.tree?.repo === repo) banner.show(repoBanner(repo, description, t("banner.research")));
+    });
+  }
+
   private async loadTree(repo: string): Promise<ResearchTree> {
     const [prs, tags, activity] = await Promise.all([
       this.gh.listPulls(repo),
@@ -436,8 +452,10 @@ class App {
     const toolbar = this.renderToolbar();
     const hint = h("div", { class: "hint" });
 
-    this.mount(h("div", { class: "shell" }, canvas, brandStack, toolbar, panelEl, gens, hint, toast));
+    const shellEl = h("div", { class: "shell" }, canvas, brandStack, toolbar, panelEl, gens, hint, toast);
+    this.mount(shellEl);
     this.shell = { brand, gens, toast };
+    this.banner = new ScrollBanner(shellEl);
 
     this.panel = new Panel(panelEl, {
       host: this.host,
