@@ -26,7 +26,7 @@ uvx researchtree serve          # 설치 없이 한 번만 실행
 ```bash
 cd ~/work/moshi-research
 researchtree serve
-# ResearchTree: http://127.0.0.1:7337/?repo=lab/moshi-research
+# ResearchTree: http://127.0.0.1:7337/?user=lab&repo=moshi-research
 # 기본 레포: lab/moshi-research
 # 종료하려면 Ctrl+C를 누르세요.
 ```

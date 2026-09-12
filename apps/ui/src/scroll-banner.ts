@@ -39,24 +39,26 @@ export class ScrollBanner {
       h("h2", { class: "scroll-title" }, text.title),
       text.body ? h("p", { class: "scroll-body" }, text.body) : null,
     );
+    const sheet = h("div", { class: "scroll-sheet" }, paper);
     const el = h(
       "div",
       { class: "scroll-banner", role: "status", "aria-live": "polite", onclick: () => this.hide() },
-      h("span", { class: "scroll-rod left" }),
-      h("div", { class: "scroll-sheet" }, paper),
-      h("span", { class: "scroll-rod right" }),
+      sheet,
+      h("span", { class: "scroll-rod" }),
     );
     this.el = el;
     this.parent.append(el);
     this.keepClearOfRepoCard(el);
+    // How far the paper has to unroll. A clipper cannot animate to "auto", so it is measured once.
+    sheet.style.setProperty("--sheet-h", `${Math.ceil(paper.getBoundingClientRect().height)}px`);
 
     if (reducedMotion()) {
       el.classList.add("open", "instant");
       this.timers.push(window.setTimeout(() => this.hide(), HOLD_MS));
       return;
     }
-    // One frame with the sheet still rolled up, so the opening actually animates.
-    requestAnimationFrame(() => el.classList.add("open"));
+    // A painted frame with the sheet still rolled up, or the browser has no height to animate from.
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("open")));
     this.timers.push(window.setTimeout(() => this.hide(), OPEN_MS + HOLD_MS));
   }
 

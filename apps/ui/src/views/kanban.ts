@@ -51,6 +51,11 @@ export class Kanban {
     this.scrollToSelected();
   }
 
+  /** Re-fit the board to the space it has left, without moving the scroll. */
+  reflow(): void {
+    this.applyInsets();
+  }
+
   private applyInsets(): void {
     const { top, right, bottom } = this.options.insets();
     // The board's own box shrinks to the free area, so the panel takes space instead of covering
@@ -58,6 +63,20 @@ export class Kanban {
     this.root.style.paddingTop = `${Math.round(top)}px`;
     this.root.style.right = `${Math.round(Math.max(0, right - 16))}px`;
     this.root.style.bottom = `${Math.round(Math.max(0, bottom - 16))}px`;
+    this.sizeSpacers();
+  }
+
+  /**
+   * The empty half-board at each end is what lets the first and last column sit in the middle, but it
+   * is also a screenful of width: with it there, a board that fits would still scroll sideways. So it
+   * is only there once the columns themselves are wider than the space they have.
+   */
+  private sizeSpacers(): void {
+    const spacers = this.root.querySelectorAll<HTMLElement>(".board-spacer");
+    if (!spacers.length) return;
+    for (const s of spacers) s.style.flexBasis = "0px";
+    const fits = this.root.scrollWidth <= this.root.clientWidth + 1;
+    for (const s of spacers) s.style.flexBasis = fits ? "0px" : "50%";
   }
 
   render(tree: ResearchTree, filter: ViewFilter): void {

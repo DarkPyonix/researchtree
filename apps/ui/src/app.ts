@@ -313,6 +313,8 @@ class App {
    * The map lives in the README of the account's `.researchisland` repository.
    */
   private async showWorld(user: string): Promise<void> {
+    // The address names the island from the first moment, even while it is still loading or missing.
+    this.setUrl({ user, repo: null, node: null });
     this.mount(loadingScreen(t("app.loading")));
     let text: string | null = null;
     try {
@@ -352,6 +354,13 @@ class App {
       this.profile = profile;
       if (this.shell === null) this.renderWorld();
     });
+  }
+
+  /** The account's own island. Already standing on it, the map is simply drawn again. */
+  private openIsland(user: string): void {
+    if (!user) return;
+    if (this.world?.user === user) this.renderWorld();
+    else void this.showWorld(user);
   }
 
   /**
@@ -703,6 +712,8 @@ class App {
       islandMetric: (island) => ({ keys: islandMetricKeys(this.tree!, island), current: this.islandMetrics().get(island) ?? null }),
       onIslandMetric: (island, metric) => this.setIslandMetric(island, metric),
       specPath: () => this.repoFile.config.spec ?? DEFAULT_SPEC_PATH,
+      // Dragging the panel's edge changes how much board is left, so the columns re-fit as it moves.
+      onResized: () => this.kanban?.reflow(),
     });
     // The board is a wide row of columns, so it always starts below the repo card rather than beside it.
     const boardInsets = () => {
@@ -762,15 +773,22 @@ class App {
       );
     }
 
-    // Opens on hover (and keyboard focus); a click toggles it for touch screens.
+    // The name opens the account's own island; the caret beside it opens the menu. The menu also
+    // follows the pointer (and keyboard focus), and the caret is what a touch screen has.
+    const login = this.user?.login ?? "";
     const userEl = h(
       "div",
       { class: "user-menu" },
       h(
         "button",
-        { class: "btn", "aria-label": t("app.account"), "aria-haspopup": "menu", onclick: () => userEl.classList.toggle("open") },
+        { class: "btn user-btn", title: t("menu.myIsland"), "aria-label": t("menu.myIsland"), onclick: () => this.openIsland(login) },
         this.user?.avatar_url ? h("img", { class: "avatar", src: this.user.avatar_url, alt: "" }) : null,
-        h("span", { class: "btn-label" }, `@${this.user?.login ?? ""}`),
+        h("span", { class: "btn-label" }, `@${login}`),
+      ),
+      h(
+        "button",
+        { class: "btn user-caret", "aria-label": t("app.account"), "aria-haspopup": "menu", onclick: () => userEl.classList.toggle("open") },
+        icon("down", 14),
       ),
       h(
         "div",
@@ -783,9 +801,16 @@ class App {
         h("button", { class: "menu-item", onclick: () => this.host.openExternal(GUIDE_URL) }, icon("external", 14), ` ${t("menu.guide")}`),
         h("button", { class: "menu-item", onclick: () => this.host.openExternal(PROJECT_URL) }, icon("github", 14), ` ${t("menu.project")}`),
         h("hr", { class: "menu-sep" }),
+        h("button", { class: "menu-item", onclick: () => this.tree && this.openSettings(this.tree.repo) }, icon("gear", 14), ` ${t("toolbar.settings")}`),
         h("button", { class: "menu-item", onclick: () => void this.signOut() }, icon("logout", 14), ` ${t("common.signOut")}`),
       ),
     );
+    // A click leaves the focus on the button, and focus alone used to hold the menu open long after
+    // the pointer had left it. Leaving closes it, and takes that focus with it.
+    userEl.addEventListener("pointerleave", () => {
+      userEl.classList.remove("open");
+      if (userEl.contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
+    });
 
     return h(
       "div",
@@ -795,7 +820,6 @@ class App {
       this.board ? null : this.modeButton(),
       this.boardButton(btn),
       this.host.capabilities.viewState ? btn(t("office.saveView"), "pin", () => void this.saveViewState(), t("office.saveViewTitle")) : null,
-      btn(t("toolbar.settings"), "gear", () => this.tree && this.openSettings(this.tree.repo)),
       this.board
         ? null
         : btn(t("toolbar.fit"), "fit", () => {
@@ -1073,12 +1097,13 @@ class App {
     if (next) this.view?.focusNode(next);
   }
 
-  private setUrl(p: { repo: string | null; node: string | null }): void {
+  private setUrl(p: { repo: string | null; node: string | null; user?: string | null }): void {
     if (this.host.kind === "extension") return;
     try {
       const params = new URLSearchParams(location.search);
       for (const k of ["code", "state", ...SETTING_PARAMS]) params.delete(k);
-      const user = this.world?.user ?? null;
+      // Every address names an account: the island it was opened from, or the repository's own owner.
+      const user = p.user !== undefined ? p.user : (this.world?.user ?? p.repo?.split("/")[0] ?? null);
       if (user) params.set("user", user);
       else params.delete("user");
       const repo = shortRepo(user, p.repo);

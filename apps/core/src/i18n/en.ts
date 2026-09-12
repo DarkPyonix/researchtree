@@ -52,6 +52,7 @@ export const en: Record<MessageKey, string> = {
   "hint.3d": "Drag to pan · Right-drag to rotate · Scroll to zoom · Arrow keys to move between nodes · Esc to close",
   "hint.2d": "Drag to pan · Scroll to zoom · Arrow keys to move between nodes · Esc to close",
   "menu.openRepoOnGitHub": "Open this repo on GitHub",
+  "menu.myIsland": "Open my island",
   "menu.openOtherRepo": "Open another repo",
   "menu.guide": "User guide",
   "menu.project": "ResearchTree repository",

@@ -29,6 +29,8 @@ export interface PanelDeps {
   specPath(): string;
   /** False for a guest reading a public repo: writing to GitHub needs a sign-in. */
   signedIn(): boolean;
+  /** The panel just changed width: whatever shares the screen with it has to re-fit. */
+  onResized?(): void;
 }
 
 /** Right-hand detail panel, modeled on the reference travel app's info panel. */
@@ -69,6 +71,7 @@ export class Panel {
   private setWidth(px: number): number {
     const w = Math.round(Math.min(this.maxWidth(), Math.max(MIN_WIDTH, px)));
     this.el.style.setProperty("--panel-w", `${w}px`);
+    this.deps.onResized?.();
     return w;
   }
 
@@ -109,6 +112,7 @@ export class Panel {
     handle.addEventListener("dblclick", () => {
       this.el.style.removeProperty("--panel-w");
       this.deps.host.storage.set(WIDTH_KEY, undefined);
+      this.deps.onResized?.();
     });
     return handle;
   }

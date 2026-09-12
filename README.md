@@ -36,7 +36,7 @@
 > [!NOTE]
 > **Available now:** the [hosted viewer](https://darkpyonix.github.io/researchtree/), the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree), and the [Python package](https://pypi.org/project/researchtree/) (see [Install](#-install)). An Open VSX listing is coming.
 >
-> **See it on a demo project:** [researchtree-demo](https://darkpyonix.github.io/researchtree/?repo=DarkPyonix/researchtree-demo), a year of made-up text-to-speech research with five versions, competing hypotheses side by side, and intent and spec documents that evolve with the evidence ([repository](https://github.com/DarkPyonix/researchtree-demo)).
+> **See it on a demo project:** [researchtree-demo](https://darkpyonix.github.io/researchtree/?user=DarkPyonix&repo=researchtree-demo), a year of made-up text-to-speech research with five versions, competing hypotheses side by side, and intent and spec documents that evolve with the evidence ([repository](https://github.com/DarkPyonix/researchtree-demo)).
 >
 > The viewer and the VS Code extension speak Korean and English: they follow your browser (or VS Code) language, and you can switch in **Settings**. The Python CLI follows your system language (Korean or English); set `RESEARCHTREE_LANG=en` or `ko` to choose.
 
@@ -226,7 +226,7 @@ Unmerged branches are never just deleted: their commits are reverted on the bran
   <tr><td>🗿 <b>Version panel</b></td><td>Tag date and commit, merged experiments, the version's metrics, experiments that start from it, and the next version.</td></tr>
   <tr><td>🎛️ <b>Navigation</b></td><td>Status layers (running / adopted / rejected), a label metric chosen per island in the version panel (each research version can show a different metric), a generation navigator, arrow-key navigation (<kbd>←</kbd> <kbd>→</kbd> parent/child, <kbd>↑</kbd> <kbd>↓</kbd> siblings, <kbd>Esc</kbd> to close), and a camera that flies to whatever you click.</td></tr>
   <tr><td>🍂 <b>Timeline &amp; seasons</b></td><td>A real time axis: nodes sit at their start date, and the year and season at the center of the screen are shown under the top-left card as you pan. Each tree keeps its branch color and shows the season of its last work with effects (spring blossoms and falling petals, summer fireflies, autumn falling leaves, winter snow caps), and the island ground changes season along the axis.</td></tr>
-  <tr><td>🔗 <b>Share links</b></td><td><code>?repo=owner/name&amp;node=experiment/x</code> opens the same repository and experiment for anyone with access.</td></tr>
+  <tr><td>🔗 <b>Share links</b></td><td><code>?user=owner&amp;repo=name&amp;node=experiment/x</code> opens the same repository and experiment for anyone with access.</td></tr>
   <tr><td>⚠️ <b>Warnings</b></td><td>Broken YAML, missing required fields, and orphan nodes get a badge next to the node.</td></tr>
 </table>
 

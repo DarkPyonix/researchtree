@@ -61,7 +61,7 @@ https://darkpyonix.github.io/researchtree/
 현재 보고 있는 레포와 선택한 노드가 주소창 URL에 그대로 반영돼요.
 
 ```
-https://darkpyonix.github.io/researchtree/?repo=lab/moshi&node=experiment/depth-lr-half
+https://darkpyonix.github.io/researchtree/?user=lab&repo=moshi&node=experiment/depth-lr-half
 ```
 
 | 파라미터 | 뜻 |
@@ -75,7 +75,7 @@ https://darkpyonix.github.io/researchtree/?repo=lab/moshi&node=experiment/depth-
 설정 창에서 고를 수 있는 값은 모두 쿼리로도 지정할 수 있어요.
 
 ```
-https://darkpyonix.github.io/researchtree/?repo=lab/moshi&lang=en&root=trunk&prefix=try/
+https://darkpyonix.github.io/researchtree/?user=lab&repo=moshi&lang=en&root=trunk&prefix=try/
 ```
 
 | 쿼리 | 값 | 뜻 |
@@ -91,6 +91,6 @@ https://darkpyonix.github.io/researchtree/?repo=lab/moshi&lang=en&root=trunk&pre
 링크를 공유받은 사람도 로그인한 뒤 같은 화면을 볼 수 있어요. 만약 비공개 레포라면 상대방에게도 해당 레포 접근 권한이 있어야 내용이 보입니다. 권한이 없다면 접근 안내 메시지가 나타나요.
 
 ::: tip 터미널에서 바로 열기
-Python 패키지를 설치했다면 레포 디렉토리에서 `researchtree open`을 실행해 보세요. 현재 레포의 중앙 웹 주소(`?repo=…`)를 출력하고 브라우저로 바로 열어줍니다.
+Python 패키지를 설치했다면 레포 디렉토리에서 `researchtree open`을 실행해 보세요. 현재 레포의 중앙 웹 주소(`?user=…&repo=…`)를 출력하고 브라우저로 바로 열어줍니다.
 :::
 

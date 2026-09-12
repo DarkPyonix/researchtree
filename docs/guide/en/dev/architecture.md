@@ -26,7 +26,7 @@ One viewer, written in TypeScript, runs on three hosts: the central web app, the
 
 | Host | Where the token lives | Who calls GitHub | First repo opened |
 |---|---|---|---|
-| web | the browser's `localStorage` | the browser (CORS allowed) | URL `?repo=`, the last repo, or the picker screen |
+| web | the browser's `localStorage` | the browser (CORS allowed) | URL `?user=` / `?repo=`, the last repo, or the picker screen |
 | extension | the extension host (VS Code auth session) | the extension host | the workspace git remote |
 | local | OS keychain / config file (Python) | the local Python server | the git remote of the working directory, or `--repo` |
 
@@ -78,7 +78,7 @@ The web build reads these environment variables (from an `apps/ui/.env*` file or
 
 ## Data flow
 
-1. **Boot**: the host's `auth.current()` tells us who is signed in. If nobody is, we show the sign-in screen; if somebody is, we pick what to open in the order `?repo=` → `initialRepo()` → the last repo.
+1. **Boot**: the host's `auth.current()` tells us who is signed in. If nobody is, we show the sign-in screen; if somebody is, we pick what to open in the order `?user=`/`?repo=` → `initialRepo()` → the last repo.
 2. **Loading**: `GitHubClient` checks that the root branch exists, then fetches the PR list (`/pulls?state=all`, paginated) and the version tags (`/tags` plus the tag commit dates) in parallel. Responses are cached with conditional ETag requests.
 3. **Building the tree**: `buildTree(prs, repo, config, tags, activity)` filters what to show, decides status and parent, links versions, handles orphan and cyclic nodes, and computes generations ([tree rules](/rules/tree-rules)).
 4. **Layout**: `placeTree` in `views/layout.ts` places rows with a `d3-hierarchy` tidy tree and picks columns by date. A node can get pushed to the right of its date to make room, so the year and season ticks are drawn with a monotonic transform fitted to where the nodes actually ended up, which keeps node dates and positions aligned. We leave generous gaps between sibling nodes that land on different islands, and in front of a new version.

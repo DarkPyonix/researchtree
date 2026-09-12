@@ -37,7 +37,7 @@
 > [!NOTE]
 > **지금 쓸 수 있는 것:** [중앙 웹 뷰어](https://darkpyonix.github.io/researchtree/), [VS Code 확장](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree), [Python 패키지](https://pypi.org/project/researchtree/)([설치](#-설치) 참고). Open VSX 등록은 곧 할 예정입니다.
 >
-> **데모 프로젝트로 보기:** [researchtree-demo](https://darkpyonix.github.io/researchtree/?repo=DarkPyonix/researchtree-demo). 가상의 음성 합성(TTS) 연구 1년치로, 버전 다섯 개, 나란히 비교한 경쟁 가설들, 근거에 따라 바뀌는 의도·스펙 문서를 담았습니다([레포](https://github.com/DarkPyonix/researchtree-demo)).
+> **데모 프로젝트로 보기:** [researchtree-demo](https://darkpyonix.github.io/researchtree/?user=DarkPyonix&repo=researchtree-demo). 가상의 음성 합성(TTS) 연구 1년치로, 버전 다섯 개, 나란히 비교한 경쟁 가설들, 근거에 따라 바뀌는 의도·스펙 문서를 담았습니다([레포](https://github.com/DarkPyonix/researchtree-demo)).
 >
 > 뷰어와 VS Code 확장은 한국어와 영어를 지원합니다. 기본은 브라우저(또는 VS Code) 언어이고 **설정**에서 바꿀 수 있습니다. Python CLI는 시스템 언어(한국어 또는 영어)를 따르고, `RESEARCHTREE_LANG=en` 또는 `ko`로 정할 수 있습니다.
 
@@ -227,7 +227,7 @@ researchtree release --yes  # 보관 머지(브랜치의 커밋을 revert하고 
   <tr><td>🗿 <b>버전 패널</b></td><td>태그 날짜와 커밋, 합쳐진 실험, 버전의 메트릭, 그 버전에서 시작한 실험, 다음 버전.</td></tr>
   <tr><td>🎛️ <b>탐색</b></td><td>상태 레이어(진행 중 / 채택 / 기각), 버전 패널에서 섬(research 버전)마다 고르는 라벨 메트릭, 세대 네비게이터, 방향키 이동(<kbd>←</kbd> <kbd>→</kbd> 부모/자식, <kbd>↑</kbd> <kbd>↓</kbd> 형제, <kbd>Esc</kbd> 닫기), 누른 곳으로 날아가는 카메라.</td></tr>
   <tr><td>🍂 <b>타임라인과 계절</b></td><td>실제 시간 축입니다. 노드는 시작한 날짜에 놓이고, 가로로 이동하면 왼쪽 위 카드 아래에 화면 가운데의 연도와 계절이 표시됩니다. 나무는 가지 색을 그대로 두고 마지막 작업 시기의 계절을 효과로 보여 주며(봄 벚꽃과 꽃잎, 여름 반딧불, 가을 낙엽, 겨울 눈 모자), 섬의 땅도 시간 축을 따라 계절이 바뀝니다.</td></tr>
-  <tr><td>🔗 <b>공유 링크</b></td><td><code>?repo=owner/name&amp;node=experiment/x</code> 링크를 받은 사람은 권한만 있으면 같은 레포와 실험을 봅니다.</td></tr>
+  <tr><td>🔗 <b>공유 링크</b></td><td><code>?user=owner&amp;repo=name&amp;node=experiment/x</code> 링크를 받은 사람은 권한만 있으면 같은 레포와 실험을 봅니다.</td></tr>
   <tr><td>⚠️ <b>경고</b></td><td>깨진 YAML, 빠진 필수 필드, 고아 노드에는 노드 옆에 배지를 붙입니다.</td></tr>
 </table>
 

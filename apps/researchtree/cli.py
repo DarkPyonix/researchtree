@@ -19,6 +19,12 @@ DEFAULT_PORT = 7337
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
 
+def viewer_query(repo: str) -> str:
+    """`owner/name` as the viewer's address: the account first, then the repository on its island."""
+    owner, _, name = repo.partition("/")
+    return "?" + urllib.parse.urlencode({"user": owner, "repo": name or repo})
+
+
 def _repo_arg(value: str) -> str:
     if not REPO_RE.match(value):
         raise argparse.ArgumentTypeError(t("cli.repoFormat"))
@@ -37,7 +43,7 @@ def cmd_serve(args: argparse.Namespace) -> int:
             return 1
         httpd, app = make_server(repo, 0)  # default port busy: pick a free one
 
-    url = url_of(app) + (f"?repo={urllib.parse.quote(repo, safe='/')}" if repo else "")
+    url = url_of(app) + (viewer_query(repo) if repo else "")
     print(f"ResearchTree: {url}")
     if repo:
         print(t("serve.defaultRepo", repo=repo))
@@ -80,7 +86,7 @@ def cmd_open(args: argparse.Namespace) -> int:
     if not repo:
         print(t("open.noOrigin"), file=sys.stderr)
         return 1
-    url = f"{WEB_VIEWER}?repo={urllib.parse.quote(repo, safe='/')}"
+    url = WEB_VIEWER + viewer_query(repo)
     print(url)
     webbrowser.open(url)
     return 0
