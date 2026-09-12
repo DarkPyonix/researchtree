@@ -229,6 +229,9 @@ class App {
       return;
     }
     if (e instanceof HttpError && (e.status === 404 || e.status === 403)) {
+      // A map may hold research this reader cannot see (a private repository, or someone else's).
+      // Losing the whole map over one locked island would be the wrong trade, so we go back to it.
+      if (this.world) return this.renderWorld(t("world.locked", { repo }));
       if (!this.user) return this.showLogin(t("guest.needsSignIn", { repo }));
       this.showPicker(t("app.repoNotFound", { repo }));
       return;
@@ -331,7 +334,7 @@ class App {
     });
   }
 
-  private renderWorld(): void {
+  private renderWorld(message?: string): void {
     const world = this.world;
     if (!world) return;
     const canvas = h("div", { class: "canvas" });
@@ -345,6 +348,11 @@ class App {
     });
     view.render(world.map);
     shellEl.append(this.worldCard(world.user));
+    if (message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 4200);
+    }
     this.banner.show({ eyebrow: t("world.land"), title: t("world.title", { user: world.user }) });
     if (world.map.islands.length === 0) canvas.append(h("p", { class: "world-empty muted" }, t("world.empty")));
   }

@@ -59,11 +59,15 @@ def save(settings: Settings, island_map: IslandMap, token: str, *, user: str, me
     api.call("PUT", f"/repos/{settings.repo}/contents/{CONFIG_PATH}", token=token, body=body)
 
 
-def create_settings_repo(token: str, *, private: bool = False) -> None:
-    """Make the `.researchisland` repository. The map itself is written by save()."""
+def create_settings_repo(token: str, *, owner: str | None = None, private: bool = False) -> None:
+    """Make the `.researchisland` repository. The map itself is written by save().
+
+    An organization owns its repositories, so the path differs from a personal account's.
+    """
+    path = "/user/repos" if owner is None or owner == current_user(token) else f"/orgs/{owner}/repos"
     api.call(
         "POST",
-        "/user/repos",
+        path,
         token=token,
         body={
             "name": CONFIG_REPO,

@@ -242,6 +242,7 @@ export const en: Record<MessageKey, string> = {
   "world.noSettingsBody": "Say which research goes where in that repository's README and this map appears.",
   "world.failed": "Couldn't read the map: {error}",
   "world.land": "Island",
+  "world.locked": "Can't open {repo}. A private repository needs an account with access to it.",
 
   // The researcher: their introduction and résumé
   "profile.open": "About the researcher",

@@ -312,7 +312,7 @@ def cmd_island_init(args: argparse.Namespace) -> int:
         print(t("island.alreadySet", repo=settings.repo))
         return 0
     try:
-        island_repo.create_settings_repo(token, private=args.private)
+        island_repo.create_settings_repo(token, owner=user, private=args.private)
     except Exception as e:  # the repository may exist without a README
         if args.verbose:
             print(e, file=sys.stderr)

@@ -240,6 +240,7 @@ export const ko = {
   "world.noSettingsBody": "그 레포의 README에 어떤 연구를 어디에 놓을지 적으면 이 지도가 만들어져요.",
   "world.failed": "지도를 읽지 못했어요: {error}",
   "world.land": "아일랜드",
+  "world.locked": "{repo}는 열 수 없어요. 비공개 레포라면 접근 권한이 있는 계정으로 로그인해야 보여요.",
 
   // 연구자 소개와 이력서
   "profile.open": "연구자 소개",
