@@ -1129,15 +1129,28 @@ export class Tree3D implements TreeViewApi {
     for (let i = 0; i < 60 && (rootPos.x - x < OFFSHORE || !openWater(x, z, ground, 5)); i++) x -= 1;
     g.position.set(x, SEA_Y, z);
     g.userData.nodeId = scope ? `${scope}\u0000${INTRO_ID}` : INTRO_ID;
-    const [rock, rockLight, moss, board, post] = this.nodeMaterials([COLORS.rock[0]!, COLORS.rock[1]!, COLORS.bush[0]!, "#f3e7c9", COLORS.trunk]);
+    const [rock, rockLight, moss, board, post, sand, grass] = this.nodeMaterials([
+      COLORS.rock[0]!,
+      COLORS.rock[1]!,
+      COLORS.bush[0]!,
+      "#f3e7c9",
+      COLORS.trunk,
+      COLORS.sand[0]!,
+      COLORS.grass[0]!,
+    ]);
+    // An islet of its own, so the rock stands on land like everything else on the map.
+    this.box(g, sand!, 15, 2.6, 13, 0, -1.8, 0);
+    this.box(g, sand!, 12.5, 0.5, 10.5, 0.2, 0.8, 0.2);
+    this.box(g, grass!, 9.5, 0.4, 7.5, 0.4, 1.3, 0.3);
+    const y = 1.7;
     // Big enough to read as a landmark from the opening view, not a pebble.
-    this.box(g, rock!, 5.4, 2.2, 5, 0, 0, 0);
-    this.box(g, rockLight!, 4, 1.6, 3.6, 0.3, 2.2, 0.2);
-    this.box(g, rock!, 2.4, 1.8, 2.2, -0.8, 3.8, -0.5);
-    this.box(g, moss!, 3, 0.2, 2.6, 0.5, 3.8, 0.5);
+    this.box(g, rock!, 5.4, 2.2, 5, 0, y, 0);
+    this.box(g, rockLight!, 4, 1.6, 3.6, 0.3, y + 2.2, 0.2);
+    this.box(g, rock!, 2.4, 1.8, 2.2, -0.8, y + 3.8, -0.5);
+    this.box(g, moss!, 3, 0.2, 2.6, 0.5, y + 3.8, 0.5);
     // A signboard on a post: this is something to read, not scenery.
-    this.box(g, post!, 0.3, 2, 0.3, 1, 3.8, 1);
-    this.box(g, board!, 3.2, 1.7, 0.24, 1, 5.4, 1);
+    this.box(g, post!, 0.3, 2, 0.3, 1, y + 3.8, 1);
+    this.box(g, board!, 3.2, 1.7, 0.24, 1, y + 5.4, 1);
     this.world.add(g);
     const label = this.makeLabel(g.userData.nodeId as string, t("intro.reef"), t("intro.reefSub"), "reef");
     this.reefs.push({ group: g, label });
@@ -1681,7 +1694,7 @@ export class Tree3D implements TreeViewApi {
       targets.push([m.label, ((v3.x + 1) / 2) * w, ((1 - v3.y) / 2) * h]);
     }
     for (const reef of this.reefs) {
-      v3.set(reef.group.position.x, 7.6, reef.group.position.z).project(this.camera);
+      v3.set(reef.group.position.x, 9.4, reef.group.position.z).project(this.camera);
       targets.push([reef.label, ((v3.x + 1) / 2) * w, ((1 - v3.y) / 2) * h]);
     }
     for (const name of this.islandNames) {
