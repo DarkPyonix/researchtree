@@ -24,7 +24,7 @@ hero:
 
 features:
   - icon: 🌱
-    title: 브랜치 하나 = 실험 하나, PR 하나 = 실험 일지 하나
+    title: 브랜치는 실험, PR은 일지
     details: 실험마다 작고 명확한 코드 수정만 담은 브랜치를 만들고, 그 PR 본문 맨 위 YAML 블록에 가설, 변경점, 메트릭을 적습니다. 파생 관계가 그대로 트리가 되고, 머지는 채택, close는 기각입니다.
     link: /rules/branches
     linkText: 연구 기록 규칙
