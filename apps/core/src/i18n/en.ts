@@ -221,6 +221,20 @@ export const en: Record<MessageKey, string> = {
   "web.noClientId": "The OAuth App client ID is not configured (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "The OAuth App client ID is not configured.",
 
+  // Research intro reef, beside research v1
+  "intro.reef": "About this research",
+  "intro.reefSub": "what this research is",
+  "intro.title": "About this research",
+  "intro.overview": "Overview",
+  "intro.project": "Project goal",
+  "intro.research": "Research goal",
+  "intro.intent": "Intent",
+  "intro.spec": "Spec",
+  "intro.empty": "No documents to read. Put a README.md on the root branch and it shows up here.",
+  "intro.loading": "Reading the documents…",
+  "intro.failed": "Couldn't read the documents: {error}",
+  "intro.source": "{path} at {ref}",
+
   // The scroll that names where you just arrived
   "banner.research": "Research",
 

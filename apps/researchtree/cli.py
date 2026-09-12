@@ -238,6 +238,142 @@ def cmd_spec(args: argparse.Namespace) -> int:
     return 0
 
 
+def _island_token() -> str | None:
+    from .github import tokens
+
+    token = tokens.load_token()
+    if not token:
+        print(t("island.needLogin"), file=sys.stderr)
+    return token
+
+
+def _island_load(args: argparse.Namespace, token: str | None):
+    """The account's map, and who it belongs to."""
+    from . import island_repo
+
+    user = args.user or (island_repo.current_user(token) if token else None)
+    if not user:
+        print(t("island.needUser"), file=sys.stderr)
+        return None, None
+    return user, island_repo.load(user, token)
+
+
+def cmd_island_show(args: argparse.Namespace) -> int:
+    """Print the account's map, as the viewer reads it."""
+    from .github import tokens
+
+    token = tokens.load_token()
+    user, settings = _island_load(args, token)
+    if settings is None:
+        return 1
+    if not settings.exists:
+        print(t("island.noSettings", repo=settings.repo))
+        return 1
+    for land in settings.island_map.islands:
+        print(t("island.land", name=land.name, x=land.at[0], y=land.at[1]))
+        for research in land.repos:
+            extra = "" if research.root == "research" and research.prefix == "experiment/" else f"  ({research.root}, {research.prefix})"
+            print(f"  - {research.repo}  [{research.at[0]}, {research.at[1]}]{extra}")
+    if not settings.island_map.islands:
+        print(t("island.empty"))
+    for warning in settings.island_map.warnings:
+        print(t("island.warning", text=warning), file=sys.stderr)
+    return 0
+
+
+def cmd_island_check(args: argparse.Namespace) -> int:
+    """Say whether the map is readable, and what was dropped."""
+    from .github import tokens
+
+    user, settings = _island_load(args, tokens.load_token())
+    if settings is None:
+        return 1
+    if not settings.exists:
+        print(t("island.noSettings", repo=settings.repo), file=sys.stderr)
+        return 1
+    for warning in settings.island_map.warnings:
+        print(t("island.warning", text=warning))
+    count = len(settings.island_map.research())
+    print(t("island.checked", islands=len(settings.island_map.islands), repos=count))
+    return 1 if settings.island_map.warnings else 0
+
+
+def cmd_island_init(args: argparse.Namespace) -> int:
+    """Create the settings repository with an empty map, ready for `island add`."""
+    from . import island_repo
+    from .island import IslandMap
+
+    token = _island_token()
+    if not token:
+        return 1
+    user = args.user or island_repo.current_user(token)
+    settings = island_repo.load(user, token)
+    if settings.exists:
+        print(t("island.alreadySet", repo=settings.repo))
+        return 0
+    try:
+        island_repo.create_settings_repo(token, private=args.private)
+    except Exception as e:  # the repository may exist without a README
+        if args.verbose:
+            print(e, file=sys.stderr)
+    island_repo.save(settings, IslandMap(), token, user=user, message="Add the ResearchIsland map")
+    print(t("island.created", repo=settings.repo, user=user))
+    return 0
+
+
+def cmd_island_add(args: argparse.Namespace) -> int:
+    """Put one research on the map, making its land when it is new."""
+    from . import island_repo
+    from .island import Land, Research, next_spot
+
+    token = _island_token()
+    if not token:
+        return 1
+    user = args.user or island_repo.current_user(token)
+    repo = args.repo or git.origin_repo()
+    if not repo or "/" not in repo:
+        print(t("island.needRepo"), file=sys.stderr)
+        return 1
+    settings = island_repo.load(user, token)
+    island_map = settings.island_map
+    if island_map.find(repo):
+        print(t("island.already", repo=repo), file=sys.stderr)
+        return 1
+
+    name = args.island or (island_map.islands[0].name if island_map.islands else t("island.defaultName"))
+    land = next((i for i in island_map.islands if i.name == name), None)
+    if land is None:
+        land = Land(name=name, at=next_spot(i.at for i in island_map.islands))
+        island_map.islands.append(land)
+    at = (args.x, args.y) if args.x is not None and args.y is not None else next_spot(r.at for r in land.repos)
+    land.repos.append(Research(repo=repo, at=at, root=args.root, prefix=args.prefix))
+    island_repo.save(settings, island_map, token, user=user, message=f"Add {repo} to the ResearchIsland map")
+    print(t("island.added", repo=repo, name=land.name, x=at[0], y=at[1]))
+    return 0
+
+
+def cmd_island_remove(args: argparse.Namespace) -> int:
+    """Take one research off the map, and the land with it when it empties."""
+    from . import island_repo
+
+    token = _island_token()
+    if not token:
+        return 1
+    user = args.user or island_repo.current_user(token)
+    repo = args.repo or git.origin_repo()
+    settings = island_repo.load(user, token)
+    island_map = settings.island_map
+    if not repo or not island_map.find(repo):
+        print(t("island.notOnMap", repo=repo or "?"), file=sys.stderr)
+        return 1
+    for land in island_map.islands:
+        land.repos = [r for r in land.repos if r.repo != repo]
+    island_map.islands = [land for land in island_map.islands if land.repos]
+    island_repo.save(settings, island_map, token, user=user, message=f"Remove {repo} from the ResearchIsland map")
+    print(t("island.removed", repo=repo))
+    return 0
+
+
 def cmd_skill_install(args: argparse.Namespace) -> int:
     """Install the bundled SKILL.md into this repository's .claude/skills and/or .agents/skills."""
     from pathlib import Path
@@ -306,6 +442,32 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--claims", action="store_true", help=t("help.specClaims"))
     sp.add_argument("--out", metavar="FILE", help=t("help.specOut"))
     sp.set_defaults(func=cmd_spec)
+
+    il = sub.add_parser("island", help=t("help.island"))
+    ils = il.add_subparsers(dest="island_command", metavar="<command>")
+    for name, func, helper in (("show", cmd_island_show, "help.islandShow"), ("check", cmd_island_check, "help.islandCheck")):
+        c = ils.add_parser(name, help=t(helper))
+        c.add_argument("--user", help=t("help.islandUser"))
+        c.set_defaults(func=func)
+    ii = ils.add_parser("init", help=t("help.islandInit"))
+    ii.add_argument("--user", help=t("help.islandUser"))
+    ii.add_argument("--private", action="store_true", help=t("help.islandPrivate"))
+    ii.add_argument("--verbose", action="store_true", help=t("help.islandVerbose"))
+    ii.set_defaults(func=cmd_island_init)
+    ia = ils.add_parser("add", help=t("help.islandAdd"))
+    ia.add_argument("repo", nargs="?", type=_repo_arg, help=t("help.repo"))
+    ia.add_argument("--island", metavar="NAME", help=t("help.islandName"))
+    ia.add_argument("--x", type=int, help=t("help.islandX"))
+    ia.add_argument("--y", type=int, help=t("help.islandY"))
+    ia.add_argument("--root", default="research", help=t("help.islandRoot"))
+    ia.add_argument("--prefix", default="experiment/", help=t("help.islandPrefix"))
+    ia.add_argument("--user", help=t("help.islandUser"))
+    ia.set_defaults(func=cmd_island_add)
+    ir = ils.add_parser("remove", help=t("help.islandRemove"))
+    ir.add_argument("repo", nargs="?", type=_repo_arg, help=t("help.repo"))
+    ir.add_argument("--user", help=t("help.islandUser"))
+    ir.set_defaults(func=cmd_island_remove)
+    il.set_defaults(func=lambda _: (il.print_help(), 1)[1])
 
     sk = sub.add_parser("skill", help=t("help.skill"))
     sks = sk.add_subparsers(dest="skill_command", metavar="<command>")

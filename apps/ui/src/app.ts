@@ -2,6 +2,7 @@ import "./styles.css";
 import {
   buildTree,
   childrenOf,
+  DEFAULT_INTENT_PATH,
   DEFAULT_SPEC_PATH,
   DEFAULT_TREE_CONFIG,
   GitHubClient,
@@ -37,9 +38,10 @@ import { mergeConfig, parseSettings, SETTING_PARAMS, settingParams, type UrlSett
 import { statusLabel } from "./theme";
 import { repoBanner, ScrollBanner } from "./scroll-banner";
 import { parseViewState, type ViewState } from "./view-state";
+import { loadIntroDocs } from "./panel/intro-docs";
 import { Kanban } from "./views/kanban";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
-import { Tree3D, type Heading } from "./views/tree3d";
+import { INTRO_ID, Tree3D, type Heading } from "./views/tree3d";
 import type { ViewFilter, ViewOptions } from "./views/view";
 
 const RECENT_KEY = "recentRepos";
@@ -278,6 +280,17 @@ class App {
   }
 
   /** PRs plus research version tags. A repo without tags (or a failed tag lookup) still gets a tree. */
+  /** What this research is, from the repository's own documents (docs/ISLAND.md). */
+  private showIntro(tree: ResearchTree): void {
+    const panel = this.panel;
+    if (!panel) return;
+    panel.showIntro(tree, { entries: [] });
+    const paths = { spec: this.repoFile.config.spec ?? DEFAULT_SPEC_PATH, intent: this.repoFile.config.intent ?? DEFAULT_INTENT_PATH };
+    void loadIntroDocs(this.gh, tree, paths).then((docs) => {
+      if (this.tree === tree) panel.showIntro(tree, docs);
+    });
+  }
+
   /** The scroll that names the research you just walked into (docs/ISLAND.md). */
   private announceRepo(repo: string): void {
     const banner = this.banner;
@@ -779,6 +792,8 @@ class App {
   private select(id: string | null, focus = true): void {
     const tree = this.tree;
     if (!tree || !this.panel || !this.current) return;
+    // The intro reef is not a node: it opens the research documents and selects nothing.
+    if (id === INTRO_ID) return this.showIntro(tree);
     const node = id ? tree.nodes.get(id) : undefined;
     const version = id ? tree.versions.get(id) : undefined;
     const isRoot = id === tree.root;

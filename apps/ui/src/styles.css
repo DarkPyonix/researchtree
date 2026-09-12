@@ -353,8 +353,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   gap: 4px;
   padding: 7px 10px;
   z-index: 2;
-  width: max(300px, 33vw);
-  max-width: calc(100% - 32px);
+  width: max-content;
+  max-width: min(33vw, calc(100% - 32px));
   box-sizing: border-box;
 }
 .gens-track {
@@ -876,3 +876,7 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   .scroll-paper { padding: 8px 18px; }
   .scroll-title { font-size: 16px; white-space: normal; }
 }
+
+/* The research intro reef's chip, out in the water beside the first version. */
+.label3d.reef .label3d-name { color: var(--accent-2); }
+.label3d.reef { border-color: color-mix(in srgb, var(--accent-2) 40%, var(--line)); }

@@ -1,5 +1,6 @@
 import { diffSpecs, parentMetrics, pathTo, displayName, PrBodyError, replaceMarkdown, STATUSES, t, updateMeta, versionMetrics, versionTag, type PullComment, type PullFile, type GitHubClient, type Host, type ResearchTree, type SectionChangeKind, type TreeNode, type VersionNode } from "@researchtree/core";
 import { clear, h, icon } from "../dom";
+import type { IntroDocs } from "./intro-docs";
 import { changeList, fillHistory, fullView, orderedVersions, SpecStore, summaryView, versionRef } from "./spec-view";
 import { renderMarkdown } from "../markdown";
 import { formatDate, formatDelta, formatMetric, metricDirection, statusLabel, warningLabel } from "../theme";
@@ -33,6 +34,8 @@ export interface PanelDeps {
 /** Right-hand detail panel, modeled on the reference travel app's info panel. */
 export class Panel {
   private tab: Tab = "summary";
+  /** Which research document the intro panel is showing. */
+  private introTab = "overview";
   private versionTab: VersionTab = "overview";
   private specMode: SpecMode = "full";
   private specStore: SpecStore | null = null;
@@ -134,6 +137,41 @@ export class Panel {
     this.render();
   }
 
+  /**
+   * What this research is, read off the repository itself: the README and the goal documents from
+   * the root branch, and the intent and spec of the newest version (docs/ISLAND.md).
+   */
+  showIntro(tree: ResearchTree, docs: IntroDocs): void {
+    this.node = null;
+    this.version = null;
+    this.tree = tree;
+    this.el.hidden = false;
+    clear(this.el);
+    const entries = docs.entries;
+    if (!entries.length) {
+      this.el.append(
+        this.head(t("intro.title"), null),
+        h("div", { class: "panel-body" }, h("p", { class: "muted" }, docs.error ? t("intro.failed", { error: docs.error }) : t("intro.empty"))),
+      );
+      return;
+    }
+    if (!entries.some((e) => e.key === this.introTab)) this.introTab = entries[0]!.key;
+    const current = entries.find((e) => e.key === this.introTab)!;
+    const body = h("div", { class: "panel-body" });
+    body.append(h("p", { class: "muted small" }, t("intro.source", { path: current.path, ref: current.ref })));
+    const prose = h("div", { class: "prose" });
+    prose.append(renderMarkdown(current.text));
+    body.append(prose);
+    this.el.append(
+      this.head(t("intro.title"), tree.repo),
+      this.tabBar(entries.map((e): [string, string] => [e.key, t(e.label as Parameters<typeof t>[0])]), this.introTab, (key) => {
+        this.introTab = key;
+        this.showIntro(tree, docs);
+      }, true),
+      body,
+    );
+  }
+
   showVersion(version: VersionNode, tree: ResearchTree): void {
     this.node = null;
     this.version = version;
@@ -201,6 +239,21 @@ export class Panel {
           v ? `${tree.root} ${v.name}` : displayName(tree, id),
         );
       }),
+    );
+  }
+
+  /** The intro panel's header: the same shape as the version and experiment headers. */
+  private head(title: string, eyebrow: string | null): HTMLElement {
+    return h(
+      "header",
+      { class: "panel-head" },
+      h(
+        "div",
+        { class: "panel-top" },
+        h("div", { class: "eyebrow accent" }, eyebrow ?? t("intro.title")),
+        h("button", { class: "icon-btn", "aria-label": t("common.close"), title: t("common.closeEsc"), onclick: () => this.deps.onNavigate(null) }, icon("close")),
+      ),
+      h("h2", { class: "panel-title" }, title),
     );
   }
 

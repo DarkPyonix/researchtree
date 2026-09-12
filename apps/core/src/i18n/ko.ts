@@ -219,6 +219,20 @@ export const ko = {
   "web.noClientId": "OAuth App client ID가 설정되지 않았습니다 (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "OAuth App client ID가 설정되지 않았습니다.",
 
+  // 연구 소개 암초 (research v1 옆)
+  "intro.reef": "연구 소개",
+  "intro.reefSub": "이 연구가 무엇인지",
+  "intro.title": "연구 소개",
+  "intro.overview": "연구 개요",
+  "intro.project": "프로젝트 목표",
+  "intro.research": "연구 목표",
+  "intro.intent": "의도",
+  "intro.spec": "스펙",
+  "intro.empty": "읽을 문서가 없어요. 루트 브랜치에 README.md를 두면 여기에 보여요.",
+  "intro.loading": "문서를 읽는 중…",
+  "intro.failed": "문서를 읽지 못했어요: {error}",
+  "intro.source": "{ref}의 {path}",
+
   // 도착한 곳을 알리는 두루마리
   "banner.research": "연구",
 
