@@ -18,6 +18,8 @@ export interface PullRequest {
   head: { ref: string; sha: string };
   base: { ref: string; sha?: string };
   merge_commit_sha?: string | null;
+  requested_reviewers?: { login: string }[] | null;
+  requested_teams?: { slug: string }[] | null;
 }
 
 /** First and last commit dates of a PR's branch (ISO 8601). */
@@ -108,6 +110,8 @@ export interface TreeNode {
     state: "open" | "closed";
     merged: boolean;
     draft: boolean;
+    /** How many people or teams have been asked to review; the board's "in review" column. */
+    reviewers: number;
     createdAt: string;
     updatedAt: string;
     closedAt: string | null;

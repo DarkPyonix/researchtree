@@ -4,10 +4,12 @@ import { defineConfig, loadEnv, type Plugin, type UserConfig } from "vite";
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 const DEFAULT_PROXY = "https://researchtree.thisisthepy.workers.dev";
 
-function cspPolicy(connect: string): string {
+const OFFICE_CDN = "https://appsforoffice.microsoft.com";
+
+function cspPolicy(connect: string, script = "'self'"): string {
   return [
     "default-src 'self'",
-    "script-src 'self'",
+    `script-src ${script}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https://avatars.githubusercontent.com",
     `connect-src ${connect}`,
@@ -39,7 +41,11 @@ function page(entry: string, connect: string, extraHead: string[] = []): Plugin 
       handler(html, ctx) {
         const out = html.replace("/src/main.web.ts", entry);
         if (ctx.server) return out;
-        const tags = [`<meta http-equiv="Content-Security-Policy" content="${cspPolicy(connect)}" />`, ...extraHead];
+        // The add-in pages get their own policy: Office.js has to come from Microsoft's CDN, because
+        // an add-in may not bundle its own copy. They also skip the installable-app tags.
+        const office = ctx.path.includes("office");
+        const policy = office ? cspPolicy(`${connect} ${OFFICE_CDN}`, `'self' ${OFFICE_CDN}`) : cspPolicy(connect);
+        const tags = [`<meta http-equiv="Content-Security-Policy" content="${policy}" />`, ...(office ? [] : extraHead)];
         return out.replace("<head>", ["<head>", ...tags].join("\n    "));
       },
     },
@@ -118,6 +124,15 @@ export default defineConfig(({ mode }): UserConfig => {
     ...base,
     publicDir: here("pwa"),
     plugins: [page("/src/main.web.ts", `'self' https://api.github.com ${proxy}`, PWA_HEAD)],
-    build: { ...base.build, target: "es2022", outDir: here("dist"), emptyOutDir: true, sourcemap: true },
+    build: {
+      ...base.build,
+      target: "es2022",
+      outDir: here("dist"),
+      emptyOutDir: true,
+      sourcemap: true,
+      // The PowerPoint add-in pages ship with the web app, on the same origin: an Office sign-in
+      // dialog may only start on the add-in's own domain.
+      rollupOptions: { input: [here("index.html"), here("office.html"), here("office-auth.html")] },
+    },
   };
 });

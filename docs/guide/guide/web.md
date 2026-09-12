@@ -68,6 +68,25 @@ https://darkpyonix.github.io/researchtree/?repo=lab/moshi&node=experiment/depth-
 |---|---|
 | `repo` | 열 레포 (`owner/name`) |
 | `node` | 선택할 노드. 실험은 브랜치 이름(`experiment/...`), 버전은 `research@v2` 형식 |
+| `lang` · `root` · `prefix` | 설정 값. `repo`·`node` 뒤에 붙어요 (아래 참고) |
+
+### 설정을 링크에 담기
+
+설정 창에서 고를 수 있는 값은 모두 쿼리로도 지정할 수 있어요.
+
+```
+https://darkpyonix.github.io/researchtree/?repo=lab/moshi&lang=en&root=trunk&prefix=try/
+```
+
+| 쿼리 | 값 | 뜻 |
+|---|---|---|
+| `lang` | `auto` · `ko` · `en` | 뷰어 언어 |
+| `root` | 브랜치 이름 | 루트 브랜치 (기본 `research`) |
+| `prefix` | `/`로 끝나는 접두어 | 실험 브랜치 접두어 (기본 `experiment/`) |
+
+기본값이 아닌 설정은 주소창에도 자동으로 나타나요. 그대로 복사해서 보내면 상대방도 같은 설정으로 열립니다. 링크로 받은 설정은 그 브라우저에 저장되고, 설정 창에서 언제든 바꿀 수 있어요. 잘못된 값은 그냥 무시합니다.
+
+레포의 `.researchtree.yml`에 적힌 접두어가 있다면 그쪽이 우선이에요. 팀이 정한 값을 링크가 덮어쓰지 않습니다.
 
 링크를 공유받은 사람도 로그인한 뒤 같은 화면을 볼 수 있어요. 만약 비공개 레포라면 상대방에게도 해당 레포 접근 권한이 있어야 내용이 보입니다. 권한이 없다면 접근 안내 메시지가 나타나요.
 

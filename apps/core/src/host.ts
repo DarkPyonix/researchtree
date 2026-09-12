@@ -32,7 +32,7 @@ export interface HostCapabilities {
 }
 
 export interface Host {
-  kind: "web" | "extension" | "local";
+  kind: "web" | "extension" | "local" | "office";
   /** Environment languages for the automatic locale. Defaults to `navigator.languages` when absent. */
   languages?: readonly string[];
   auth: {
@@ -52,6 +52,27 @@ export interface Host {
     set(key: string, value: unknown): void;
   };
   capabilities: HostCapabilities;
+}
+
+/**
+ * True when GitHub says the token itself is no good, rather than a request failing once. Only then
+ * may a host throw the saved token away: a stray 401 (a captive portal, a proxy error page, a blip)
+ * must not sign the user out, because a GitHub OAuth token has no expiry of its own.
+ */
+export function isTokenRejected(e: unknown): boolean {
+  if (!(e instanceof HttpError) || e.status !== 401) return false;
+  const message = (e.data as { message?: string } | undefined)?.message ?? e.message;
+  return /bad credentials|token expired|token has expired|revoked|requires authentication/i.test(message);
+}
+
+/**
+ * True when GitHub turned the call away for asking too often. Anonymous callers get 60 an hour per
+ * address, which a guest can run into; signing in raises it to 5,000.
+ */
+export function isRateLimited(e: unknown): boolean {
+  if (!(e instanceof HttpError) || (e.status !== 403 && e.status !== 429)) return false;
+  const message = (e.data as { message?: string } | undefined)?.message ?? e.message;
+  return /rate limit|too many requests/i.test(message);
 }
 
 export class HttpError extends Error {

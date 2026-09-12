@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Sign in to GitHub</title>
+    <!-- Office.js must come from Microsoft's CDN: add-ins are not allowed to bundle their own copy. -->
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <style>
+      body { margin: 0; background: #f7f4ee; color: #1f3b46; font: 14px/1.5 system-ui, sans-serif; }
+      .office-auth-message { margin: 0; padding: 28px 24px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <p id="message" class="office-auth-message">GitHub…</p>
+    <script type="module" src="/src/office-auth.ts"></script>
+  </body>
+</html>

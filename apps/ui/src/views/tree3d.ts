@@ -299,7 +299,7 @@ export class Tree3D implements TreeViewApi {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.09;
     this.controls.screenSpacePanning = true;
-    this.controls.minZoom = 0.35;
+    this.controls.minZoom = 0.08; // far enough out to see a long research history at once
     this.controls.maxZoom = 4;
     this.controls.minPolarAngle = 0.35;
     this.controls.maxPolarAngle = 1.2;

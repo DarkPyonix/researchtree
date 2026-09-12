@@ -6,6 +6,8 @@ import {
   DEFAULT_TREE_CONFIG,
   GitHubClient,
   HttpError,
+  isRateLimited,
+  isTokenRejected,
   LOCALE_KEY,
   normalizeTreeConfig,
   parseRepoConfig,
@@ -31,14 +33,17 @@ import { append, clear, h, icon } from "./dom";
 import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
 import { loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
+import { mergeConfig, parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
 import { statusLabel } from "./theme";
+import { Kanban } from "./views/kanban";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
 import { Tree3D, type Heading } from "./views/tree3d";
-import type { ViewOptions } from "./views/view";
+import type { ViewFilter, ViewOptions } from "./views/view";
 
 const RECENT_KEY = "recentRepos";
 const LAST_KEY = "lastRepo";
 const metricsKey = (repo: string) => `islandMetrics:${repo}`;
+const BOARD_KEY = "board";
 const MODE_KEY = "viewMode";
 const BRAND_KEY = "brandCollapsed";
 const configKey = (repo: string) => `config:${repo}`;
@@ -67,9 +72,12 @@ const hint = (mode: ViewMode) => t(isFlatMode(mode) ? "hint.2d" : "hint.3d");
 /** Start the viewer on the given host (web / extension / local). */
 export async function startApp(host: Host, root: HTMLElement): Promise<void> {
   document.body.classList.add(`host-${host.kind}`);
+  // A link may carry settings (`?lang=en&root=…`); the language has to be in place before any screen.
+  const urlSettings = parseSettings(location.search);
+  if (urlSettings.locale) host.storage.set(LOCALE_KEY, urlSettings.locale);
   applyLocale(host);
   followColorScheme();
-  await new App(host, root).boot();
+  await new App(host, root, urlSettings).boot();
 }
 
 function urlParam(name: string): string | null {
@@ -90,10 +98,13 @@ class App {
   private tree: ResearchTree | null = null;
   private view: Tree3D | null = null;
   private mode: ViewMode;
+  /** The board replaces the island while it is open; both show the same tree and panel. */
+  private board: boolean;
+  private kanban: Kanban | null = null;
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
   /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
   private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
-  private stage: { canvas: HTMLElement; hint: HTMLElement; options: ViewOptions } | null = null;
+  private stage: { canvas: HTMLElement; hint: HTMLElement; options: ViewOptions; boardInsets: () => { top: number; right: number; bottom: number } } | null = null;
   private panel: Panel | null = null;
   private selected: string | null = null;
   private hidden = new Set<Status>();
@@ -108,9 +119,12 @@ class App {
   constructor(
     private readonly host: Host,
     private readonly root: HTMLElement,
+    /** Settings asked for by the link that opened the viewer; used once, for the repo it opens. */
+    private urlSettings: UrlSettings = { ignored: [] },
   ) {
     this.gh = new GitHubClient(host);
     this.mode = savedMode(host.storage.get<string>(MODE_KEY));
+    this.board = Boolean(host.storage.get<boolean>(BOARD_KEY));
   }
 
   private mount(el: HTMLElement): void {
@@ -118,6 +132,8 @@ class App {
     this.keyHandler = null;
     this.view?.destroy();
     this.view = null;
+    this.kanban?.destroy();
+    this.kanban = null;
     this.stage = null;
     this.panel = null;
     this.shell = null;
@@ -140,9 +156,13 @@ class App {
       );
       return;
     }
-    if (!this.user) return this.showLogin(loginError);
-
     const repo = urlParam("repo") ?? (await this.host.initialRepo()) ?? this.host.storage.get<string>(LAST_KEY) ?? null;
+    // Guest mode: a link to a public repo opens read-only, without a sign-in first. GitHub allows
+    // 60 anonymous calls an hour per address, so the sign-in screen is still one click away.
+    if (!this.user) {
+      if (loginError || !repo) return this.showLogin(loginError);
+      return this.openRepo(repo);
+    }
     if (!repo) return this.showPicker();
     await this.openRepo(repo);
   }
@@ -152,6 +172,7 @@ class App {
   }
 
   private showPicker(error?: string): void {
+    if (!this.user) return this.showLogin(error);
     this.mount(
       repoPicker({
         gh: this.gh,
@@ -172,11 +193,16 @@ class App {
   }
 
   private handleError(e: unknown, repo: string): void {
-    if (e instanceof HttpError && e.status === 401) {
+    if (isTokenRejected(e)) {
       void this.host.auth.signOut().then(() => this.showLogin(t("app.sessionExpired")));
       return;
     }
+    if (!this.user && isRateLimited(e)) {
+      this.showLogin(t("guest.rateLimited"));
+      return;
+    }
     if (e instanceof HttpError && (e.status === 404 || e.status === 403)) {
+      if (!this.user) return this.showLogin(t("guest.needsSignIn", { repo }));
       this.showPicker(t("app.repoNotFound", { repo }));
       return;
     }
@@ -195,6 +221,7 @@ class App {
   private async openRepo(repo: string): Promise<void> {
     if (!parseRepo(repo)) return this.showPicker(t("app.invalidRepo"));
     this.mount(loadingScreen(t("app.loadingRepo", { repo })));
+    this.applyUrlSettings(repo);
     this.config = this.repoConfig(repo);
     const { root, prefix } = this.config;
     try {
@@ -242,8 +269,9 @@ class App {
     const [prs, tags, activity] = await Promise.all([
       this.gh.listPulls(repo),
       this.gh.listVersionTags(repo, this.config.root).catch(() => []),
-      // Commit dates place experiments on the time axis; without them PR dates are used.
-      this.gh.listPullActivity(repo).catch(() => new Map()),
+      // Commit dates place experiments on the time axis; without them PR dates are used. They come
+      // from the GraphQL API, which turns away anonymous callers, so a guest never has them.
+      this.user ? this.gh.listPullActivity(repo).catch(() => new Map()) : Promise.resolve(new Map()),
     ]);
     return buildTree(prs, repo, this.config, tags, activity);
   }
@@ -252,6 +280,14 @@ class App {
   private async readRepoFile(repo: string, root: string): Promise<{ config: RepoConfig; warnings: RepoConfigWarning[] }> {
     const text = await this.gh.getFileText(repo, REPO_CONFIG_PATH, root).catch(() => null);
     return text === null ? { config: {}, warnings: [] } : parseRepoConfig(text);
+  }
+
+  /** Branch settings from the link that opened the viewer, saved for this repo. Applies once. */
+  private applyUrlSettings(repo: string): void {
+    const wanted = this.urlSettings.config;
+    this.urlSettings = { ignored: this.urlSettings.ignored };
+    const config = mergeConfig(this.repoConfig(repo), wanted);
+    if (config) this.host.storage.set(configKey(repo), config);
   }
 
   /** Branch names for a repo: saved settings, or the defaults (research / experiment/). */
@@ -281,6 +317,7 @@ class App {
       onSave: ({ config, locale }) => {
         this.host.storage.set(configKey(repo), config);
         this.host.storage.set(LOCALE_KEY, locale);
+        this.setUrl({ repo, node: this.selected });
         // Reloading the repo re-renders every screen in the new language.
         applyLocale(this.host);
         dialog.remove();
@@ -304,7 +341,7 @@ class App {
     }
     this.renderBrand();
     this.renderGenerations();
-    this.view!.render(this.tree, this.filter());
+    this.current?.render(this.tree, this.filter());
     const sel = this.selected && this.tree.nodes.has(this.selected) ? this.selected : null;
     this.select(sel, false);
     this.toast(message);
@@ -312,6 +349,18 @@ class App {
 
   private filter() {
     return { hidden: this.hidden, metrics: this.islandMetrics() };
+  }
+
+  /** The view on screen: the board while it is open, otherwise the island. */
+  private get current(): { render(tree: ResearchTree, filter: ViewFilter): void; select(id: string | null, focus?: boolean): void } | null {
+    return this.board ? this.kanban : this.view;
+  }
+
+  private toggleBoard(): void {
+    this.board = !this.board;
+    this.host.storage.set(BOARD_KEY, this.board || undefined);
+    this.renderMain();
+    this.select(this.selected, false);
   }
 
   /** Label metric per island: the saved pick if still recorded there, else the island's most used metric. */
@@ -331,8 +380,8 @@ class App {
     const tree = this.tree!;
     const saved = this.host.storage.get<Record<string, string>>(metricsKey(tree.repo)) ?? {};
     this.host.storage.set(metricsKey(tree.repo), { ...saved, [island]: metric ?? "" });
-    this.view?.render(tree, this.filter());
-    this.view?.select(this.selected, false);
+    this.current?.render(tree, this.filter());
+    this.current?.select(this.selected, false);
   }
 
   private renderMain(): void {
@@ -354,13 +403,21 @@ class App {
       gh: this.gh,
       onNavigate: (id) => this.select(id),
       onUpdated: (message) => this.refresh(message),
+      signedIn: () => this.user !== null,
       islandMetric: (island) => ({ keys: islandMetricKeys(this.tree!, island), current: this.islandMetrics().get(island) ?? null }),
       onIslandMetric: (island, metric) => this.setIslandMetric(island, metric),
       specPath: () => this.repoFile.config.spec ?? DEFAULT_SPEC_PATH,
     });
+    // The board is a wide row of columns, so it always starts below the repo card rather than beside it.
+    const boardInsets = () => {
+      const b = brandStack.getBoundingClientRect();
+      const panel = this.panel?.covered ?? { right: 0, bottom: 0 };
+      return { top: b.bottom + 10, right: Math.max(16, panel.right), bottom: Math.max(28, panel.bottom) };
+    };
     this.stage = {
       canvas,
       hint,
+      boardInsets,
       options: {
         onSelect: (id) => this.select(id),
         insets: () => {
@@ -391,6 +448,23 @@ class App {
     const btn = (label: string, iconName: Parameters<typeof icon>[0], onClick: () => void, title?: string) =>
       h("button", { class: "btn", onclick: onClick, title: title ?? label, "aria-label": title ?? label }, icon(iconName, 15), h("span", { class: "btn-label" }, label));
 
+    if (!this.user) {
+      return h(
+        "div",
+        { class: "toolbar" },
+        btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
+        this.board ? null : this.modeButton(),
+        this.boardButton(btn),
+        btn(t("toolbar.settings"), "gear", () => this.tree && this.openSettings(this.tree.repo)),
+        h(
+          "button",
+          { class: "btn primary", onclick: () => this.showLogin(), title: t("guest.signInTitle") },
+          icon("github", 15),
+          h("span", { class: "btn-label" }, t("login.withGitHub")),
+        ),
+      );
+    }
+
     // Opens on hover (and keyboard focus); a click toggles it for touch screens.
     const userEl = h(
       "div",
@@ -420,13 +494,16 @@ class App {
       "div",
       { class: "toolbar" },
       btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
-      this.modeButton(),
+      this.board ? null : this.modeButton(),
+      this.boardButton(btn),
       btn(t("toolbar.settings"), "gear", () => this.tree && this.openSettings(this.tree.repo)),
-      btn(t("toolbar.fit"), "fit", () => {
-        this.activeDepth = null;
-        this.renderGenerations();
-        this.view?.fit();
-      }),
+      this.board
+        ? null
+        : btn(t("toolbar.fit"), "fit", () => {
+            this.activeDepth = null;
+            this.renderGenerations();
+            this.view?.fit();
+          }),
       userEl,
     );
   }
@@ -437,6 +514,17 @@ class App {
     if (!stage || !this.tree) return;
     this.view?.destroy();
     this.view = null;
+    this.kanban?.destroy();
+    this.kanban = null;
+    stage.canvas.classList.toggle("is-board", this.board);
+    if (this.board) {
+      stage.hint.textContent = "";
+      paintSystemBars(false);
+      this.kanban = new Kanban(stage.canvas, { onSelect: (id) => this.select(id), insets: () => stage.boardInsets() });
+      this.kanban.render(this.tree, this.filter());
+      this.kanban.select(this.selected, false);
+      return;
+    }
     if (!Tree3D.supported()) {
       stage.hint.textContent = t("app.noWebGL");
       return;
@@ -447,6 +535,10 @@ class App {
     paintSystemBars(!isFlatMode(this.mode));
     this.view.render(this.tree, this.filter());
     this.view.select(this.selected, false);
+  }
+
+  private boardButton(btn: (label: string, iconName: Parameters<typeof icon>[0], onClick: () => void, title?: string) => HTMLElement): HTMLElement {
+    return btn(t(this.board ? "toolbar.boardOff" : "toolbar.board"), this.board ? "island" : "board", () => this.toggleBoard());
   }
 
   private modeButton(): HTMLElement {
@@ -527,8 +619,8 @@ class App {
               if (this.hidden.has(s)) this.hidden.delete(s);
               else this.hidden.add(s);
               this.renderBrand();
-              this.view?.render(this.tree!, this.filter());
-              this.view?.select(this.selected, false);
+              this.current?.render(this.tree!, this.filter());
+              this.current?.select(this.selected, false);
             },
           },
           h("span", { class: "chip-dot" }),
@@ -569,6 +661,7 @@ class App {
           : t("brand.empty", { prefix: tree.prefix, root: tree.root }),
       ),
       layers,
+      this.user ? null : h("p", { class: "muted small guest-note" }, t("guest.note")),
     ]);
   }
 
@@ -576,6 +669,10 @@ class App {
     const gens = this.shell!.gens;
     const tree = this.tree!;
     clear(gens);
+    if (this.board) {
+      gens.hidden = true;
+      return;
+    }
     const maxDepth = Math.max(0, ...[...tree.nodes.values()].map((n) => n.depth));
     if (maxDepth === 0) {
       gens.hidden = true;
@@ -616,7 +713,7 @@ class App {
 
   private select(id: string | null, focus = true): void {
     const tree = this.tree;
-    if (!tree || !this.view || !this.panel) return;
+    if (!tree || !this.panel || !this.current) return;
     const node = id ? tree.nodes.get(id) : undefined;
     const version = id ? tree.versions.get(id) : undefined;
     const isRoot = id === tree.root;
@@ -626,7 +723,7 @@ class App {
     else if (isRoot) this.panel.showVersion(rootVersion(tree), tree);
     else this.panel.hide();
     this.shell?.brand.closest(".shell")?.classList.toggle("panel-open", Boolean(this.selected));
-    this.view.select(this.selected, focus);
+    this.current.select(this.selected, focus);
     this.setUrl({ repo: tree.repo, node: this.selected });
   }
 
@@ -673,11 +770,16 @@ class App {
     if (this.host.kind === "extension") return;
     try {
       const params = new URLSearchParams(location.search);
-      for (const k of ["code", "state"]) params.delete(k);
+      for (const k of ["code", "state", ...SETTING_PARAMS]) params.delete(k);
       if (p.repo) params.set("repo", p.repo);
       else params.delete("repo");
       if (p.node) params.set("node", p.node);
       else params.delete("node");
+      // Settings come after repo and node, so the link reads "what to open" first, "how to show it" after.
+      if (p.repo) {
+        const settings = settingParams({ locale: localePreference(this.host), config: this.repoConfig(p.repo), defaults: DEFAULT_TREE_CONFIG });
+        for (const [key, value] of Object.entries(settings)) if (value) params.set(key, value);
+      }
       const q = params.toString().replace(/=(&|$)/g, "$1");
       history.replaceState(null, "", location.pathname + (q ? `?${q}` : ""));
     } catch {
