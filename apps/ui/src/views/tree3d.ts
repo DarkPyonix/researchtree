@@ -60,8 +60,19 @@ const COLORS = {
   fruit: "#f4c24f",
   flowers: ["#f7a1b5", "#ffffff", "#f9d56e", "#c9a7f2"],
   rock: ["#c9c4bc", "#bdb7ae"],
+  /** An area nobody has unlocked: bare stone under fog. */
+  locked: ["#7f8d95", "#cdd8db"],
   bush: ["#8cc474", "#7fb96a"],
 };
+
+/** One place on an account's map: a research to draw, or one this reader may not open. */
+export interface WorldEntry {
+  offset: THREE.Vector3;
+  tree?: ResearchTree;
+  filter?: ViewFilter;
+  /** Repository of a research that could not be read: drawn as an area that is not unlocked. */
+  locked?: string;
+}
 
 /**
  * Season looks (northern hemisphere, by date). The ground follows the season at its place on the
@@ -86,6 +97,16 @@ const LANDING = 4;
 
 
 type Rand = () => number;
+
+/** True when no part of the island lies within `r` cells of this spot: real sea, not the shore. */
+function openWater(x: number, z: number, ground: Set<string>, r: number): boolean {
+  for (let dx = -r; dx <= r; dx++) {
+    for (let dz = -r; dz <= r; dz++) {
+      if (ground.has(`${Math.round(x + dx)},${Math.round(z + dz)}`)) return false;
+    }
+  }
+  return true;
+}
 
 function mulberry32(seed: number): Rand {
   let a = seed >>> 0;
@@ -237,6 +258,8 @@ export class Tree3D implements TreeViewApi {
   private reefs: { group: THREE.Group; label: HTMLElement }[] = [];
   /** One name per research island, floating over it on the world map. */
   private islandNames: { label: HTMLElement; at: THREE.Vector3 }[] = [];
+  /** Middle of each locked island: they have no plants to fit the camera around. */
+  private lockedSpots: THREE.Vector3[] = [];
   private reefPos: THREE.Vector3 | null = null;
   private reefLabel: HTMLElement | null = null;
   private paths: PathVisual[] = [];
@@ -402,6 +425,7 @@ export class Tree3D implements TreeViewApi {
     this.reefLabel = null;
     this.reefs = [];
     this.islandNames = [];
+    this.lockedSpots = [];
     this.islandFresh = true;
     this.paths = [];
     this.clouds = [];
@@ -435,15 +459,51 @@ export class Tree3D implements TreeViewApi {
    * same islands the viewer sails into. Node ids are scoped by repository, because two repositories
    * may well both have an `experiment/warmup`.
    */
-  renderWorld(entries: { tree: ResearchTree; filter: ViewFilter; offset: THREE.Vector3 }[]): void {
-    this.tree = entries[0]?.tree ?? null;
+  renderWorld(entries: WorldEntry[]): void {
+    this.tree = entries.find((e) => e.tree)?.tree ?? null;
     this.clearWorld();
     this.scoped = true;
     // On a map of islands the plants keep their shapes but lose their chips: only the research's
     // own name is readable at this distance.
     this.labels.classList.add("world");
-    for (const entry of entries) this.buildTree(entry.tree, entry.filter, entry.offset);
+    for (const entry of entries) {
+      if (entry.tree) this.buildTree(entry.tree, entry.filter ?? { hidden: new Set(), metrics: new Map() }, entry.offset);
+      else if (entry.locked) this.buildLocked(entry.locked, entry.offset);
+    }
     this.finish(true);
+  }
+
+  /**
+   * Research this reader cannot open, drawn the way a game draws an area nobody has unlocked: the
+   * island is there in outline, under fog, with a sign saying what it would take to walk on it.
+   */
+  private buildLocked(repo: string, offset: THREE.Vector3): void {
+    const g = new THREE.Group();
+    g.position.copy(offset);
+    g.userData.nodeId = `${repo}\u0000`;
+    const [stone, fog] = this.nodeMaterials([COLORS.locked[0]!, COLORS.locked[1]!]);
+    // A low plateau under three banks of cloud: a shape, with nothing on it to read.
+    this.box(g, stone!, 44, 3.4, 28, 0, -1.7, 0);
+    this.box(g, stone!, 30, 3.4, 40, -2, -1.7, 1);
+    this.box(g, stone!, 20, 3, 20, 6, 1.4, -4);
+    this.box(g, fog!, 42, 3.2, 30, 1, 3.4, 1);
+    this.box(g, fog!, 30, 3, 38, -3, 6, -1);
+    this.box(g, fog!, 20, 2.6, 20, 5, 8.4, 3);
+    this.world.add(g);
+    const label = this.makeLabel(g.userData.nodeId as string, t("world.lockedName"), t("world.lockedSub"), "island-name locked");
+    this.islandNames.push({ label, at: offset.clone() });
+    this.lockedSpots.push(offset.clone());
+    // The map is framed around everything on it, this island included.
+    const half = 26;
+    this.island = this.islandFresh
+      ? { minX: offset.x - half, maxX: offset.x + half, minZ: offset.z - half, maxZ: offset.z + half }
+      : {
+          minX: Math.min(this.island.minX, offset.x - half),
+          maxX: Math.max(this.island.maxX, offset.x + half),
+          minZ: Math.min(this.island.minZ, offset.z - half),
+          maxZ: Math.max(this.island.maxZ, offset.z + half),
+        };
+    this.islandFresh = false;
   }
 
   /** Where one research's island sits, and everything on it. */
@@ -1060,13 +1120,11 @@ export class Tree3D implements TreeViewApi {
   private buildReef(rootPos: THREE.Vector3, ground: Set<string>, scope = ""): void {
     const g = new THREE.Group();
     if (!scope) this.reefPos = null;
-    // Just off the island's west shore, level with the first version: open water, and in frame
-    // whenever the first version is.
-    // In the water off the island's west shore, level with the first version: the island is drawn
-    // out to island.minX, so a step beyond that is always sea, however the tree is shaped.
-    let x = this.island.minX - 3.5;
+    // Out from the first version along -x, which the camera draws as the diagonal below and to the
+    // left of it: it keeps walking until the island is five cells behind, so it stands in open sea.
+    let x = rootPos.x - 3;
     const z = rootPos.z;
-    for (let i = 0; i < 6 && ground.has(`${Math.round(x)},${Math.round(z)}`); i++) x -= 1;
+    for (let i = 0; i < 40 && !openWater(x, z, ground, 5); i++) x -= 1;
     g.position.set(x, SEA_Y, z);
     g.userData.nodeId = scope ? `${scope}\u0000${INTRO_ID}` : INTRO_ID;
     const [rock, rockLight, moss, board, post] = this.nodeMaterials([COLORS.rock[0]!, COLORS.rock[1]!, COLORS.bush[0]!, "#f3e7c9", COLORS.trunk]);
@@ -1323,6 +1381,12 @@ export class Tree3D implements TreeViewApi {
     for (const v of vs) for (const y of [0, v.top + 1.5]) corners.push(v.pos.clone().setY(y));
     // Fitting everything means the research intro rock too, or it would start off screen.
     if (!ids && this.reefPos) corners.push(this.reefPos.clone().setY(0), this.reefPos.clone().setY(8));
+    // A locked island has nothing growing on it, so its own corners are what keeps it in frame.
+    if (!ids) {
+      for (const at of this.lockedSpots) {
+        for (const dx of [-26, 26]) for (const dz of [-26, 26]) corners.push(new THREE.Vector3(at.x + dx, 8, at.z + dz));
+      }
+    }
     for (const c of corners) {
       const p = c.sub(center);
       ex = Math.max(ex, Math.abs(p.dot(right)));

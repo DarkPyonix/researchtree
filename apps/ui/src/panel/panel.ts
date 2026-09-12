@@ -1,4 +1,5 @@
 import { diffSpecs, parentMetrics, pathTo, displayName, PrBodyError, replaceMarkdown, STATUSES, t, updateMeta, versionMetrics, versionTag, type PullComment, type PullFile, type GitHubClient, type Host, type ResearchTree, type SectionChangeKind, type TreeNode, type VersionNode } from "@researchtree/core";
+import { avatar } from "../avatar";
 import { clear, h, icon } from "../dom";
 import type { IntroDocs } from "./intro-docs";
 import { changeList, fillHistory, fullView, orderedVersions, SpecStore, summaryView, versionRef } from "./spec-view";
@@ -858,7 +859,7 @@ export class Panel {
       h(
         "header",
         { class: "comment-head" },
-        c.user?.avatar_url ? h("img", { class: "avatar", src: c.user.avatar_url, alt: "" }) : null,
+        c.user?.avatar_url ? avatar(c.user.avatar_url, 20) : null,
         h("strong", null, c.user?.login ?? "unknown"),
         h("span", { class: "muted small" }, formatDate(c.created_at)),
         c.path

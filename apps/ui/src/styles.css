@@ -326,7 +326,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 /* Above the detail panel so the account menu opens over it. */
 .toolbar { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; display: flex; align-items: center; gap: 8px; z-index: 6; }
 .toolbar .btn { box-shadow: var(--shadow); }
-.avatar { width: 22px; height: 22px; border-radius: 50%; }
+/* A soft disc while the picture is on its way, never a white hole (see avatar.ts). */
+.avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--card-sunken); object-fit: cover; }
 .user-menu { position: relative; }
 .menu { position: absolute; right: 0; top: calc(100% + 6px); min-width: 200px; padding: 6px; display: none; }
 /* Invisible bridge over the gap so the menu stays open while the pointer moves down to it. */
@@ -1046,3 +1047,6 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .label3d.island-name { padding: 7px 14px; border-radius: 14px; }
 .label3d.island-name .label3d-name { font: 700 15px/1.2 var(--display); }
 .label3d.island-name::after { display: none; }
+/* Research nobody here can open: the chip says so as plainly as the island under it. */
+.label3d.island-name.locked { background: var(--card-sunken); color: var(--muted); border-style: dashed; }
+.label3d.island-name.locked .label3d-name { color: var(--ink-soft); }
