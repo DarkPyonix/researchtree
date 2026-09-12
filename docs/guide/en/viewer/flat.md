@@ -1,6 +1,6 @@
 # The flat view
 
-The view button in the toolbar cycles through four views. The button is labeled with the view you'll get if you press it.
+The view button in the toolbar cycles through four views. The button is labeled with the view you'll get if you press it. (The work board has its own button next to it: [Board view](/viewer/board).)
 
 | Current view | Button | What happens |
 |---|---|---|

@@ -35,13 +35,15 @@ import { applyLocale, localePreference } from "./locale";
 import { loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
 import { mergeConfig, parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "./settings-url";
 import { statusLabel } from "./theme";
+import { Kanban } from "./views/kanban";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
 import { Tree3D, type Heading } from "./views/tree3d";
-import type { ViewOptions } from "./views/view";
+import type { ViewFilter, ViewOptions } from "./views/view";
 
 const RECENT_KEY = "recentRepos";
 const LAST_KEY = "lastRepo";
 const metricsKey = (repo: string) => `islandMetrics:${repo}`;
+const BOARD_KEY = "board";
 const MODE_KEY = "viewMode";
 const BRAND_KEY = "brandCollapsed";
 const configKey = (repo: string) => `config:${repo}`;
@@ -96,10 +98,13 @@ class App {
   private tree: ResearchTree | null = null;
   private view: Tree3D | null = null;
   private mode: ViewMode;
+  /** The board replaces the island while it is open; both show the same tree and panel. */
+  private board: boolean;
+  private kanban: Kanban | null = null;
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
   /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
   private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
-  private stage: { canvas: HTMLElement; hint: HTMLElement; options: ViewOptions } | null = null;
+  private stage: { canvas: HTMLElement; hint: HTMLElement; options: ViewOptions; boardInsets: () => { top: number; right: number; bottom: number } } | null = null;
   private panel: Panel | null = null;
   private selected: string | null = null;
   private hidden = new Set<Status>();
@@ -119,6 +124,7 @@ class App {
   ) {
     this.gh = new GitHubClient(host);
     this.mode = savedMode(host.storage.get<string>(MODE_KEY));
+    this.board = Boolean(host.storage.get<boolean>(BOARD_KEY));
   }
 
   private mount(el: HTMLElement): void {
@@ -126,6 +132,8 @@ class App {
     this.keyHandler = null;
     this.view?.destroy();
     this.view = null;
+    this.kanban?.destroy();
+    this.kanban = null;
     this.stage = null;
     this.panel = null;
     this.shell = null;
@@ -333,7 +341,7 @@ class App {
     }
     this.renderBrand();
     this.renderGenerations();
-    this.view!.render(this.tree, this.filter());
+    this.current?.render(this.tree, this.filter());
     const sel = this.selected && this.tree.nodes.has(this.selected) ? this.selected : null;
     this.select(sel, false);
     this.toast(message);
@@ -341,6 +349,18 @@ class App {
 
   private filter() {
     return { hidden: this.hidden, metrics: this.islandMetrics() };
+  }
+
+  /** The view on screen: the board while it is open, otherwise the island. */
+  private get current(): { render(tree: ResearchTree, filter: ViewFilter): void; select(id: string | null, focus?: boolean): void } | null {
+    return this.board ? this.kanban : this.view;
+  }
+
+  private toggleBoard(): void {
+    this.board = !this.board;
+    this.host.storage.set(BOARD_KEY, this.board || undefined);
+    this.renderMain();
+    this.select(this.selected, false);
   }
 
   /** Label metric per island: the saved pick if still recorded there, else the island's most used metric. */
@@ -360,8 +380,8 @@ class App {
     const tree = this.tree!;
     const saved = this.host.storage.get<Record<string, string>>(metricsKey(tree.repo)) ?? {};
     this.host.storage.set(metricsKey(tree.repo), { ...saved, [island]: metric ?? "" });
-    this.view?.render(tree, this.filter());
-    this.view?.select(this.selected, false);
+    this.current?.render(tree, this.filter());
+    this.current?.select(this.selected, false);
   }
 
   private renderMain(): void {
@@ -388,9 +408,16 @@ class App {
       onIslandMetric: (island, metric) => this.setIslandMetric(island, metric),
       specPath: () => this.repoFile.config.spec ?? DEFAULT_SPEC_PATH,
     });
+    // The board is a wide row of columns, so it always starts below the repo card rather than beside it.
+    const boardInsets = () => {
+      const b = brandStack.getBoundingClientRect();
+      const panel = this.panel?.covered ?? { right: 0, bottom: 0 };
+      return { top: b.bottom + 10, right: Math.max(16, panel.right), bottom: Math.max(28, panel.bottom) };
+    };
     this.stage = {
       canvas,
       hint,
+      boardInsets,
       options: {
         onSelect: (id) => this.select(id),
         insets: () => {
@@ -426,7 +453,8 @@ class App {
         "div",
         { class: "toolbar" },
         btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
-        this.modeButton(),
+        this.board ? null : this.modeButton(),
+        this.boardButton(btn),
         btn(t("toolbar.settings"), "gear", () => this.tree && this.openSettings(this.tree.repo)),
         h(
           "button",
@@ -466,13 +494,16 @@ class App {
       "div",
       { class: "toolbar" },
       btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
-      this.modeButton(),
+      this.board ? null : this.modeButton(),
+      this.boardButton(btn),
       btn(t("toolbar.settings"), "gear", () => this.tree && this.openSettings(this.tree.repo)),
-      btn(t("toolbar.fit"), "fit", () => {
-        this.activeDepth = null;
-        this.renderGenerations();
-        this.view?.fit();
-      }),
+      this.board
+        ? null
+        : btn(t("toolbar.fit"), "fit", () => {
+            this.activeDepth = null;
+            this.renderGenerations();
+            this.view?.fit();
+          }),
       userEl,
     );
   }
@@ -483,6 +514,17 @@ class App {
     if (!stage || !this.tree) return;
     this.view?.destroy();
     this.view = null;
+    this.kanban?.destroy();
+    this.kanban = null;
+    stage.canvas.classList.toggle("is-board", this.board);
+    if (this.board) {
+      stage.hint.textContent = "";
+      paintSystemBars(false);
+      this.kanban = new Kanban(stage.canvas, { onSelect: (id) => this.select(id), insets: () => stage.boardInsets() });
+      this.kanban.render(this.tree, this.filter());
+      this.kanban.select(this.selected, false);
+      return;
+    }
     if (!Tree3D.supported()) {
       stage.hint.textContent = t("app.noWebGL");
       return;
@@ -493,6 +535,10 @@ class App {
     paintSystemBars(!isFlatMode(this.mode));
     this.view.render(this.tree, this.filter());
     this.view.select(this.selected, false);
+  }
+
+  private boardButton(btn: (label: string, iconName: Parameters<typeof icon>[0], onClick: () => void, title?: string) => HTMLElement): HTMLElement {
+    return btn(t(this.board ? "toolbar.boardOff" : "toolbar.board"), this.board ? "island" : "board", () => this.toggleBoard());
   }
 
   private modeButton(): HTMLElement {
@@ -573,8 +619,8 @@ class App {
               if (this.hidden.has(s)) this.hidden.delete(s);
               else this.hidden.add(s);
               this.renderBrand();
-              this.view?.render(this.tree!, this.filter());
-              this.view?.select(this.selected, false);
+              this.current?.render(this.tree!, this.filter());
+              this.current?.select(this.selected, false);
             },
           },
           h("span", { class: "chip-dot" }),
@@ -623,6 +669,10 @@ class App {
     const gens = this.shell!.gens;
     const tree = this.tree!;
     clear(gens);
+    if (this.board) {
+      gens.hidden = true;
+      return;
+    }
     const maxDepth = Math.max(0, ...[...tree.nodes.values()].map((n) => n.depth));
     if (maxDepth === 0) {
       gens.hidden = true;
@@ -663,7 +713,7 @@ class App {
 
   private select(id: string | null, focus = true): void {
     const tree = this.tree;
-    if (!tree || !this.view || !this.panel) return;
+    if (!tree || !this.panel || !this.current) return;
     const node = id ? tree.nodes.get(id) : undefined;
     const version = id ? tree.versions.get(id) : undefined;
     const isRoot = id === tree.root;
@@ -673,7 +723,7 @@ class App {
     else if (isRoot) this.panel.showVersion(rootVersion(tree), tree);
     else this.panel.hide();
     this.shell?.brand.closest(".shell")?.classList.toggle("panel-open", Boolean(this.selected));
-    this.view.select(this.selected, focus);
+    this.current.select(this.selected, focus);
     this.setUrl({ repo: tree.repo, node: this.selected });
   }
 

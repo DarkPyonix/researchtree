@@ -12,7 +12,7 @@
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
   xsi:type="ContentApp">
   <Id>3f31a724-1201-40ee-b804-3f5624aac6cb</Id>
-  <Version>1.1.2.0</Version>
+  <Version>1.2.0.0</Version>
   <ProviderName>DarkPyonix</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="ResearchTree">

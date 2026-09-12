@@ -26,6 +26,7 @@ export function themeText(l: GuideText): DefaultTheme.Config {
           { text: s.repoSetup, link: "/guide/repo-setup" },
           { text: s.web, link: "/guide/web" },
           { text: s.vscode, link: "/guide/vscode" },
+          { text: s.powerpoint, link: "/guide/powerpoint" },
           { text: s.local, link: "/guide/local" },
         ],
       },
@@ -44,6 +45,7 @@ export function themeText(l: GuideText): DefaultTheme.Config {
         items: [
           { text: s.island, link: "/viewer/island" },
           { text: s.flat, link: "/viewer/flat" },
+          { text: s.board, link: "/viewer/board" },
           { text: s.panels, link: "/viewer/panels" },
           { text: s.navigation, link: "/viewer/navigation" },
           { text: s.seasons, link: "/viewer/seasons" },

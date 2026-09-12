@@ -212,6 +212,7 @@ def build_tree(
                 "state": pr.get("state", "open"),
                 "merged": bool(pr.get("merged_at")),
                 "draft": bool(pr.get("draft")),
+                "reviewers": len(pr.get("requested_reviewers") or []) + len(pr.get("requested_teams") or []),
                 "created_at": pr["created_at"],
                 "updated_at": pr.get("updated_at"),
                 "closed_at": pr.get("closed_at"),

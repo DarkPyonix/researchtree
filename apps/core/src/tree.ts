@@ -130,6 +130,7 @@ export function buildTree(
         state: pr.state,
         merged: Boolean(pr.merged_at),
         draft: Boolean(pr.draft),
+        reviewers: (pr.requested_reviewers?.length ?? 0) + (pr.requested_teams?.length ?? 0),
         createdAt: pr.created_at,
         updatedAt: pr.updated_at,
         closedAt: pr.closed_at,

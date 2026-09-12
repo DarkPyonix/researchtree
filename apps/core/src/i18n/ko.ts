@@ -219,6 +219,16 @@ export const ko = {
   "web.noClientId": "OAuth App client ID가 설정되지 않았습니다 (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "OAuth App client ID가 설정되지 않았습니다.",
 
+  // 칸반 보기: PR이 실제로 거치는 단계
+  "board.draft": "초안",
+  "board.working": "작업 중",
+  "board.review": "리뷰 중",
+  "board.merged": "채택",
+  "board.closed": "기각",
+  "board.empty": "비어 있어요",
+  "toolbar.board": "칸반 보기",
+  "toolbar.boardOff": "섬으로 돌아가기",
+
   // 손님 모드 (로그인 없이 공개 레포 읽기)
   "guest.note": "로그인하지 않아 읽기 전용이에요. 실험이 언제 작업됐는지(커밋 날짜)는 로그인해야 보여요.",
   "guest.readOnly": "수정하려면 로그인",

@@ -221,6 +221,16 @@ export const en: Record<MessageKey, string> = {
   "web.noClientId": "The OAuth App client ID is not configured (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "The OAuth App client ID is not configured.",
 
+  // Board view: the stages a PR actually goes through
+  "board.draft": "Draft",
+  "board.working": "In progress",
+  "board.review": "In review",
+  "board.merged": "Adopted",
+  "board.closed": "Rejected",
+  "board.empty": "Nothing here",
+  "toolbar.board": "Board",
+  "toolbar.boardOff": "Back to the island",
+
   // Guest mode (reading a public repo without signing in)
   "guest.note": "Read-only, because you are not signed in. Sign in to see when each experiment was worked on (commit dates).",
   "guest.readOnly": "Sign in to edit",
