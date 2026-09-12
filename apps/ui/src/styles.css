@@ -327,11 +327,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .toolbar { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; display: flex; align-items: center; gap: 8px; z-index: 6; }
 .toolbar .btn { box-shadow: var(--shadow); }
 .avatar { width: 22px; height: 22px; border-radius: 50%; }
-/* One pill, two buttons: the name goes to the account's island, the caret opens the menu. */
-.user-menu { position: relative; display: flex; align-items: stretch; gap: 1px; }
-.user-btn { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
-.user-caret { padding-left: 8px; padding-right: 8px; border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
-.user-caret svg { display: block; }
+.user-menu { position: relative; }
 .menu { position: absolute; right: 0; top: calc(100% + 6px); min-width: 200px; padding: 6px; display: none; }
 /* Invisible bridge over the gap so the menu stays open while the pointer moves down to it. */
 .menu::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 8px; }

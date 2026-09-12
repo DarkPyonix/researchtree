@@ -773,26 +773,30 @@ class App {
       );
     }
 
-    // The name opens the account's own island; the caret beside it opens the menu. The menu also
-    // follows the pointer (and keyboard focus), and the caret is what a touch screen has.
+    // The menu hangs off the account button on hover, so with a pointer the button itself is free to
+    // do the obvious thing: go to the account's island. A touch screen has no hover, so there the tap
+    // opens the menu instead, and the island is the first thing in it.
     const login = this.user?.login ?? "";
+    const hovers = () => window.matchMedia("(hover: hover)").matches;
     const userEl = h(
       "div",
       { class: "user-menu" },
       h(
         "button",
-        { class: "btn user-btn", title: t("menu.myIsland"), "aria-label": t("menu.myIsland"), onclick: () => this.openIsland(login) },
+        {
+          class: "btn user-btn",
+          title: t("menu.myIsland"),
+          "aria-label": t("app.account"),
+          "aria-haspopup": "menu",
+          onclick: () => (hovers() ? this.openIsland(login) : userEl.classList.toggle("open")),
+        },
         this.user?.avatar_url ? h("img", { class: "avatar", src: this.user.avatar_url, alt: "" }) : null,
         h("span", { class: "btn-label" }, `@${login}`),
       ),
       h(
-        "button",
-        { class: "btn user-caret", "aria-label": t("app.account"), "aria-haspopup": "menu", onclick: () => userEl.classList.toggle("open") },
-        icon("down", 14),
-      ),
-      h(
         "div",
         { class: "card menu" },
+        h("button", { class: "menu-item", onclick: () => this.openIsland(login) }, icon("island", 14), ` ${t("menu.myIsland")}`),
         this.tree
           ? h("button", { class: "menu-item", onclick: () => this.host.openExternal(`https://github.com/${this.tree!.repo}`) }, icon("github", 14), ` ${t("menu.openRepoOnGitHub")}`)
           : null,
