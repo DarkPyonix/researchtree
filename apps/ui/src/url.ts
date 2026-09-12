@@ -4,10 +4,10 @@
  *   ?user=b-re-w                      the account's island map
  *   ?user=b-re-w&repo=moshi           one research on that island
  *   ?user=b-re-w&repo=DarkPyonix/tts  a research the account did under an organization
- *   ?repo=DarkPyonix/tts              one research on its own, with no island around it
  *
  * A research on someone's island may well live in an organization, so `repo` takes either a bare
- * name (belonging to `user`) or a full `owner/name`. Links written before `user` existed still work.
+ * name (belonging to `user`) or a full `owner/name`. An address always names an account, though:
+ * `repo` on its own says nothing about whose island the research is shown on, so it opens nothing.
  */
 export interface UrlPlace {
   /** Whose island, when the address names one. */
@@ -24,7 +24,7 @@ export function readPlace(search: string | URLSearchParams): UrlPlace {
   const asked = params.get("user")?.trim() || null;
   // Only a name that passed the check may stand in for an owner.
   const user = asked && NAME_RE.test(asked) ? asked : null;
-  return { user, repo: fullRepo(user, params.get("repo")?.trim() || null) };
+  return { user, repo: user ? fullRepo(user, params.get("repo")?.trim() || null) : null };
 }
 
 /** `moshi` with user `b-re-w` -> `b-re-w/moshi`; `DarkPyonix/tts` stays as it is. */

@@ -26,7 +26,7 @@ TypeScript로 작성한 뷰어 하나를 중앙 웹, VS Code 확장, 로컬 서�
 
 | 호스트 | 토큰 위치 | GitHub 호출 주체 | 처음 여는 레포 |
 |---|---|---|---|
-| web | 브라우저 `localStorage` | 브라우저 (CORS 허용) | URL `?repo=`, 마지막 레포, 또는 선택 화면 |
+| web | 브라우저 `localStorage` | 브라우저 (CORS 허용) | URL `?user=`·`?repo=`, 마지막 레포, 또는 선택 화면 |
 | extension | 확장 호스트 (VS Code 인증 세션) | 확장 호스트 | 워크스페이스 git remote |
 | local | OS 키체인 / 설정 파일 (Python) | 로컬 Python 서버 | 실행 디렉토리의 git remote 또는 `--repo` |
 
@@ -78,7 +78,7 @@ web 빌드는 다음 환경변수를 읽어요(`apps/ui/.env*` 파일이나 셸 
 
 ## 데이터 흐름
 
-1. **부팅**: 호스트의 `auth.current()`로 로그인 사용자를 확인해요. 없으면 로그인 화면을 띄우고, 있으면 `?repo=` → `initialRepo()` → 마지막 레포 순서로 열어볼 대상을 정합니다.
+1. **부팅**: 호스트의 `auth.current()`로 로그인 사용자를 확인해요. 없으면 로그인 화면을 띄우고, 있으면 `?user=`·`?repo=` → `initialRepo()` → 마지막 레포 순서로 열어볼 대상을 정합니다.
 2. **로딩**: `GitHubClient`가 루트 브랜치가 있는지 확인하고, PR 목록(`/pulls?state=all`, 페이지네이션)과 버전 태그(`/tags` 및 태그 커밋 날짜)를 병렬로 불러와요. ETag 조건부 요청으로 응답을 캐시합니다.
 3. **트리 구성**: `buildTree(prs, repo, config, tags, activity)`가 표시 대상 필터링, 상태 및 부모 결정, 버전 연결, 고아·순환 노드 처리, 세대 계산을 진행해요([트리 결정 규칙](/rules/tree-rules)).
 4. **레이아웃**: `views/layout.ts`의 `placeTree`가 `d3-hierarchy` tidy tree로 행을 배치하고 날짜로 열을 정해요. 노드가 공간을 확보하느라 날짜보다 오른쪽으로 밀릴 수 있는데, 연도·계절 눈금도 노드가 실제로 놓인 자리에 맞춘 단조 변환으로 그려서 노드 날짜와 위치를 맞춰줍니다. 다른 섬에 놓이는 형제 노드 사이나 새 버전 앞에는 넉넉한 간격을 둬요.

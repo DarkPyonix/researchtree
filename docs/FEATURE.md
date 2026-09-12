@@ -16,7 +16,7 @@
 
 ### 1.2 레포 선택 (P0)
 
-- 주소 `?repo=owner/name`으로 레포를 지정한다.
+- 주소 `?user=owner&repo=name`으로 계정과 레포를 지정한다. 계정 없이 레포만 있는 주소는 열리지 않는다.
 - 레포가 지정되지 않았으면 레포 선택 화면을 보여준다. 사용자가 접근할 수 있는 레포 가운데 `research` 브랜치가 있는 레포를 목록으로 띄운다. 최근에 본 레포는 위에 둔다.
 - 레포에 `research` 브랜치가 없으면 [CONVENTIONS.md](CONVENTIONS.md)로 연결되는 안내를 보여준다.
 
@@ -36,7 +36,7 @@
 
 ### 1.3 공유 링크 (P0)
 
-- 현재 레포와 선택 노드가 주소에 반영된다. 예: `?repo=lab/moshi&node=experiment/depth-lr-half`
+- 현재 레포와 선택 노드가 주소에 반영된다. 예: `?user=lab&repo=moshi&node=experiment/depth-lr-half`
 - 링크를 받은 사람도 로그인 후 같은 화면을 본다. 해당 레포에 권한이 없으면 권한이 없다는 안내를 보여준다.
 
 ## 2. 트리

@@ -61,7 +61,7 @@ Once you're signed in, you get the "Which research do you want to see?" screen.
 The repo you're looking at and the node you've selected are reflected in the address bar.
 
 ```
-https://darkpyonix.github.io/researchtree/?repo=lab/moshi&node=experiment/depth-lr-half
+https://darkpyonix.github.io/researchtree/?user=lab&repo=moshi&node=experiment/depth-lr-half
 ```
 
 | Parameter | Meaning |
@@ -75,7 +75,7 @@ https://darkpyonix.github.io/researchtree/?repo=lab/moshi&node=experiment/depth-
 Everything the settings dialog can set has a query of its own.
 
 ```
-https://darkpyonix.github.io/researchtree/?repo=lab/moshi&lang=en&root=trunk&prefix=try/
+https://darkpyonix.github.io/researchtree/?user=lab&repo=moshi&lang=en&root=trunk&prefix=try/
 ```
 
 | Query | Value | Meaning |
@@ -91,5 +91,5 @@ A prefix set in the repo's `.researchtree` still wins: a link never overrides wh
 Whoever you send the link to sees the same screen once they sign in. For a private repo, they also need access to that repo to see anything — without it, they get an access message.
 
 ::: tip Open it straight from the terminal
-If you've installed the Python package, run `researchtree open` in the repo directory. It prints the hosted web address for the current repo (`?repo=…`) and opens it in your browser.
+If you've installed the Python package, run `researchtree open` in the repo directory. It prints the hosted web address for the current repo (`?user=…&repo=…`) and opens it in your browser.
 :::

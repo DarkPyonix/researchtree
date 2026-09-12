@@ -9,7 +9,7 @@
 /researchtree/?user=b-re-w                  아일랜드 (계정 전체)
 /researchtree/?user=b-re-w&repo=moshi       그 아일랜드의 연구 하나
 /researchtree/?user=b-re-w&repo=lab/tts     그 사람이 조직에서 한 연구
-/researchtree/?repo=lab/moshi               아일랜드 없이 연구 하나 (예전 링크)
+/researchtree/?user=lab&repo=moshi         아일랜드 안에서 연구 하나 (repo만으로는 열리지 않는다)
 ```
 
 `user`가 있으면 연구를 열어도 아일랜드 맥락이 주소에 남아서, 어느 지도의 어느 연구인지 알 수 있고

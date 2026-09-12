@@ -15,8 +15,8 @@ describe("readPlace", () => {
     expect(readPlace("?user=b-re-w&repo=DarkPyonix/tts")).toEqual({ user: "b-re-w", repo: "DarkPyonix/tts" });
   });
 
-  it("still reads the links written before islands existed", () => {
-    expect(readPlace("?repo=DarkPyonix/tts")).toEqual({ user: null, repo: "DarkPyonix/tts" });
+  it("a repo without an account opens nothing: every address names whose island it is", () => {
+    expect(readPlace("?repo=DarkPyonix/tts")).toEqual({ user: null, repo: null });
   });
 
   it("a bare name without an account opens nothing", () => {

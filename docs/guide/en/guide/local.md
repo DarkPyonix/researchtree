@@ -26,7 +26,7 @@ You can also run it as a module: `python -m researchtree serve`.
 ```bash
 cd ~/work/moshi-research
 researchtree serve
-# ResearchTree: http://127.0.0.1:7337/?repo=lab/moshi-research
+# ResearchTree: http://127.0.0.1:7337/?user=lab&repo=moshi-research
 # Default repo: lab/moshi-research
 # Press Ctrl+C to stop.
 ```
