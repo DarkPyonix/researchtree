@@ -20,6 +20,9 @@ export interface WorldOptions {
   onOpen(research: IslandResearch): void;
   /** Step through a portal to another land. */
   onLand?(land: IslandLand): void;
+  /** Research this reader cannot open (private, or someone else's): drawn locked, like an area of a
+   * game that has not been unlocked. */
+  locked?(repo: string): boolean;
 }
 
 interface Placed {
@@ -114,18 +117,19 @@ export class World {
 
   private researchTile(research: IslandResearch): HTMLElement {
     const [, name] = research.repo.split("/");
+    const locked = this.options.locked?.(research.repo) ?? false;
     return h(
       "button",
       {
-        class: "world-island",
+        class: `world-island${locked ? " locked" : ""}`,
         type: "button",
         style: `left:${research.at[0] * RESEARCH_STEP}px; top:${research.at[1] * RESEARCH_ROW}px`,
         onclick: () => this.options.onOpen(research),
-        title: research.repo,
+        title: locked ? t("world.lockedTitle", { repo: research.repo }) : research.repo,
       },
-      h("span", { class: "world-island-shape" }),
-      h("span", { class: "world-island-name" }, name ?? research.repo),
-      h("span", { class: "world-island-repo muted small" }, research.repo),
+      h("span", { class: "world-island-shape" }, locked ? h("span", { class: "world-lock" }, "🔒") : null),
+      h("span", { class: "world-island-name" }, locked ? t("world.lockedName") : (name ?? research.repo)),
+      h("span", { class: "world-island-repo muted small" }, locked ? t("world.lockedSub") : research.repo),
     );
   }
 

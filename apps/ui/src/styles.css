@@ -965,3 +965,9 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .world-card { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 4; padding: 14px 18px 16px; }
 .world-user { margin: 2px 0 10px; font: 700 22px/1.2 var(--display); }
 .profile-dialog { max-width: 680px; max-height: min(80vh, 720px); overflow-y: auto; }
+
+/* A research this reader cannot open: fogged over, the way a game shows an area you have not unlocked. */
+.world-island.locked { cursor: help; }
+.world-island.locked .world-island-shape { filter: grayscale(1) brightness(1.06); opacity: 0.55; position: relative; }
+.world-island.locked .world-island-name { color: var(--muted); }
+.world-lock { position: absolute; inset: 0; display: grid; place-items: center; font-size: 22px; filter: none; opacity: 0.85; }

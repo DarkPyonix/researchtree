@@ -6,6 +6,7 @@ import {
   ISLAND_CONFIG_PATH,
   ISLAND_CONFIG_REPO,
   parseIslandMap,
+  islandResearch,
   type IslandMap,
   DEFAULT_SPEC_PATH,
   DEFAULT_TREE_CONFIG,
@@ -42,6 +43,7 @@ import { parseSettings, SETTING_PARAMS, settingParams, type UrlSettings } from "
 import { renderMarkdown } from "./markdown";
 import { statusLabel } from "./theme";
 import { repoBanner, ScrollBanner } from "./scroll-banner";
+import { readPlace, shortRepo } from "./url";
 import { parseViewState, type ViewState } from "./view-state";
 import { loadIntroDocs } from "./panel/intro-docs";
 import { loadProfile, type Profile } from "./panel/profile";
@@ -114,9 +116,12 @@ class App {
   /** Camera from a saved view, waiting for the 3D view to exist. */
   private restoreCamera: number[] | null = null;
   private banner: ScrollBanner | null = null;
-  /** The account map, when the viewer was opened with ?user=. */
-  private world: { user: string; map: IslandMap } | null = null;
+  /** The account map, when the address names one. A null map has not been read from GitHub yet. */
+  private world: { user: string; map: IslandMap | null } | null = null;
   private profile: Profile | null = null;
+  /** Research on the map this reader cannot open. Checked ahead when signed in; otherwise learned
+   * the first time one is opened, so a guest never spends their sixty calls an hour on locked doors. */
+  private locked = new Set<string>();
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
   /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
   private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
@@ -176,11 +181,13 @@ class App {
       );
       return;
     }
-    const user = urlParam("user");
-    if (user && !urlParam("repo")) return this.showWorld(user);
-    const saved = urlParam("repo") ? null : parseViewState(this.host.capabilities.viewState?.load());
+    const place = readPlace(location.search);
+    if (place.user && !place.repo) return this.showWorld(place.user);
+    // An island around the research: opening it keeps the way back to the map.
+    if (place.user) this.world = { user: place.user, map: null };
+    const saved = place.repo ? null : parseViewState(this.host.capabilities.viewState?.load());
     if (saved) this.applyViewState(saved);
-    const repo = urlParam("repo") ?? saved?.repo ?? (await this.host.initialRepo()) ?? this.host.storage.get<string>(LAST_KEY) ?? null;
+    const repo = place.repo ?? saved?.repo ?? (await this.host.initialRepo()) ?? this.host.storage.get<string>(LAST_KEY) ?? null;
     // Guest mode: a link to a public repo opens read-only, without a sign-in first. GitHub allows
     // 60 anonymous calls an hour per address, so the sign-in screen is still one click away.
     if (!this.user) {
@@ -231,7 +238,10 @@ class App {
     if (e instanceof HttpError && (e.status === 404 || e.status === 403)) {
       // A map may hold research this reader cannot see (a private repository, or someone else's).
       // Losing the whole map over one locked island would be the wrong trade, so we go back to it.
-      if (this.world) return this.renderWorld(t("world.locked", { repo }));
+      if (this.world) {
+        this.locked.add(repo);
+        return this.renderWorld(t("world.locked", { repo }));
+      }
       if (!this.user) return this.showLogin(t("guest.needsSignIn", { repo }));
       this.showPicker(t("app.repoNotFound", { repo }));
       return;
@@ -326,6 +336,7 @@ class App {
     this.world = { user, map };
     this.profile = null;
     this.renderWorld();
+    void this.findLocked(user, map);
     // The researcher's own introduction is worth one more call, after the map is on screen.
     void loadProfile(this.gh, user).then((profile) => {
       if (this.world?.user !== user) return;
@@ -334,9 +345,29 @@ class App {
     });
   }
 
+  /**
+   * Which research on the map this reader cannot open. Signed in, every repository is asked about
+   * once, so the locked ones are drawn locked before anyone clicks. A guest is not asked at all:
+   * sixty calls an hour are better spent on the research they can actually read.
+   */
+  private async findLocked(user: string, map: IslandMap): Promise<void> {
+    if (!this.user) return;
+    for (const research of islandResearch(map)) {
+      if (this.locked.has(research.repo)) continue;
+      const info = await this.gh.repoInfo(research.repo).catch(() => null);
+      if (info?.defaultBranch) continue;
+      this.locked.add(research.repo);
+      if (this.world?.user === user && this.tree === null) this.renderWorld();
+    }
+  }
+
   private renderWorld(message?: string): void {
     const world = this.world;
     if (!world) return;
+    // Arriving straight at a research (?user=…&repo=…) means the map itself was never read.
+    if (!world.map) return void this.showWorld(world.user);
+    this.tree = null;
+    this.setUrl({ repo: null, node: null });
     const canvas = h("div", { class: "canvas" });
     const toast = h("div", { class: "toast", role: "status", "aria-live": "polite" });
     const shellEl = h("div", { class: "shell" }, canvas, toast);
@@ -345,6 +376,7 @@ class App {
     const view = new World(canvas, {
       onOpen: (research) => void this.openRepo(research.repo),
       onLand: (land) => view.goTo(land.name),
+      locked: (repo) => this.locked.has(repo),
     });
     view.render(world.map);
     shellEl.append(this.worldCard(world.user));
@@ -959,7 +991,11 @@ class App {
     try {
       const params = new URLSearchParams(location.search);
       for (const k of ["code", "state", ...SETTING_PARAMS]) params.delete(k);
-      if (p.repo) params.set("repo", p.repo);
+      const user = this.world?.user ?? null;
+      if (user) params.set("user", user);
+      else params.delete("user");
+      const repo = shortRepo(user, p.repo);
+      if (repo) params.set("repo", repo);
       else params.delete("repo");
       if (p.node) params.set("node", p.node);
       else params.delete("node");
