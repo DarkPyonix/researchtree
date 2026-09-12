@@ -73,7 +73,7 @@ ResearchTree는 이미 익숙한 몇 가지 규칙으로 이 문제를 풉니다
     <td align="center"><b>눌러 내리기 전환</b>: 카메라가 위에서 내려다보며 섬들이 평평해집니다</td>
   </tr>
   <tr>
-    <td width="50%"><img src="../guide/public/images/readme/ko/flat-tree.png" alt="평면 보기: 점무늬 배경 위에 흙길, 눌린 식물, 버전 돌, 라벨 칩만 남은 모습"></td>
+    <td width="50%"><img src="../guide/public/images/readme/ko/flat-tree.png" alt="평면 보기: 점무늬 배경 위에서 실험과 버전이 라벨 칩과 부모 선으로만 이어진 모습"></td>
     <td width="50%"><img src="../guide/public/images/readme/ko/sign-in.png" alt="로그인 화면"></td>
   </tr>
   <tr>

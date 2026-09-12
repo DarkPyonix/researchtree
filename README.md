@@ -72,7 +72,7 @@ There is no database and no server-side cache: **GitHub is the only data store.*
     <td align="center"><b>Press-down morph</b>: the camera turns top-down and the islands flatten</td>
   </tr>
   <tr>
-    <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/en/flat-tree.png" alt="Flat view: dirt paths, pressed plants, version stones and label chips seen from above on a dotted background"></td>
+    <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/en/flat-tree.png" alt="Flat view: experiments and research versions as label chips joined by their parent lines, seen from above on a dotted background"></td>
     <td width="50%"><img src="https://raw.githubusercontent.com/DarkPyonix/researchtree/main/docs/guide/public/images/readme/en/sign-in.png" alt="Sign-in screen"></td>
   </tr>
   <tr>
