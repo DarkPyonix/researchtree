@@ -1122,11 +1122,11 @@ export class Tree3D implements TreeViewApi {
     if (!scope) this.reefPos = null;
     // Out from the first version along -x, which the camera draws as the diagonal below and to the
     // left of it. It walks until the island is five cells behind it and it is a good way offshore,
-    // so the reef reads as its own landmark in open sea rather than a rock on the beach.
-    const OFFSHORE = 24;
+    // so the islet it stands on reads as its own landmark rather than part of the shore.
+    const OFFSHORE = 34;
     let x = rootPos.x - 3;
     const z = rootPos.z;
-    for (let i = 0; i < 60 && (rootPos.x - x < OFFSHORE || !openWater(x, z, ground, 5)); i++) x -= 1;
+    for (let i = 0; i < 60 && (rootPos.x - x < OFFSHORE || !openWater(x, z, ground, 8)); i++) x -= 1;
     g.position.set(x, SEA_Y, z);
     g.userData.nodeId = scope ? `${scope}\u0000${INTRO_ID}` : INTRO_ID;
     const [rock, rockLight, moss, board, post, sand, grass] = this.nodeMaterials([
@@ -1138,11 +1138,29 @@ export class Tree3D implements TreeViewApi {
       COLORS.sand[0]!,
       COLORS.grass[0]!,
     ]);
-    // An islet of its own, so the rock stands on land like everything else on the map.
-    this.box(g, sand!, 15, 2.6, 13, 0, -1.8, 0);
-    this.box(g, sand!, 12.5, 0.5, 10.5, 0.2, 0.8, 0.2);
-    this.box(g, grass!, 9.5, 0.4, 7.5, 0.4, 1.3, 0.3);
-    const y = 1.7;
+    // An islet of its own, so the rock stands on land like everything else on the map. Overlapping
+    // blocks of different sizes give it the ragged shore the big islands have, rather than a slab.
+    for (const [w, d, x, z] of [
+      [13, 9, 0, 0],
+      [9, 12, 1.5, 0.5],
+      [7, 7, -4, -2.5],
+      [6, 6, 3.5, 3],
+    ] as const) {
+      this.box(g, sand!, w, 2.6, d, x, -1.8, z);
+    }
+    // Sand shows as a rim; the middle of the islet is green, the way the islands are.
+    this.box(g, sand!, 4.5, 0.5, 4.5, -4, 0.8, -2.2);
+    for (const [w, d, x, z] of [
+      [9.5, 5.5, 0.2, -0.4],
+      [5.5, 8, 1.4, 0.8],
+      [3.5, 3.5, -2.6, 1.6],
+    ] as const) {
+      this.box(g, grass!, w, 0.5, d, x, 0.8, z);
+    }
+    // A stone and a bush on the shore, the same small detail the islands carry.
+    this.box(g, rock!, 1.2, 0.8, 1.1, -3.6, 1.3, 1.8);
+    this.box(g, moss!, 1.6, 1.2, 1.4, 3.4, 1.7, -1.6);
+    const y = 1.3;
     // Big enough to read as a landmark from the opening view, not a pebble.
     this.box(g, rock!, 5.4, 2.2, 5, 0, y, 0);
     this.box(g, rockLight!, 4, 1.6, 3.6, 0.3, y + 2.2, 0.2);

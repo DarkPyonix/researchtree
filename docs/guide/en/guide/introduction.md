@@ -72,3 +72,4 @@ Inside a training script, the Python package lets you write metrics into the PR 
 1. [Set up your repo](/guide/repo-setup): create the `research` branch and the first version tag `v1`
 2. [How to record research](/rules/branches): how to use branches and PRs
 3. [Using the viewer](/viewer/island): how to explore the island and the tree
+4. [Your island](/guide/island): put several research repositories on one map as a portfolio

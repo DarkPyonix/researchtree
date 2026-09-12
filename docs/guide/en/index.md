@@ -38,6 +38,11 @@ features:
     details: Spec-driven development (SDD), adapted to research. A spec change is the hypothesis, and adopting or rejecting the experiment decides whether it goes into the spec. Claims in the intent document link to experiments too.
     link: /rules/spec
     linkText: Intent- and spec-driven development
+  - icon: 🗺️
+    title: A research portfolio
+    details: However many repositories your research lives in, one account address shows them all, with your introduction and résumé beside them. Private work stays as a locked island.
+    link: /guide/island
+    linkText: Build your island
   - icon: 🔭
     title: Open science
     details: Failed experiments and abandoned ideas stay in the repository. Make the repository public and the whole research process is public.
