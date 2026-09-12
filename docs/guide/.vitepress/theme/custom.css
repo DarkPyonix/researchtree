@@ -715,8 +715,10 @@ html:not(.dark) .vp-doc .vp-code span { filter: saturate(0.85); }
 .VPNavBarExtra .VPMenu .item.social-links .VPSocialLink { width: 28px; height: 28px; }
 .rt-lang.menu { height: 28px; margin: 0; padding: 0 10px; gap: 5px; font-size: 12px; }
 .rt-lang.menu svg { width: 14px; height: 14px; }
-/* Theme, then language, then the social links: the language group is teleported in last. */
-.VPNavBarExtra .VPMenu { display: flex; flex-direction: column; }
+/* Theme, then language, then the social links: the language group is teleported in last. The menu's
+   own top and bottom padding would sit on top of the rows' own, making the first and last row look
+   taller than the ones between them, so the rows carry all of it. */
+.VPNavBarExtra .VPMenu { display: flex; flex-direction: column; padding: 0 12px; }
 .VPNavBarExtra .VPMenu > .group:has(.social-links) { order: 1; }
 
 /* The hamburger is drawn in the same ink as the icons beside it, not in the darker body colour. */
