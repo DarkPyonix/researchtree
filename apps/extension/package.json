@@ -4,7 +4,7 @@
   "displayName": "ResearchTree",
   "icon": "icon.png",
   "description": "Every branch is an experiment, every PR is its lab note. See your research as a tree of experiment branches and PRs right inside VS Code.",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "license": "Apache-2.0",
   "private": true,
   "repository": {
