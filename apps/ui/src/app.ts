@@ -45,7 +45,7 @@ import { renderMarkdown } from "./markdown";
 import { share } from "./share";
 import { statusLabel } from "./theme";
 import { repoBanner, ScrollBanner } from "./scroll-banner";
-import { readPlace, shortRepo } from "./url";
+import { fullRepo, readPlace, shortRepo } from "./url";
 import { parseViewState, type ViewState } from "./view-state";
 import { loadIntroDocs } from "./panel/intro-docs";
 import { loadProfile, type Profile } from "./panel/profile";
@@ -140,6 +140,8 @@ class App {
   } | null = null;
   private activeDepth: number | null = null;
   private keyHandler: ((e: KeyboardEvent) => void) | null = null;
+  /** Registered once, for the browser's back and forward buttons. */
+  private backListener: (() => void) | null = null;
 
   constructor(
     private readonly host: Host,
@@ -183,6 +185,7 @@ class App {
       );
       return;
     }
+    this.listenForBack();
     const place = readPlace(location.search);
     if (place.user && !place.repo) return this.showWorld(place.user);
     // An island around the research: opening it keeps the way back to the map.
@@ -198,6 +201,27 @@ class App {
     }
     if (!repo) return this.showPicker();
     await this.openRepo(repo);
+  }
+
+  /** Back and forward: whatever the address now says, that is what goes on screen. */
+  private listenForBack(): void {
+    if (this.host.kind === "extension" || this.backListener) return;
+    this.backListener = () => void this.goto(readPlace(location.search));
+    window.addEventListener("popstate", this.backListener);
+  }
+
+  private async goto(place: { user: string | null; repo: string | null }): Promise<void> {
+    if (place.repo) {
+      // Keep the map behind the research, so the way back to the island is still there.
+      this.world = place.user ? (this.world?.user === place.user ? this.world : { user: place.user, map: null }) : null;
+      await this.openRepo(place.repo);
+    } else if (place.user) {
+      await this.showWorld(place.user);
+    } else if (this.user) {
+      this.showPicker();
+    } else {
+      this.showLogin();
+    }
   }
 
   private showLogin(error?: string): void {
@@ -303,6 +327,9 @@ class App {
     this.announceRepo(repo);
     const want = urlParam("node");
     const known = want && (this.tree.nodes.has(want) || this.tree.versions.has(want) || want === this.tree.root);
+    // Arriving at the research is the move that goes into the history; choosing a node inside it is
+    // not, and select() writes the address itself, so the entry has to be made before it runs.
+    this.setUrl({ repo, node: known ? want : null, push: true });
     this.select(known ? want : null, false);
     this.setUrl({ repo, node: this.selected });
   }
@@ -314,7 +341,7 @@ class App {
    */
   private async showWorld(user: string): Promise<void> {
     // The address names the island from the first moment, even while it is still loading or missing.
-    this.setUrl({ user, repo: null, node: null });
+    this.setUrl({ user, repo: null, node: null, push: true });
     this.mount(loadingScreen(t("app.loading")));
     let text: string | null = null;
     try {
@@ -1101,7 +1128,12 @@ class App {
     if (next) this.view?.focusNode(next);
   }
 
-  private setUrl(p: { repo: string | null; node: string | null; user?: string | null }): void {
+  /**
+   * Write the address of what is on screen. `push` marks a real move — another island, another
+   * research — so the browser's back button takes the reader where they came from; everything else
+   * (picking a node, signing out) only rewrites the address of the place they are already in.
+   */
+  private setUrl(p: { repo: string | null; node: string | null; user?: string | null; push?: boolean }): void {
     if (this.host.kind === "extension") return;
     try {
       const params = new URLSearchParams(location.search);
@@ -1121,7 +1153,12 @@ class App {
         for (const [key, value] of Object.entries(settings)) if (value) params.set(key, value);
       }
       const q = params.toString().replace(/=(&|$)/g, "$1");
-      history.replaceState(null, "", location.pathname + (q ? `?${q}` : ""));
+      const url = location.pathname + (q ? `?${q}` : "");
+      // A move to the same place is no move: it replaces, so back does not have to be pressed twice.
+      const was = readPlace(location.search);
+      const moved = was.user !== user || was.repo !== fullRepo(user, repo);
+      if (p.push && moved) history.pushState(null, "", url);
+      else history.replaceState(null, "", url);
     } catch {
       /* Ignore environments where the URL cannot be changed. */
     }
