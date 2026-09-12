@@ -24,15 +24,10 @@ hero:
 
 features:
   - icon: 🌱
-    title: 브랜치 하나 = 실험 하나
-    details: 실험마다 작고 명확한 코드 수정만 담은 브랜치를 만듭니다. 파생 관계가 그대로 트리가 됩니다.
+    title: 브랜치 하나 = 실험 하나, PR 하나 = 실험 일지 하나
+    details: 실험마다 작고 명확한 코드 수정만 담은 브랜치를 만들고, 그 PR 본문 맨 위 YAML 블록에 가설, 변경점, 메트릭을 적습니다. 파생 관계가 그대로 트리가 되고, 머지는 채택, close는 기각입니다.
     link: /rules/branches
-    linkText: 브랜치 규칙
-  - icon: 📓
-    title: PR 하나 = 실험 일지 하나
-    details: PR 본문 맨 위 YAML 블록에 가설, 변경점, 메트릭을 적습니다. 머지는 채택, close는 기각입니다.
-    link: /rules/pull-requests
-    linkText: PR 형식
+    linkText: 연구 기록 규칙
   - icon: 📐
     title: 의도·스펙 기반 개발
     details: 스펙 기반 개발(SDD)을 연구에 맞게 바꿨습니다. 스펙 변경이 곧 가설이고, 실험의 채택·기각이 그 변경을 스펙에 넣을지 정합니다. 의도 문서의 주장까지 실험과 이어집니다.
