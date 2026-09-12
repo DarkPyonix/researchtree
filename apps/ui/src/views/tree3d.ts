@@ -1365,6 +1365,15 @@ export class Tree3D implements TreeViewApi {
     this.visual(id)?.label.focus({ preventScroll: true });
   }
 
+  /**
+   * Sail to one research on a map of several: the camera flies until that island fills the view.
+   * Ids are scoped by repository here, so the island is everything the repository put on the sea.
+   */
+  sailTo(repo: string): void {
+    const ids = [...this.visuals.keys()].filter((id) => id.startsWith(`${repo} `));
+    if (ids.length) this.fit(ids, true);
+  }
+
   get element(): Element {
     return this.wrap;
   }

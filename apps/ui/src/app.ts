@@ -52,6 +52,7 @@ import { loadIntroDocs } from "./panel/intro-docs";
 import { loadProfile, type Profile } from "./panel/profile";
 import { Kanban } from "./views/kanban";
 import { World } from "./views/world";
+import { worldMapDialog } from "./views/worldmap";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
 import { INTRO_ID, Tree3D, type Heading, type WorldEntry } from "./views/tree3d";
 import type { ViewFilter, ViewOptions } from "./views/view";
@@ -145,6 +146,14 @@ class App {
   private backListener: (() => void) | null = null;
   /** Watches the repo card and the panel, the two edges the board is fitted between. */
   private chromeWatch: ResizeObserver | null = null;
+  /** The travel map opens by itself once per visit to an account, not on every redraw. */
+  private mapShown = false;
+  private timers: number[] = [];
+
+  /** True while the screen is showing an account's map of islands rather than one research. */
+  private get isWorld(): boolean {
+    return this.world !== null && this.tree === null;
+  }
 
   constructor(
     private readonly host: Host,
@@ -160,6 +169,9 @@ class App {
   private mount(el: HTMLElement): void {
     if (this.keyHandler) document.removeEventListener("keydown", this.keyHandler);
     this.keyHandler = null;
+    for (const timer of this.timers) clearTimeout(timer);
+    this.timers = [];
+    this.root.querySelector(".map-overlay")?.remove();
     this.view?.destroy();
     this.view = null;
     this.kanban?.destroy();
@@ -345,6 +357,7 @@ class App {
    * The map lives in the README of the account's `.researchisland` repository.
    */
   private async showWorld(user: string): Promise<void> {
+    if (this.world?.user !== user) this.mapShown = false;
     // The address names the island from the first moment, even while it is still loading or missing.
     this.setUrl({ user, repo: null, node: null, push: true });
     this.mount(loadingScreen(t("app.loading")));
@@ -426,6 +439,11 @@ class App {
     }
   }
 
+  /**
+   * The account's map, drawn as the viewer proper: the same toolbar, cards and panel as a research,
+   * with every island of the account on one sea. The map dialog is only the way to travel between
+   * them quickly; the islands themselves are always there to drag to (docs/ISLAND.md).
+   */
   private renderWorld(message?: string): void {
     const world = this.world;
     if (!world) return;
@@ -433,38 +451,34 @@ class App {
     if (!world.map) return void this.showWorld(world.user);
     this.tree = null;
     this.setUrl({ repo: null, node: null });
-    const canvas = h("div", { class: "canvas is-3d" });
-    const hint = h("div", { class: "hint" }, t("hint.world"));
-    const toast = h("div", { class: "toast", role: "status", "aria-live": "polite" });
-    const shellEl = h("div", { class: "shell" }, canvas, hint, toast);
-    this.mount(shellEl);
-    this.banner = new ScrollBanner(shellEl);
-    shellEl.append(this.worldCard(world.user));
-    if (message) {
-      toast.textContent = message;
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 4200);
-    }
-    this.banner.show({ eyebrow: t("world.land"), title: t("world.title", { user: world.user }), kind: "island" });
+    this.renderMain();
+    if (message) this.toast(message);
+    this.banner?.show({ eyebrow: t("world.land"), title: t("world.title", { user: world.user }), kind: "island" });
     if (!islandResearch(world.map).length) {
-      canvas.append(h("p", { class: "world-empty muted" }, t("world.empty")));
+      this.stage?.canvas.append(h("p", { class: "world-empty muted" }, t("world.empty")));
       return;
     }
-
-    // The map is the viewer's own islands, side by side on one sea: drag or scroll to sail between.
-    this.view?.destroy();
-    this.view = new Tree3D(
-      canvas,
-      {
-        onSelect: (id) => this.onWorldSelect(id),
-        insets: () => ({ top: 150, left: 16, right: 16, bottom: 96 }),
-        onTime: () => {},
-      },
-      false,
-      "island",
-    );
-    paintSystemBars(true);
     void this.loadWorldTrees(world.map);
+    // On arrival the map opens by itself, once: the reader sees what this account has before sailing.
+    if (!this.mapShown) {
+      this.mapShown = true;
+      this.timers.push(window.setTimeout(() => this.openMap(), 900));
+    }
+  }
+
+  /** The travel map over the sea. Closing it leaves the islands exactly where they were. */
+  private openMap(): void {
+    const world = this.world;
+    if (!world?.map || !this.shell) return;
+    const overlay = worldMapDialog({
+      map: world.map,
+      user: world.user,
+      locked: this.locked,
+      here: this.tree?.repo ?? null,
+      onSail: (repo) => this.view?.sailTo(repo),
+      onOpen: (repo) => void this.openRepo(repo),
+    });
+    this.root.append(overlay);
   }
 
   /** Sail into whatever was clicked: any plant or stone opens the research it grows on. */
@@ -534,6 +548,26 @@ class App {
           : null,
       ),
     );
+  }
+
+  /** Whose map this is, in the place the repository card would be. */
+  private renderWorldCard(brand: HTMLElement): void {
+    const user = this.world!.user;
+    const profile = this.profile;
+    brand.classList.add("world-card");
+    append(brand, [
+      h("div", { class: "eyebrow" }, t("world.land")),
+      h("h1", { class: "world-user" }, user),
+      h(
+        "div",
+        { class: "row" },
+        h("button", { class: "btn small", type: "button", onclick: () => this.openMap() }, icon("island", 13), ` ${t("world.map")}`),
+        profile?.text ? h("button", { class: "btn small", type: "button", onclick: () => this.openProfile(user) }, t("profile.open")) : null,
+        profile?.resumeUrl
+          ? h("button", { class: "btn small", type: "button", onclick: () => this.host.openExternal(profile.resumeUrl!) }, icon("external", 13), ` ${t("profile.resume")}`)
+          : null,
+      ),
+    ]);
   }
 
   private openProfile(user: string): void {
@@ -858,6 +892,17 @@ class App {
       if (userEl.contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
     });
 
+    if (this.isWorld) {
+      return h(
+        "div",
+        { class: "toolbar" },
+        btn(t("world.map"), "island", () => this.openMap()),
+        btn(t("toolbar.refresh"), "refresh", () => void this.showWorld(this.world!.user)),
+        btn(t("toolbar.fit"), "fit", () => this.view?.fit()),
+        userEl,
+      );
+    }
+
     return h(
       "div",
       { class: "toolbar" },
@@ -880,7 +925,9 @@ class App {
   /** (Re)create the tree view for the current mode on the existing stage. */
   private createView(): void {
     const stage = this.stage;
-    if (!stage || !this.tree) return;
+    if (!stage) return;
+    if (this.isWorld) return this.createWorldView(stage);
+    if (!this.tree) return;
     this.view?.destroy();
     this.view = null;
     this.kanban?.destroy();
@@ -908,6 +955,23 @@ class App {
       this.view.restoreCamera(this.restoreCamera);
       this.restoreCamera = null;
     }
+  }
+
+  /** The map of islands: one scene, every research the account shows, and no tree to walk yet. */
+  private createWorldView(stage: { canvas: HTMLElement; hint: HTMLElement }): void {
+    this.view?.destroy();
+    this.kanban?.destroy();
+    this.kanban = null;
+    stage.canvas.classList.remove("is-board");
+    stage.canvas.classList.add("is-3d");
+    stage.hint.textContent = t("hint.world");
+    this.view = new Tree3D(
+      stage.canvas,
+      { onSelect: (id) => this.onWorldSelect(id), insets: () => ({ top: 150, left: 16, right: 16, bottom: 96 }), onTime: () => {} },
+      false,
+      "island",
+    );
+    paintSystemBars(true);
   }
 
   private boardButton(btn: (label: string, iconName: Parameters<typeof icon>[0], onClick: () => void, title?: string) => HTMLElement): HTMLElement {
@@ -971,8 +1035,9 @@ class App {
 
   private renderBrand(): void {
     const brand = this.shell!.brand;
-    const tree = this.tree!;
     clear(brand);
+    if (this.isWorld) return this.renderWorldCard(brand);
+    const tree = this.tree!;
     const [, name] = tree.repo.split("/");
     const nodes = [...tree.nodes.values()];
     const count = (s: Status) => nodes.filter((n) => n.status === s).length;
@@ -1039,6 +1104,12 @@ class App {
   }
 
   private renderGenerations(): void {
+    if (this.isWorld) {
+      clear(this.shell!.gens);
+      this.shell!.gens.hidden = true;
+      return;
+    }
+    this.shell!.gens.hidden = false;
     const gens = this.shell!.gens;
     const tree = this.tree!;
     clear(gens);

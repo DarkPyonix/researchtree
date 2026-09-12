@@ -651,6 +651,53 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 }
 .dialog { width: min(460px, 100%); padding: 26px 26px 22px; }
 .field { display: grid; gap: 6px; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+
+/*
+ * The travel map (views/worldmap.ts): a chart of the account's research, drawn on paper over the sea
+ * it sails on. It is a tool, not the world — the islands stay behind it, so the sheet keeps the
+ * viewer's own card look rather than pretending to be a game screen.
+ */
+.map-dialog { width: min(760px, 100%); max-height: min(84vh, 720px); overflow: auto; padding: 20px 20px 16px; }
+.map-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.map-title { margin: 4px 0 0; font: 700 22px/1.25 var(--display); }
+.map-board {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  /* Open water with a paler shallows around each land, the way the sea reads in the 3D view. */
+  background: radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--sea, #a5dddb) 70%, var(--card)), color-mix(in srgb, var(--sea, #a5dddb) 92%, #4a8f95));
+}
+.map-land {
+  padding: 12px 12px 10px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 1px solid var(--line);
+}
+.map-land-name { margin: 0 0 8px; font: 700 13px/1.2 var(--font); letter-spacing: 0.01em; color: var(--ink-soft); }
+.map-places { display: flex; flex-wrap: wrap; gap: 6px; }
+.map-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  font: 600 12.5px var(--font);
+  color: var(--ink);
+  cursor: pointer;
+}
+.map-place:hover { border-color: var(--accent-2); color: var(--accent-2); }
+.map-place.here { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+.map-place.locked { color: var(--muted); border-style: dashed; background: var(--card-sunken); }
+.map-pin { display: inline-grid; place-items: center; color: var(--st-adopted); }
+.map-place.locked .map-pin { color: var(--muted); }
+.map-hint { margin: 10px 2px 0; }
+@media (max-width: 640px) {
+  .map-board { grid-template-columns: 1fr !important; }
+}
 .field .input { font: 13px var(--mono); }
 .field select.input { font: inherit; font-weight: 500; color: var(--ink); }
 
