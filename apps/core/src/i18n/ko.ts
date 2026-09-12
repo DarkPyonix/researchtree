@@ -50,6 +50,7 @@ export const ko = {
   "hint.3d": "드래그 이동 · 오른쪽 드래그 회전 · 휠 확대 · 방향키로 노드 이동 · Esc 닫기",
   "hint.2d": "드래그 이동 · 휠 확대 · 방향키로 노드 이동 · Esc 닫기",
   "menu.openRepoOnGitHub": "이 레포 GitHub에서 열기",
+  "menu.myIsland": "내 아일랜드 열기",
   "menu.openOtherRepo": "다른 레포 열기",
   "menu.guide": "사용 가이드",
   "menu.project": "ResearchTree 저장소",
