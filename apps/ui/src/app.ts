@@ -36,6 +36,7 @@ import {
 import * as THREE from "three";
 import { followColorScheme } from "./colorscheme";
 import { paintSystemBars } from "./systembars";
+import { avatar } from "./avatar";
 import { append, clear, h, icon } from "./dom";
 import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
@@ -52,7 +53,7 @@ import { loadProfile, type Profile } from "./panel/profile";
 import { Kanban } from "./views/kanban";
 import { World } from "./views/world";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
-import { INTRO_ID, Tree3D, type Heading } from "./views/tree3d";
+import { INTRO_ID, Tree3D, type Heading, type WorldEntry } from "./views/tree3d";
 import type { ViewFilter, ViewOptions } from "./views/view";
 
 const RECENT_KEY = "recentRepos";
@@ -477,7 +478,7 @@ class App {
    * first island is on screen while the rest are still loading.
    */
   private async loadWorldTrees(map: IslandMap): Promise<void> {
-    const entries: { tree: ResearchTree; filter: ViewFilter; offset: THREE.Vector3 }[] = [];
+    const entries: WorldEntry[] = [];
     const research = islandResearch(map);
     const spacing = 150;
     for (const [i, item] of research.entries()) {
@@ -491,7 +492,10 @@ class App {
         ]);
         tree = buildTree(prs, item.repo, config, tags, new Map());
       } catch {
+        // Private, or someone else's: the island still belongs on the map, drawn as locked.
         this.locked.add(item.repo);
+        entries.push({ locked: item.repo, offset: at });
+        this.view?.renderWorld(entries);
         continue;
       }
       entries.push({ tree, filter: { hidden: new Set(), metrics: new Map() }, offset: at });
@@ -828,7 +832,7 @@ class App {
           "aria-haspopup": "menu",
           onclick: () => (hovers() ? this.openIsland(login) : userEl.classList.toggle("open")),
         },
-        this.user?.avatar_url ? h("img", { class: "avatar", src: this.user.avatar_url, alt: "" }) : null,
+        this.user?.avatar_url ? avatar(this.user.avatar_url, 22) : null,
         h("span", { class: "btn-label" }, `@${login}`),
       ),
       h(
