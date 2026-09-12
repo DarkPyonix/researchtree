@@ -2,7 +2,7 @@
 
 **Effective date: September 11, 2026** · [한국어](#이용약관)
 
-These terms apply to ResearchTree, the open-source tool published by DarkPyonix: the hosted web viewer at `https://darkpyonix.github.io/researchtree/`, the VS Code extension, the Python package `researchtree`, and the authentication proxy at `https://researchtree.thisisthepy.workers.dev`. By using ResearchTree you agree to these terms.
+These terms apply to ResearchTree, the open-source tool published by DarkPyonix: the hosted web viewer at `https://darkpyonix.dev/researchtree/`, the VS Code extension, the Python package `researchtree`, and the authentication proxy at `https://researchtree.thisisthepy.workers.dev`. By using ResearchTree you agree to these terms.
 
 ## License
 
@@ -42,7 +42,7 @@ We may update these terms; the effective date above shows the latest version, an
 
 **시행일: 2026년 9월 11일**
 
-이 약관은 DarkPyonix가 공개하는 오픈소스 도구 ResearchTree에 적용돼요. 중앙 웹 뷰어(`https://darkpyonix.github.io/researchtree/`), VS Code 확장, Python 패키지 `researchtree`, 인증 프록시(`https://researchtree.thisisthepy.workers.dev`)가 대상이에요. ResearchTree를 쓰면 이 약관에 동의한 것으로 봐요.
+이 약관은 DarkPyonix가 공개하는 오픈소스 도구 ResearchTree에 적용돼요. 중앙 웹 뷰어(`https://darkpyonix.dev/researchtree/`), VS Code 확장, Python 패키지 `researchtree`, 인증 프록시(`https://researchtree.thisisthepy.workers.dev`)가 대상이에요. ResearchTree를 쓰면 이 약관에 동의한 것으로 봐요.
 
 ### 라이선스
 

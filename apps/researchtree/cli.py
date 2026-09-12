@@ -14,7 +14,7 @@ from . import __version__, git
 from .github import auth, tokens
 from .i18n import t
 
-WEB_VIEWER = "https://darkpyonix.github.io/researchtree/"
+WEB_VIEWER = "https://darkpyonix.dev/researchtree/"
 DEFAULT_PORT = 7337
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 

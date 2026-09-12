@@ -3,7 +3,7 @@
 별도 설치 없이 웹 브라우저에서 바로 뷰어를 여는 가장 간단한 방법이에요.
 
 ```
-https://darkpyonix.github.io/researchtree/
+https://darkpyonix.dev/researchtree/
 ```
 
 ## 로그인
@@ -61,7 +61,7 @@ https://darkpyonix.github.io/researchtree/
 현재 보고 있는 레포와 선택한 노드가 주소창 URL에 그대로 반영돼요.
 
 ```
-https://darkpyonix.github.io/researchtree/?user=lab&repo=moshi&node=experiment/depth-lr-half
+https://darkpyonix.dev/researchtree/?user=lab&repo=moshi&node=experiment/depth-lr-half
 ```
 
 | 파라미터 | 뜻 |
@@ -75,7 +75,7 @@ https://darkpyonix.github.io/researchtree/?user=lab&repo=moshi&node=experiment/d
 설정 창에서 고를 수 있는 값은 모두 쿼리로도 지정할 수 있어요.
 
 ```
-https://darkpyonix.github.io/researchtree/?user=lab&repo=moshi&lang=en&root=trunk&prefix=try/
+https://darkpyonix.dev/researchtree/?user=lab&repo=moshi&lang=en&root=trunk&prefix=try/
 ```
 
 | 쿼리 | 값 | 뜻 |

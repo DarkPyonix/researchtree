@@ -19,7 +19,7 @@ describe("PowerPoint add-in manifest", () => {
 
   it("loads its pages over HTTPS from the published site", () => {
     const source = /<SourceLocation DefaultValue="([^"]+)"/.exec(manifest)?.[1];
-    expect(source).toBe("https://darkpyonix.github.io/researchtree/office.html");
+    expect(source).toBe("https://darkpyonix.dev/researchtree/office.html");
     // Everything the add-in actually loads or navigates to (xmlns declarations are not addresses).
     const loaded = [...manifest.matchAll(/(?:DefaultValue="|<AppDomain>)(https?:\/\/[^"<]+)/g)].map((m) => m[1]!);
     expect(loaded.length).toBeGreaterThan(3);

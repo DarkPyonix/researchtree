@@ -139,7 +139,7 @@ export interface Host {
 
 ### 5.1 web (중앙 웹)
 
-OAuth App은 DarkPyonix 조직 소유다. 콜백 URL은 `https://darkpyonix.github.io/researchtree/`이다.
+OAuth App은 DarkPyonix 조직 소유다. 콜백 URL은 `https://darkpyonix.dev/researchtree/`이다.
 
 1. 로그인 버튼을 누르면 무작위 `state`를 만들어 `sessionStorage`에 저장한다. 그다음 `github.com/login/oauth/authorize?client_id=…&scope=repo&state=…`로 이동한다. 이때 돌아올 화면(레포, 노드)도 함께 저장한다.
 2. 콜백으로 돌아오면 `state`를 검증하고 `code`를 꺼낸다. 그리고 주소창에서 `code`를 즉시 지운다(`history.replaceState`).

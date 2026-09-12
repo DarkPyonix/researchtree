@@ -3,7 +3,7 @@
 ## P-1. 준비
 
 - [ ] 레포를 `DarkPyonix/researchtree`로 두고 GitHub Pages 켜기
-- [ ] DarkPyonix 조직으로 OAuth App 등록 (운영용 + 개발용). 콜백은 `https://darkpyonix.github.io/researchtree/`, Device Flow 활성화
+- [ ] DarkPyonix 조직으로 OAuth App 등록 (운영용 + 개발용). 콜백은 `https://darkpyonix.dev/researchtree/`, Device Flow 활성화
 - [ ] thisisthepy Cloudflare 계정에서 Worker `researchtree` 배포 → `https://researchtree.thisisthepy.workers.dev`
 - [ ] VS Code Marketplace 퍼블리셔 `darkpyonix` 등록, Open VSX 네임스페이스 확보
 - [ ] 연구 레포에 `research` 브랜치 만들기, "Automatically delete head branches" 끄기

@@ -14,7 +14,7 @@ hero:
       link: /guide/introduction
     - theme: alt
       text: See the demo
-      link: "https://darkpyonix.github.io/researchtree/?user=DarkPyonix&repo=researchtree-demo"
+      link: "https://darkpyonix.dev/researchtree/?user=DarkPyonix&repo=researchtree-demo"
     - theme: alt
       text: Research rules
       link: /rules/branches
@@ -51,7 +51,7 @@ features:
 ---
 
 ::: tip Start now
-The [hosted web viewer](https://darkpyonix.github.io/researchtree/) works right away with a GitHub sign-in. Install the Python package with `pip install researchtree`, and the VS Code extension from the [Marketplace](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree). See [Getting started](/guide/introduction) for details. To look before you read, open the [demo research](https://darkpyonix.github.io/researchtree/?user=DarkPyonix&repo=researchtree-demo) — no sign-in needed.
+The [hosted web viewer](https://darkpyonix.dev/researchtree/) works right away with a GitHub sign-in. Install the Python package with `pip install researchtree`, and the VS Code extension from the [Marketplace](https://marketplace.visualstudio.com/items?itemName=darkpyonix.researchtree). See [Getting started](/guide/introduction) for details. To look before you read, open the [demo research](https://darkpyonix.dev/researchtree/?user=DarkPyonix&repo=researchtree-demo) — no sign-in needed.
 :::
 
 <div class="rt-showcase">

@@ -62,7 +62,7 @@ const metricsKey = (repo: string) => `islandMetrics:${repo}`;
 const BOARD_KEY = "board";
 const MODE_KEY = "viewMode";
 const BRAND_KEY = "brandCollapsed";
-const GUIDE_URL = "https://darkpyonix.github.io/researchtree/guide/";
+const GUIDE_URL = "https://darkpyonix.dev/researchtree/guide/";
 const PROJECT_URL = "https://github.com/DarkPyonix/researchtree";
 
 /**

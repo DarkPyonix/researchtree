@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 import { LANG_KEY, REPO, themeText } from "./i18n";
 import { ko } from "./i18n/ko";
 
-const SITE = "https://darkpyonix.github.io/researchtree/guide/";
+const SITE = "https://darkpyonix.dev/researchtree/guide/";
 
 // Before the first paint: when the reader picked English (or the browser is not Korean), hide the page
 // until the theme has swapped in the English text, so the Korean prerender never flashes. The theme

@@ -4,7 +4,7 @@ One research grows into one island. The island map puts **all of them on one sea
 address shows everything you have worked on.
 
 ```
-https://darkpyonix.github.io/researchtree/?user=b-re-w
+https://darkpyonix.dev/researchtree/?user=b-re-w
 ```
 
 ::: info In progress

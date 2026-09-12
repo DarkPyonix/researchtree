@@ -2,7 +2,7 @@
 
 **Effective date: September 11, 2026**
 
-These terms apply to ResearchTree, the open-source tool published by DarkPyonix. They cover the central web viewer (`https://darkpyonix.github.io/researchtree/`), the VS Code extension, the Python package `researchtree`, and the authentication proxy (`https://researchtree.thisisthepy.workers.dev`). By using ResearchTree, you are considered to have agreed to these terms.
+These terms apply to ResearchTree, the open-source tool published by DarkPyonix. They cover the central web viewer (`https://darkpyonix.dev/researchtree/`), the VS Code extension, the Python package `researchtree`, and the authentication proxy (`https://researchtree.thisisthepy.workers.dev`). By using ResearchTree, you are considered to have agreed to these terms.
 
 ## License
 

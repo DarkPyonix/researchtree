@@ -3,7 +3,7 @@
 The simplest way to open the viewer: nothing to install, just a web browser.
 
 ```
-https://darkpyonix.github.io/researchtree/
+https://darkpyonix.dev/researchtree/
 ```
 
 ## Signing in
@@ -61,7 +61,7 @@ Once you're signed in, you get the "Which research do you want to see?" screen.
 The repo you're looking at and the node you've selected are reflected in the address bar.
 
 ```
-https://darkpyonix.github.io/researchtree/?user=lab&repo=moshi&node=experiment/depth-lr-half
+https://darkpyonix.dev/researchtree/?user=lab&repo=moshi&node=experiment/depth-lr-half
 ```
 
 | Parameter | Meaning |
@@ -75,7 +75,7 @@ https://darkpyonix.github.io/researchtree/?user=lab&repo=moshi&node=experiment/d
 Everything the settings dialog can set has a query of its own.
 
 ```
-https://darkpyonix.github.io/researchtree/?user=lab&repo=moshi&lang=en&root=trunk&prefix=try/
+https://darkpyonix.dev/researchtree/?user=lab&repo=moshi&lang=en&root=trunk&prefix=try/
 ```
 
 | Query | Value | Meaning |

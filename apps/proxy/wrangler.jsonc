@@ -7,7 +7,7 @@
   "vars": {
     // Public value. Fill in after registering the OAuth App.
     "GITHUB_CLIENT_ID": "Ov23liWqlCFuKF2A3ZbE",
-    "ALLOWED_ORIGINS": "https://darkpyonix.github.io,http://localhost:5173"
+    "ALLOWED_ORIGINS": "https://darkpyonix.dev,https://darkpyonix.github.io,http://localhost:5173"
   }
   // Register GITHUB_CLIENT_SECRET with `npx wrangler secret put GITHUB_CLIENT_SECRET`.
   // For local development (`wrangler dev`) put it in .dev.vars (never commit it).

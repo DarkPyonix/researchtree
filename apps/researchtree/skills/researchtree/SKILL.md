@@ -12,7 +12,7 @@ ResearchTree keeps a research project's full experiment history in Git and GitHu
 - **Branching = the tree.** An experiment branched from another experiment is its child.
 - **PR state = the verdict.** Open means running, merged means adopted, closed without merging means rejected.
 
-The viewer (https://darkpyonix.github.io/researchtree/, the VS Code extension `darkpyonix.researchtree`, or `researchtree serve`) draws these PRs as a tree. The `researchtree` Python package lets training scripts write into the PR and lets you (the agent) read the whole tree back as typed Python objects.
+The viewer (https://darkpyonix.dev/researchtree/, the VS Code extension `darkpyonix.researchtree`, or `researchtree serve`) draws these PRs as a tree. The `researchtree` Python package lets training scripts write into the PR and lets you (the agent) read the whole tree back as typed Python objects.
 
 Follow the conventions below exactly. The viewer and the tools depend on them, and a wrong base branch or a broken YAML block puts an experiment in the wrong place or hides its data.
 
@@ -367,4 +367,4 @@ opens one research on it (`researchtree open` prints the right link for the curr
 | Show an account's research | `researchtree island show`, `researchtree island add owner/name` |
 | Update this skill | `researchtree skill install` |
 
-Guide: https://darkpyonix.github.io/researchtree/guide/
+Guide: https://darkpyonix.dev/researchtree/guide/

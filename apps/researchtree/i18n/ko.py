@@ -102,7 +102,7 @@ KO = {
     "island.needRepo": "레포를 알 수 없어요. owner/name으로 지정하세요.",
     "island.noSettings": "{repo} 레포가 없어요. `researchtree island init`으로 만들 수 있어요.",
     "island.alreadySet": "{repo}는 이미 있어요.",
-    "island.created": "{repo}를 만들었어요. 이제 `researchtree island add`로 연구를 올리세요.\n  https://darkpyonix.github.io/researchtree/?user={user}",
+    "island.created": "{repo}를 만들었어요. 이제 `researchtree island add`로 연구를 올리세요.\n  https://darkpyonix.dev/researchtree/?user={user}",
     "island.land": "{name}  [{x}, {y}]",
     "island.empty": "지도에 올린 연구가 없어요.",
     "island.warning": "경고: {text}",

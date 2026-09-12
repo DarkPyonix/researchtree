@@ -21,8 +21,8 @@
   <Description DefaultValue="Show your research as a living tree of Git branches and pull requests, right on the slide.">
     <Override Locale="ko-KR" Value="Git 브랜치와 PR로 자란 연구 트리를 슬라이드 위에서 그대로 보여줍니다." />
   </Description>
-  <IconUrl DefaultValue="https://darkpyonix.github.io/researchtree/office/icon-64.png" />
-  <HighResolutionIconUrl DefaultValue="https://darkpyonix.github.io/researchtree/office/icon-128.png" />
+  <IconUrl DefaultValue="https://darkpyonix.dev/researchtree/office/icon-64.png" />
+  <HighResolutionIconUrl DefaultValue="https://darkpyonix.dev/researchtree/office/icon-128.png" />
   <SupportUrl DefaultValue="https://github.com/DarkPyonix/researchtree/issues" />
 
   <!-- Everything the add-in talks to: its own pages, GitHub sign-in, and the token exchange proxy. -->
@@ -36,7 +36,7 @@
   </Hosts>
 
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://darkpyonix.github.io/researchtree/office.html" />
+    <SourceLocation DefaultValue="https://darkpyonix.dev/researchtree/office.html" />
     <RequestedWidth>720</RequestedWidth>
     <RequestedHeight>460</RequestedHeight>
   </DefaultSettings>

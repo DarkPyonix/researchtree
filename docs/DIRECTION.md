@@ -55,7 +55,7 @@
 
 **중앙 웹**
 
-- **DarkPyonix 조직**이 GitHub Pages로 호스팅한다. 주소는 `https://darkpyonix.github.io/researchtree/`이고, 나중에 커스텀 도메인을 붙일 수 있다.
+- **DarkPyonix 조직**이 GitHub Pages로 호스팅한다. 주소는 `https://darkpyonix.dev/researchtree/`이고, 나중에 커스텀 도메인을 붙일 수 있다.
 - 사용자는 접속해서 로그인한 뒤 레포를 고른다. 주소에 레포가 드러나서(`?repo=owner/name`) 링크로 공유할 수 있다.
 - 사이트에는 코드만 있고 실험 데이터는 없다. 데이터는 매번 보는 사람의 GitHub 권한으로 불러온다.
 
