@@ -121,7 +121,7 @@ class Source:
 
     # files at a git ref (intent / spec documents) --------------------------------------------------
     def default_branch(self) -> str | None:
-        """The repository's own default branch, where `.researchtree.yml` lives."""
+        """The repository's own default branch, where `.researchtree` lives."""
         key = ("repo", ())
         if key not in self._cache:
             try:

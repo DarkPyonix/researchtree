@@ -238,7 +238,7 @@ export class GitHubClient {
 
   /**
    * What the repository says about itself: its one-line description and its default branch, which is
-   * where `.researchtree.yml` lives. Never throws: the viewer works without either.
+   * where `.researchtree` lives. Never throws: the viewer works without either.
    */
   async repoInfo(repo: string): Promise<{ description: string | null; defaultBranch: string | null }> {
     try {

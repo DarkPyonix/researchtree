@@ -14,7 +14,10 @@ from ruamel.yaml.error import YAMLError
 
 from ..i18n import t
 
-REPO_CONFIG_PATH = ".researchtree.yml"
+REPO_CONFIG_PATH = ".researchtree"
+# What the file used to be called; repositories that still use it are read the same way.
+REPO_CONFIG_PATH_OLD = ".researchtree.yml"
+REPO_CONFIG_PATHS = (REPO_CONFIG_PATH, REPO_CONFIG_PATH_OLD)
 DEFAULT_SPEC_PATH = "SPEC.md"
 DEFAULT_INTENT_PATH = "INTENT.md"
 SECTION_LINE_BUDGET = 40
@@ -339,7 +342,7 @@ def parse_claims(text: str) -> dict[str, str]:
 
 
 def parse_repo_config(text: str) -> tuple[dict[str, str], list[dict[str, str]]]:
-    """Parse `.researchtree.yml`. Unknown keys are reported but otherwise ignored; bad values are dropped."""
+    """Parse `.researchtree`. Unknown keys are reported but otherwise ignored; bad values are dropped."""
     config: dict[str, str] = {}
     warnings: list[dict[str, str]] = []
     try:

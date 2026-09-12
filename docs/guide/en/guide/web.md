@@ -86,7 +86,7 @@ https://darkpyonix.github.io/researchtree/?repo=lab/moshi&lang=en&root=trunk&pre
 
 Any setting that is not at its default shows up in the address bar on its own, so you can copy the address and the other person opens it the same way. Settings that arrive in a link are saved in that browser, and the settings dialog can change them at any time. Invalid values are ignored.
 
-A prefix set in the repo's `.researchtree.yml` still wins: a link never overrides what the team agreed on.
+A prefix set in the repo's `.researchtree` still wins: a link never overrides what the team agreed on.
 
 Whoever you send the link to sees the same screen once they sign in. For a private repo, they also need access to that repo to see anything — without it, they get an access message.
 

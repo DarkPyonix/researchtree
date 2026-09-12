@@ -245,7 +245,7 @@ export function repoPicker(opts: {
  */
 export function settingsDialog(opts: {
   repo: string;
-  /** Lines about the repo's `.researchtree.yml`: the branches it sets, and anything it got wrong. */
+  /** Lines about the repo's `.researchtree`: the branches it sets, and anything it got wrong. */
   notes?: string[];
   locale: LocalePreference;
   /** Where the automatic language comes from, e.g. "browser language". */

@@ -48,9 +48,9 @@ An experiment that only tunes values doesn't touch the spec at step 4. Writing `
 | Versioning of the spec | A branch or a release | A spec fixed at each `research/vN` tag |
 | Link to the purpose | Optional | Linked through the intent document's claims and the PR's `claims` |
 
-## File locations: `.researchtree.yml`
+## File locations: `.researchtree`
 
-The default paths are `SPEC.md` and `INTENT.md`. If your repo uses different names, put a `.researchtree.yml` at the top of the root branch (`research`) and write the paths there. This file is shared configuration for the whole team.
+The default paths are `SPEC.md` and `INTENT.md`. If your repo uses different names, put a `.researchtree` at the top of the root branch (`research`) and write the paths there. This file is shared configuration for the whole team.
 
 ```yaml
 spec: docs/PHASE.md      # spec document (default SPEC.md)
@@ -60,7 +60,7 @@ prefix: experiment/      # experiment branch prefix (default experiment/)
 
 - The viewer, the CLI, the Python API, and the agent skill all read this file.
 - `root` and `prefix` are decided by this file; the viewer has no branch settings of its own. In Python, `rt.load(root=…, prefix=…)` reads one repository differently just this once.
-- Put this file on the repository's default branch (usually `main`). It is not inside the root branch, so it can name the root branch with `root`. A file left on the root branch is still read.
+- The file is called `.researchtree`; the older name `.researchtree.yml` is still read. Put it on the repository's default branch (usually `main`). It is not inside the root branch, so it can name the root branch with `root`. A file left on the root branch is still read.
 - Unknown keys and invalid values are ignored, and the viewer's settings window shows you what it ignored.
 
 ## How to write a spec

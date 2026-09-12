@@ -48,9 +48,9 @@ ResearchTree는 이 방식을 연구에 맞게 바꿔요. 일반적인 스펙 �
 | 스펙의 버전 | 브랜치나 릴리스 | `research/vN` 태그마다 확정된 스펙 |
 | 목적과의 연결 | 선택 사항 | 의도 문서의 주장과 PR의 `claims`로 연결 |
 
-## 파일 위치: `.researchtree.yml`
+## 파일 위치: `.researchtree`
 
-기본 경로는 `SPEC.md`와 `INTENT.md`예요. 레포가 다른 이름을 쓰면, 루트 브랜치(`research`)의 맨 위에 `.researchtree.yml`을 두고 경로를 적어요. 이 파일은 팀 전체가 같이 쓰는 설정이에요.
+기본 경로는 `SPEC.md`와 `INTENT.md`예요. 레포가 다른 이름을 쓰면, 루트 브랜치(`research`)의 맨 위에 `.researchtree`을 두고 경로를 적어요. 이 파일은 팀 전체가 같이 쓰는 설정이에요.
 
 ```yaml
 spec: docs/PHASE.md      # 스펙 문서 (기본 SPEC.md)
@@ -60,7 +60,7 @@ prefix: experiment/      # 실험 브랜치 접두사 (기본 experiment/)
 
 - 뷰어, CLI, Python API, 에이전트 스킬이 모두 이 파일을 읽어요.
 - `root`와 `prefix`는 이 파일이 정합니다. 뷰어에는 브랜치 설정이 따로 없어요. Python에서는 `rt.load(root=…, prefix=…)`로 한 번만 다르게 읽을 수 있어요.
-- 이 파일은 레포의 기본 브랜치(보통 `main`)에 둡니다. 루트 브랜치 안이 아니라서 `root`로 루트 브랜치 이름도 적을 수 있어요. 예전처럼 루트 브랜치에 두어도 계속 읽습니다.
+- 파일 이름은 `.researchtree`예요. 예전 이름인 `.researchtree.yml`도 그대로 읽습니다. 이 파일은 레포의 기본 브랜치(보통 `main`)에 둡니다. 루트 브랜치 안이 아니라서 `root`로 루트 브랜치 이름도 적을 수 있어요. 예전처럼 루트 브랜치에 두어도 계속 읽습니다.
 - 알 수 없는 키나 잘못된 값은 무시하고, 뷰어의 설정 창에 무엇을 무시했는지 보여줘요.
 
 ## 스펙 쓰는 법

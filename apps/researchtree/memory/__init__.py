@@ -20,20 +20,21 @@ from .build import DEFAULT_PREFIX, DEFAULT_ROOT, build_tree
 from .model import Comment, Commit, Experiment, Experiments, FileChange, Research, Version, metric_direction
 from .rules import Alert
 from .source import Source
-from .spec import REPO_CONFIG_PATH, Section, SectionChange, Spec, parse_repo_config
+from .spec import REPO_CONFIG_PATHS, Section, SectionChange, Spec, parse_repo_config
 
 
 def _repo_config(src: Source) -> tuple[dict[str, str], list[dict[str, str]]]:
-    """`.researchtree.yml` from the default branch, falling back to the root branch for older repos."""
+    """`.researchtree` from the default branch, falling back to the root branch for older repos."""
     for ref in (src.default_branch(), DEFAULT_ROOT):
         if not ref:
             continue
-        try:
-            text = src.file_text(REPO_CONFIG_PATH, ref)
-        except Exception:  # no access, or no such branch: try the next place
-            continue
-        if text is not None:
-            return parse_repo_config(text)
+        for path in REPO_CONFIG_PATHS:
+            try:
+                text = src.file_text(path, ref)
+            except Exception:  # no access, or no such branch: try the next place
+                break
+            if text is not None:
+                return parse_repo_config(text)
     return {}, []
 
 
@@ -48,7 +49,7 @@ def load(
     """Read a repo's research tree from GitHub.
 
     `repo` defaults to RESEARCHTREE_REPO, then the current directory's `origin`. The branch names
-    come from the repository's own `.researchtree.yml` (`root`, `prefix`) on its default branch, so
+    come from the repository's own `.researchtree` (`root`, `prefix`) on its default branch, so
     everyone reading the repository sees the same tree; passing `root` or `prefix` here overrides it.
     The token comes from `researchtree login` or RESEARCHTREE_TOKEN; public repos work without one.
     """

@@ -110,7 +110,7 @@ export const ko = {
   "settings.sourceVscode": "VS Code 언어",
   "settings.languageNote": "언어는 모든 레포에 공통으로 적용됩니다.",
   "settings.branchTitle": "브랜치",
-  "settings.branchBody": "루트 브랜치와 실험 브랜치 접두사는 레포의 .researchtree.yml이 정합니다. 레포 하나에 설정 하나라서, 이 레포를 여는 사람은 모두 같은 트리를 봅니다.",
+  "settings.branchBody": "루트 브랜치와 실험 브랜치 접두사는 레포의 .researchtree이 정합니다. 레포 하나에 설정 하나라서, 이 레포를 여는 사람은 모두 같은 트리를 봅니다.",
   "settings.save": "저장하고 다시 불러오기",
 
   // Detail panel
@@ -320,7 +320,7 @@ export const ko = {
   "panel.claims": "검증하는 주장",
   "spec.loading": "스펙을 불러오는 중…",
   "spec.failed": "스펙을 불러오지 못했습니다: {error}",
-  "spec.none": "이 버전에는 스펙 파일({path})이 없어요. 레포의 .researchtree.yml에서 spec 경로를 바꿀 수 있어요.",
+  "spec.none": "이 버전에는 스펙 파일({path})이 없어요. 레포의 .researchtree에서 spec 경로를 바꿀 수 있어요.",
   "spec.modeFull": "전체",
   "spec.modeSummary": "요약",
   "spec.modeChanges": "변경",
@@ -349,7 +349,7 @@ export const ko = {
   "spec.expNoFile": "이 레포에는 스펙 파일({path})이 없어요.",
   "config.branches": "이 레포는 루트 {root}, 실험 {prefix}* 로 읽어요.",
   "config.defaults": "레포에 설정 파일이 없어서 기본값을 씁니다.",
-  "config.repoWarnings": ".researchtree.yml을 읽다가 무시한 항목: {items}",
+  "config.repoWarnings": ".researchtree을 읽다가 무시한 항목: {items}",
 } as const;
 
 export type MessageKey = keyof typeof ko;

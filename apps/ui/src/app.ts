@@ -17,7 +17,7 @@ import {
   LOCALE_KEY,
   repoFileConfig,
   parseRepoConfig,
-  REPO_CONFIG_PATH,
+  REPO_CONFIG_PATHS,
   parentOf,
   parseRepo,
   seasonOf,
@@ -124,7 +124,7 @@ class App {
    * the first time one is opened, so a guest never spends their sixty calls an hour on locked doors. */
   private locked = new Set<string>();
   private config: TreeConfig = DEFAULT_TREE_CONFIG;
-  /** `.researchtree.yml` on the root branch of the open repo (shared by the team; empty when absent). */
+  /** `.researchtree` on the root branch of the open repo (shared by the team; empty when absent). */
   private repoFile: { config: RepoConfig; warnings: RepoConfigWarning[] } = { config: {}, warnings: [] };
   /** What the repository says about itself, for the scroll that names it. */
   private repoDescription: string | null = null;
@@ -521,14 +521,16 @@ class App {
   }
 
   /**
-   * `.researchtree.yml`, which decides the branch names for everyone who opens this repository.
+   * `.researchtree`, which decides the branch names for everyone who opens this repository.
    * It lives on the default branch, so it can name the root branch; older repositories keep it on
    * the root branch instead, and those still work.
    */
   private async readRepoFile(repo: string, defaultBranch: string | null): Promise<{ config: RepoConfig; warnings: RepoConfigWarning[] }> {
     for (const ref of [defaultBranch, DEFAULT_TREE_CONFIG.root].filter((b): b is string => Boolean(b))) {
-      const text = await this.gh.getFileText(repo, REPO_CONFIG_PATH, ref).catch(() => null);
-      if (text !== null) return parseRepoConfig(text);
+      for (const path of REPO_CONFIG_PATHS) {
+        const text = await this.gh.getFileText(repo, path, ref).catch(() => null);
+        if (text !== null) return parseRepoConfig(text);
+      }
     }
     return { config: {}, warnings: [] };
   }
@@ -567,7 +569,7 @@ class App {
     }
   }
 
-  /** What the repo's `.researchtree.yml` decides, shown in the settings dialog. */
+  /** What the repo's `.researchtree` decides, shown in the settings dialog. */
   private repoFileNotes(repo: string): string[] {
     if (this.tree?.repo !== repo) return [];
     const notes: string[] = [];

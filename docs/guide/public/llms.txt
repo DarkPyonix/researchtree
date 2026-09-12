@@ -17,7 +17,7 @@ The guide below is written in Korean.
 - [Pull requests and the YAML block](https://darkpyonix.github.io/researchtree/guide/rules/pull-requests): `parent`, `hypothesis`, `change`, `metrics`, `status`, `tags`, `claims`, `started`, `ended`
 - [Research version tags](https://darkpyonix.github.io/researchtree/guide/rules/versions): `research/vN`, and `researchtree release` for cleaning up finished branches
 - [Tree rules](https://darkpyonix.github.io/researchtree/guide/rules/tree-rules): how status, parents and versions are resolved
-- [Intent- and spec-driven development](https://darkpyonix.github.io/researchtree/guide/rules/spec): spec-driven development adapted to research (a spec change is a hypothesis; adoption decides whether it enters the spec), `INTENT.md` claims, `SPEC.md`, `.researchtree.yml`, section ids and includes
+- [Intent- and spec-driven development](https://darkpyonix.github.io/researchtree/guide/rules/spec): spec-driven development adapted to research (a spec change is a hypothesis; adoption decides whether it enters the spec), `INTENT.md` claims, `SPEC.md`, `.researchtree`, section ids and includes
 
 ## Using it
 
