@@ -681,7 +681,7 @@ html:not(.dark) .vp-doc .vp-code span { filter: saturate(0.85); }
    the same height with the same space around it. VitePress leaves the social links loose on the left
    and drops the padding under the last row, so both are set here. */
 /* The doubled class outweighs VitePress's own .group + .group spacing. */
-.VPNavBarExtra .VPMenu > .group.group { padding: 10px 12px; border-top: 1px solid var(--vp-c-divider); }
+.VPNavBarExtra .VPMenu > .group.group { padding: 6px 12px; border-top: 1px solid var(--vp-c-divider); }
 .VPNavBarExtra .VPMenu > .group.group:first-child { border-top: 0; }
 .VPNavBarExtra .VPMenu .item,
 .VPNavBarExtra .VPMenu .rt-lang-group .item {
