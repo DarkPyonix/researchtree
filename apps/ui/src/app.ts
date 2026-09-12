@@ -142,8 +142,8 @@ class App {
   private keyHandler: ((e: KeyboardEvent) => void) | null = null;
   /** Registered once, for the browser's back and forward buttons. */
   private backListener: (() => void) | null = null;
-  /** Watches the repo card, whose height decides where the board starts. */
-  private brandWatch: ResizeObserver | null = null;
+  /** Watches the repo card and the panel, the two edges the board is fitted between. */
+  private chromeWatch: ResizeObserver | null = null;
 
   constructor(
     private readonly host: Host,
@@ -165,8 +165,8 @@ class App {
     this.kanban = null;
     this.banner?.destroy();
     this.banner = null;
-    this.brandWatch?.disconnect();
-    this.brandWatch = null;
+    this.chromeWatch?.disconnect();
+    this.chromeWatch = null;
     this.stage = null;
     this.panel = null;
     this.shell = null;
@@ -746,15 +746,18 @@ class App {
       // Dragging the panel's edge changes how much board is left, so the columns re-fit as it moves.
       onResized: () => this.kanban?.reflow(),
     });
-    // Collapsing the repo card gives the board that height back, so the columns follow its size.
-    this.brandWatch?.disconnect();
-    this.brandWatch = new ResizeObserver(() => this.kanban?.reflow());
-    this.brandWatch.observe(brandStack);
+    // The board is fitted between the repo card and the panel, so it re-fits whenever either resizes
+    // — collapsing the card, opening the panel, dragging its edge, or the panel settling after a render.
+    this.chromeWatch?.disconnect();
+    this.chromeWatch = new ResizeObserver(() => this.kanban?.reflow());
+    this.chromeWatch.observe(brandStack);
+    this.chromeWatch.observe(panelEl);
     // The board is a wide row of columns, so it always starts below the repo card rather than beside it.
+    // These are the edges the board may not cross; the gap it keeps from them is the board's own.
     const boardInsets = () => {
       const b = brandStack.getBoundingClientRect();
-      const panel = this.panel?.covered ?? { right: 0, bottom: 0 };
-      return { top: b.bottom + 10, right: Math.max(16, panel.right), bottom: Math.max(28, panel.bottom) };
+      const panel = this.panel?.takes ?? { right: 0, bottom: 0 };
+      return { top: b.bottom, right: panel.right, bottom: Math.max(24, panel.bottom) };
     };
     this.stage = {
       canvas,

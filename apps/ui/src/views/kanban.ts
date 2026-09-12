@@ -24,6 +24,9 @@ export function columnOf(node: TreeNode): Column {
   return node.pr.reviewers > 0 ? "review" : "working";
 }
 
+/** One gap for the whole board: between columns, around the edges, and to whatever sits beside it. */
+export const BOARD_GAP = 14;
+
 export interface KanbanOptions {
   onSelect(id: string | null): void;
   /** Room the floating cards take, so the columns start below the repo card. */
@@ -59,10 +62,11 @@ export class Kanban {
   private applyInsets(): void {
     const { top, right, bottom } = this.options.insets();
     // The board's own box shrinks to the free area, so the panel takes space instead of covering
-    // cards, and what is left still scrolls on its own.
-    this.root.style.paddingTop = `${Math.round(top)}px`;
-    this.root.style.right = `${Math.round(Math.max(0, right - 16))}px`;
-    this.root.style.bottom = `${Math.round(Math.max(0, bottom - 16))}px`;
+    // cards, and what is left still scrolls on its own. The box stops at the repo card and the panel;
+    // the one gap the board keeps everywhere is its own padding, so both read like a column gap.
+    this.root.style.paddingTop = `${Math.round(top + BOARD_GAP)}px`;
+    this.root.style.right = `${Math.round(Math.max(0, right))}px`;
+    this.root.style.bottom = `${Math.round(Math.max(0, bottom))}px`;
   }
 
   render(tree: ResearchTree, filter: ViewFilter): void {
@@ -150,7 +154,7 @@ export class Kanban {
     const card = this.selected ? this.cards.get(this.selected) : null;
     const box = this.root;
     if (!card) return;
-    const { top } = this.options.insets();
+    const top = parseFloat(box.style.paddingTop) || 0;
     const view = box.getBoundingClientRect();
     const cardBox = card.getBoundingClientRect();
     const left = cardBox.left - view.left + box.scrollLeft + cardBox.width / 2;

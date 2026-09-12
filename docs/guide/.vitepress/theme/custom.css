@@ -677,9 +677,22 @@ html:not(.dark) .vp-doc .vp-code span { filter: saturate(0.85); }
   .VPNavBar .content-body > .rt-lang { display: none; }
 }
 
-/* The language row is built to the same measurements as the theme row it sits under. */
-.VPNavBarExtra .VPMenu .rt-lang-group .item { display: flex; align-items: center; padding: 0 12px; }
-.VPNavBarExtra .VPMenu .rt-lang-group .label {
+/* The flyout is three rows of the same shape: a label on the left, one control on the right, each row
+   the same height with the same space around it. VitePress leaves the social links loose on the left
+   and drops the padding under the last row, so both are set here. */
+/* The doubled class outweighs VitePress's own .group + .group spacing. */
+.VPNavBarExtra .VPMenu > .group.group { padding: 10px 12px; border-top: 1px solid var(--vp-c-divider); }
+.VPNavBarExtra .VPMenu > .group.group:first-child { border-top: 0; }
+.VPNavBarExtra .VPMenu .item,
+.VPNavBarExtra .VPMenu .rt-lang-group .item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 28px;
+  padding: 0;
+}
+.VPNavBarExtra .VPMenu .rt-lang-group .label,
+.VPNavBarExtra .VPMenu .item.appearance .label {
   flex-grow: 1;
   margin: 0;
   line-height: 28px;
@@ -687,15 +700,24 @@ html:not(.dark) .vp-doc .vp-code span { filter: saturate(0.85); }
   font-weight: 500;
   color: var(--vp-c-text-2);
 }
-.rt-lang.menu { height: 28px; margin: 0 -2px 0 0; padding: 0 10px; gap: 5px; font-size: 12px; }
+.VPNavBarExtra .VPMenu .item.social-links .VPSocialLinks { margin: 0; }
+/* The third row gets the same label as the two above it, so the column of controls reads as a list. */
+.VPNavBarExtra .VPMenu .item.social-links::before {
+  content: "GitHub";
+  flex-grow: 1;
+  line-height: 28px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vp-c-text-2);
+}
+/* VitePress nudges the theme switch 2px past the edge the other controls line up on. */
+.VPNavBarExtra .VPMenu .appearance-action { margin-right: 0; }
+.VPNavBarExtra .VPMenu .item.social-links .VPSocialLink { width: 28px; height: 28px; }
+.rt-lang.menu { height: 28px; margin: 0; padding: 0 10px; gap: 5px; font-size: 12px; }
 .rt-lang.menu svg { width: 14px; height: 14px; }
-/* Theme, then language, then the social links. The language group is teleported in last, so the order
-   is set here — and with it the dividers and padding, which can no longer follow the DOM order. */
+/* Theme, then language, then the social links: the language group is teleported in last. */
 .VPNavBarExtra .VPMenu { display: flex; flex-direction: column; }
 .VPNavBarExtra .VPMenu > .group:has(.social-links) { order: 1; }
-.VPNavBarExtra .VPMenu > .group { border-top: 1px solid var(--vp-c-divider); padding: 11px 12px 12px; }
-.VPNavBarExtra .VPMenu > .group:first-child { border-top: 0; padding-top: 0; }
-.VPNavBarExtra .VPMenu > .group:has(.social-links) { padding-bottom: 0; }
 
 /* The hamburger is drawn in the same ink as the icons beside it, not in the darker body colour. */
 .VPNavBarHamburger .top,

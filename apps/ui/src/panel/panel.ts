@@ -121,6 +121,21 @@ export class Panel {
     return !this.el.hidden;
   }
 
+  /**
+   * Screen the panel takes, measured to the edge it sits against, for a view that gives it room
+   * rather than drawing under it (the board). `covered` keeps its own margin; this one does not.
+   */
+  get takes(): { right: number; bottom: number } {
+    if (!this.isOpen) return { right: 0, bottom: 0 };
+    const r = this.el.getBoundingClientRect();
+    const style = getComputedStyle(this.el);
+    const sheet = r.width > window.innerWidth * 0.7;
+    // The panel slides in, so where it is right now is not where it will be: the edge it settles
+    // against is its own offset from the screen, which the animation does not touch.
+    if (sheet) return { right: 0, bottom: r.height + (parseFloat(style.bottom) || 0) };
+    return { right: r.width + (parseFloat(style.right) || 0), bottom: 0 };
+  }
+
   /** Canvas area covered by the panel: a right-hand column on desktop, a bottom sheet on narrow screens. */
   get covered(): { right: number; bottom: number } {
     if (!this.isOpen) return { right: 0, bottom: 0 };
