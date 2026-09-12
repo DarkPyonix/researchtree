@@ -37,7 +37,13 @@ export function messageScreen(opts: {
   );
 }
 
-export function loginScreen(opts: { host: Host; error?: string; onSignedIn: (user: GitHubUser) => void }): HTMLElement {
+export function loginScreen(opts: {
+  host: Host;
+  error?: string;
+  onSignedIn: (user: GitHubUser) => void;
+  /** Open the public demo repository without signing in. Only where there is no address bar. */
+  onDemo?: () => void;
+}): HTMLElement {
   const { host } = opts;
   const avail = host.auth.availability();
   const errorBox = h("p", { class: "form-error", role: "alert" }, opts.error ?? "");
@@ -99,6 +105,9 @@ export function loginScreen(opts: { host: Host; error?: string; onSignedIn: (use
     loginBtn,
   ];
   if (!avail.ok) parts.push(h("p", { class: "muted small" }, avail.reason));
+  if (opts.onDemo) {
+    parts.push(h("button", { class: "btn demo-btn", type: "button", onclick: opts.onDemo }, icon("repo", 14), ` ${t("office.demo")}`));
+  }
   parts.push(deviceBox, errorBox);
 
   const withToken = host.capabilities.signInWithToken;

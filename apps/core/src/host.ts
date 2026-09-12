@@ -29,6 +29,14 @@ export interface HostCapabilities {
   openDiff?(base: string, head: string): Promise<void>;
   /** Sign in by pasting a token (web host) */
   signInWithToken?(token: string): Promise<GitHubUser>;
+  /**
+   * Remember what is on screen with the document the viewer is embedded in (PowerPoint add-in).
+   * Hosts that have an address bar do not have this: there, a link already does the job.
+   */
+  viewState?: {
+    load(): unknown;
+    save(state: unknown): Promise<void>;
+  };
 }
 
 export interface Host {

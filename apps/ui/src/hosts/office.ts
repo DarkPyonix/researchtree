@@ -17,6 +17,8 @@ import { CLIENT_ID } from "./github-oauth";
 import { fetchUser, githubRequest, TOKEN_KEY } from "./web";
 
 const AUTH_PAGE = "office-auth.html";
+/** Settings key for what this add-in was showing; stored with the slide, not in the browser. */
+const VIEW_STATE_KEY = "researchtree.view";
 
 /** The message the dialog page sends back (see office-auth.ts). */
 interface AuthMessage {
@@ -110,6 +112,27 @@ export function createOfficeHost(): Host {
     },
     capabilities: {
       signInWithToken: (value: string) => signedInWith(value.trim()),
+      // Saved inside the presentation, so opening the deck again shows the same screen, and a public
+      // repository needs no sign-in at all. Only ever what is on screen: never the token.
+      viewState: {
+        load() {
+          try {
+            return JSON.parse(String(Office.context.document.settings.get(VIEW_STATE_KEY) ?? "null"));
+          } catch {
+            return null;
+          }
+        },
+        save(state: unknown) {
+          return new Promise<void>((resolve, reject) => {
+            Office.context.document.settings.set(VIEW_STATE_KEY, JSON.stringify(state));
+            // saveAsync writes the settings into the file; it fails while the deck is read-only.
+            Office.context.document.settings.saveAsync((result) => {
+              if (result.status === Office.AsyncResultStatus.Succeeded) resolve();
+              else reject(new Error(result.error?.message ?? t("office.saveFailed")));
+            });
+          });
+        },
+      },
     },
   };
 }
