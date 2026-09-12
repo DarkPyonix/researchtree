@@ -232,6 +232,28 @@ Unmerged branches are never just deleted: their commits are reverted on the bran
 
 <sub>The viewer needs WebGL. Without it, the tree cannot be drawn.</sub>
 
+## 🗺️ ResearchIsland: one page for all your research
+
+Several research repositories belong to one researcher, and one address can show them all: a sea of
+islands, each one a research, that you drag and scroll between. `?user=<account>` opens it.
+
+| | |
+|---|---|
+| **The map** | A `.researchisland` repository on the account. Its README says which research goes on which land, and where. |
+| **You** | `PROFILE.md` in that repository introduces you; without one, the README of your GitHub profile repository (`<user>/<user>`) stands in. |
+| **Résumé** | Drop `resume.pdf`, `CV.md` or the like in there and the island shows a **Résumé** button. |
+| **Private work** | Research a visitor cannot open stays on the map as a fogged, locked island — the shape of the work is public even when the work is not. |
+| **Org repositories** | Research you did under an organization can sit on your personal island; the map keeps the repository's real owner. |
+
+```bash
+researchtree island init                 # create the .researchisland repository
+researchtree island add owner/name       # put a research on the map
+researchtree island show                 # what the map holds now
+```
+
+Public research needs no sign-in to read, so the address is a portfolio you can hand to anyone.
+[Guide](https://darkpyonix.github.io/researchtree/guide/guide/island)
+
 ## 🚀 Three ways to use it
 
 One viewer, three hosts. Pick whichever fits your setup.

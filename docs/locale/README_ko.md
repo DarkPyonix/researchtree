@@ -233,6 +233,28 @@ researchtree release --yes  # 보관 머지(브랜치의 커밋을 revert하고 
 
 <sub>뷰어는 WebGL이 필요합니다. WebGL을 쓸 수 없으면 트리를 그릴 수 없습니다.</sub>
 
+## 🗺️ ResearchIsland: 연구 전체를 한 페이지로
+
+연구 레포가 여러 개여도 연구자는 한 사람입니다. 주소 하나로 그 전부를 보여줄 수 있어요. 연구마다
+섬 하나가 떠 있는 바다를 드래그와 스크롤로 돌아다니는 지도입니다. `?user=<계정>`으로 열립니다.
+
+| | |
+|---|---|
+| **지도** | 계정의 `.researchisland` 레포. README에 어떤 연구를 어느 땅 어디에 놓을지 적습니다. |
+| **연구자 소개** | 그 레포의 `PROFILE.md`. 없으면 GitHub 프로필 레포(`<계정>/<계정>`)의 README를 씁니다. |
+| **이력서** | `resume.pdf`, `CV.md` 같은 파일을 두면 섬에 **이력서 보기** 버튼이 생깁니다. |
+| **비공개 연구** | 방문자가 열 수 없는 연구는 안개 덮인 잠긴 섬으로 남습니다. 내용은 가려도 연구가 있다는 사실은 보여줄 수 있어요. |
+| **org 레포** | org 계정으로 한 연구도 개인 아일랜드에 올릴 수 있습니다. 지도는 레포의 실제 주인을 그대로 기억합니다. |
+
+```bash
+researchtree island init                 # .researchisland 레포 만들기
+researchtree island add owner/name       # 지도에 연구 하나 올리기
+researchtree island show                 # 지금 지도에 올라간 연구
+```
+
+공개 연구는 로그인 없이 그대로 보이니, 이 주소 하나가 누구에게나 건넬 수 있는 연구 포트폴리오가
+됩니다. [가이드](https://darkpyonix.github.io/researchtree/guide/guide/island)
+
 ## 🚀 사용하는 세 가지 방법
 
 뷰어는 하나이고, 호스트는 세 가지입니다. 환경에 맞는 방법을 고르세요.

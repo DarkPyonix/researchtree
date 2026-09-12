@@ -72,4 +72,5 @@ main, develop, 기타             ← 연구 외 용도. 트리에 표시하지 
 1. [레포 준비](/guide/repo-setup): `research` 브랜치와 첫 버전 태그 `v1` 만들기
 2. [연구 기록 규칙](/rules/branches): 브랜치와 PR을 쓰는 방법
 3. [뷰어 사용법](/viewer/island): 섬과 트리를 탐색하는 방법
+4. [아일랜드](/guide/island): 연구 여러 개를 한 지도에 올려 포트폴리오로 만들기
 
