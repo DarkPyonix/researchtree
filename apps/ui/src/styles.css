@@ -821,50 +821,161 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   .board-col { flex: 0 0 78%; max-width: 78%; scroll-snap-align: center; }
 }
 
+/* The research intro reef's chip, out in the water beside the first version. */
+.label3d.reef .label3d-name { color: var(--accent-2); }
+.label3d.reef { border-color: color-mix(in srgb, var(--accent-2) 40%, var(--line)); }
+
+/* Who the world map belongs to, and the way into their introduction and résumé. */
+.world-card { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 4; padding: 14px 18px 16px; }
+.world-user { margin: 2px 0 10px; font: 700 22px/1.2 var(--display); }
+.profile-dialog { max-width: 680px; max-height: min(80vh, 720px); overflow-y: auto; }
+
 /*
- * Scroll banner (scroll-banner.ts): the name of the place you just entered, on a scroll that unrolls
- * at the top of the screen and rolls itself back up. It never takes a click away from the scene.
+ * The sea (views/world.ts): one island per research on open water, dragged like a game map. The
+ * colours are the 3D island's own (water #8fd3e3, grass #a7d38b, sand #efdcae, soil #c79b6d) and the
+ * name under each island is the same chip the viewer hangs over its plants, so sailing in changes
+ * the scale, not the world.
+ */
+.sea {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  background:
+    radial-gradient(ellipse 60% 40% at 22% 18%, rgba(255, 255, 255, 0.22), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 78% 76%, rgba(255, 255, 255, 0.14), transparent 70%),
+    linear-gradient(180deg, #a5dddb 0%, #8fd3e3 100%);
+}
+:root[data-theme="dark"] .sea { background: linear-gradient(180deg, #24484b 0%, #1a3739 100%); }
+.sea.dragging { cursor: grabbing; }
+.sea-surface { position: absolute; left: 0; top: 0; will-change: transform; }
+.sea-surface.sailing { transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* The land's name, written on the water itself. */
+.land-name { position: absolute; transform: translateX(-50%); text-align: center; pointer-events: none; user-select: none; }
+.land-eyebrow { display: block; font: 600 11px/1.2 var(--font); letter-spacing: 0.18em; text-transform: uppercase; color: rgba(31, 59, 70, 0.45); }
+.land-title { display: block; margin-top: 4px; font: 700 32px/1.15 var(--display); color: rgba(31, 59, 70, 0.72); text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4); }
+:root[data-theme="dark"] .land-eyebrow { color: rgba(226, 236, 235, 0.5); }
+:root[data-theme="dark"] .land-title { color: rgba(226, 236, 235, 0.82); text-shadow: none; }
+
+/* One research island: grass on sand on soil, the way the 3D island is stacked. */
+.isle {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.isle-ground { position: relative; width: 180px; height: 108px; transition: transform 0.16s ease-out; }
+.isle:hover .isle-ground { transform: translateY(-5px); }
+.isle-art { display: block; }
+.isle-chip { position: static; transform: none; }
+.isle-chip::after { display: none; }
+
+/* An island still under fog: locked, the way a game hides an area you have not unlocked. */
+.isle.locked { cursor: help; }
+.isle.locked .isle-grass, .isle.locked .isle-sand, .isle.locked .isle-soil { filter: grayscale(1) brightness(1.04); opacity: 0.62; }
+.isle-fog { position: absolute; inset: 0; display: grid; place-items: center; font-size: 26px; }
+
+/* The gate to the next land: stone posts around still water. */
+.portal { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 10px; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; }
+.portal-arch {
+  position: relative;
+  width: 74px;
+  height: 84px;
+  border: 10px solid #a58a63;
+  border-bottom: 0;
+  border-radius: 38px 38px 6px 6px;
+  background: linear-gradient(180deg, rgba(160, 226, 235, 0.95), rgba(109, 183, 205, 0.8));
+  box-shadow: 0 12px 22px rgba(37, 86, 96, 0.22);
+}
+.portal-glow { position: absolute; inset: 8px 8px 0; border-radius: 32px 32px 4px 4px; background: radial-gradient(ellipse at 50% 70%, rgba(255, 255, 255, 0.65), transparent 65%); }
+.portal:hover .portal-arch { filter: brightness(1.05); }
+.portal-chip { position: static; transform: none; }
+.portal-chip::after { display: none; }
+
+/* Minimap: the islands as dots, and the stretch of sea on screen. */
+.world-minimap-frame {
+  position: absolute;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  width: 148px;
+  height: 148px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  z-index: 3;
+  pointer-events: none;
+}
+.world-minimap { position: absolute; inset: 0; }
+.world-dot { position: absolute; width: 8px; height: 6px; margin: -3px 0 0 -4px; border-radius: 50%; background: #9fcc84; box-shadow: 0 1px 0 #c79b6d; }
+.world-here { position: absolute; border: 1.5px solid var(--accent-2); border-radius: 6px; }
+
+/*
+ * Scroll banner (scroll-banner.ts): the name of the place you just entered, unrolled at the top of
+ * the screen. It is a card like every other surface here (paper, one border, the same shadow), held
+ * between two wooden rods, and it never takes a click away from the scene behind it.
  */
 .scroll-banner {
   position: absolute;
-  /* Below the toolbar row, so arriving never hides the buttons. */
   top: calc(66px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  align-items: center;
+  align-items: stretch;
   z-index: 7;
   cursor: pointer;
   max-width: min(560px, calc(100% - 32px));
+  filter: drop-shadow(0 10px 28px rgba(40, 30, 20, 0.14));
 }
 .scroll-rod {
-  width: 12px;
-  height: 42px;
+  position: relative;
+  width: 13px;
   flex: none;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #a9764a, #7b5330 60%, #5d3d23);
-  box-shadow: var(--shadow);
+  align-self: center;
+  height: 54px;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #b8865a 0%, #9a6b42 45%, #7a5333 100%);
 }
-.scroll-rod.left { margin-right: -4px; }
-.scroll-rod.right { margin-left: -4px; }
+.scroll-rod::before, .scroll-rod::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  height: 6px;
+  border-radius: 3px;
+  background: #6f4a2c;
+}
+.scroll-rod::before { top: -3px; }
+.scroll-rod::after { bottom: -3px; }
+.scroll-rod.left { margin-right: -5px; }
+.scroll-rod.right { margin-left: -5px; }
 .scroll-sheet {
   overflow: hidden;
   max-width: 0;
-  background: linear-gradient(180deg, #f6efdd, #efe4c9);
-  border-top: 1px solid #d9c79b;
-  border-bottom: 1px solid #d9c79b;
-  box-shadow: var(--shadow);
-  transition: max-width 620ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms;
+  background: linear-gradient(180deg, #fbf6e9 0%, #f3ead4 100%);
+  border-top: 1px solid rgba(154, 107, 66, 0.35);
+  border-bottom: 1px solid rgba(154, 107, 66, 0.35);
+  transition: max-width 620ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .scroll-banner.open .scroll-sheet { max-width: 560px; }
 .scroll-banner.closing .scroll-sheet { max-width: 0; transition-duration: 460ms; }
 .scroll-banner.instant .scroll-sheet { transition: none; }
-.scroll-paper { width: max-content; max-width: 520px; padding: 10px 26px; text-align: center; color: #3f2d17; }
-.scroll-eyebrow { margin: 0; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a6a3d; }
-.scroll-title { margin: 1px 0 0; font-family: var(--display); font-size: 19px; font-weight: 600; white-space: nowrap; }
+.scroll-paper { width: max-content; max-width: 520px; padding: 12px 30px 13px; text-align: center; color: #46341d; }
+.scroll-eyebrow { margin: 0; font: 600 10.5px/1.2 var(--font); letter-spacing: 0.2em; text-transform: uppercase; color: #97744a; }
+.scroll-title { margin: 3px 0 0; font: 700 20px/1.25 var(--display); }
 .scroll-body {
-  margin: 3px 0 0;
-  font-size: 12.5px;
+  margin: 4px 0 0;
+  font: 12.5px/1.5 var(--font);
   color: #6b5430;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -874,94 +985,6 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 }
 @media (max-width: 640px) {
   .scroll-banner { top: calc(58px + env(safe-area-inset-top, 0px)); }
-  .scroll-paper { padding: 8px 18px; }
-  .scroll-title { font-size: 16px; white-space: normal; }
+  .scroll-paper { padding: 10px 20px; }
+  .scroll-title { font-size: 17px; }
 }
-
-/* The research intro reef's chip, out in the water beside the first version. */
-.label3d.reef .label3d-name { color: var(--accent-2); }
-.label3d.reef { border-color: color-mix(in srgb, var(--accent-2) 40%, var(--line)); }
-
-/*
- * World map (views/world.ts): every research an account shows, as islands on one sea. Drag to move.
- * A land is a project you step into through a portal; the islands inside it are its repositories.
- */
-.world { position: absolute; inset: 0; overflow: hidden; cursor: grab; background: var(--sea, #a5dddb); touch-action: none; }
-.world.dragging { cursor: grabbing; }
-.world-surface { position: absolute; left: 0; top: 0; will-change: transform; }
-.world-land {
-  position: absolute;
-  padding: 14px 18px 18px;
-  border-radius: 28px;
-  background: color-mix(in srgb, var(--card) 88%, transparent);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-lift, var(--shadow));
-}
-.world-land-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-.world-land-head h2 { margin: 0; font: 600 17px/1.2 var(--display); }
-.world-islands { position: relative; }
-.world-island {
-  position: absolute;
-  width: 200px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 14px 10px 12px;
-  border: 0;
-  border-radius: 22px;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
-  transition: transform 0.14s, background 0.14s;
-}
-.world-island:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--accent-2) 8%, transparent); }
-.world-island-shape {
-  width: 96px;
-  height: 58px;
-  border-radius: 46% 46% 40% 40% / 58% 58% 42% 42%;
-  background: linear-gradient(180deg, #b7dd9c 0%, #a7d38b 58%, #efdcae 58%, #e6d09a 100%);
-  box-shadow: 0 6px 0 color-mix(in srgb, var(--sea, #a5dddb) 70%, #6aa8a6);
-}
-.world-island-name { font-weight: 600; font-size: 14px; margin-top: 8px; }
-.world-portal {
-  position: absolute;
-  right: 18px;
-  bottom: -16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 14px;
-  border-radius: 18px;
-  border: 1px solid var(--accent-2);
-  background: var(--card);
-  color: var(--accent-2);
-  font: 600 12px/1 var(--font);
-  cursor: pointer;
-}
-.world-empty { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
-
-/* Minimap: where you are on the sea, and where the other lands sit. */
-.world-minimap-frame {
-  position: absolute;
-  right: 16px;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  width: 150px;
-  height: 150px;
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--card) 80%, transparent);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  z-index: 3;
-  pointer-events: none;
-}
-.world-minimap { position: absolute; inset: 0; }
-.world-dot { position: absolute; border-radius: 6px; background: color-mix(in srgb, var(--accent-2) 55%, transparent); }
-.world-here { position: absolute; border: 1.5px solid var(--accent-2); border-radius: 6px; }
-
-/* Who the world map belongs to, and the way into their introduction and résumé. */
-.world-card { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px; z-index: 4; padding: 14px 18px 16px; }
-.world-user { margin: 2px 0 10px; font: 700 22px/1.2 var(--display); }
-.profile-dialog { max-width: 680px; max-height: min(80vh, 720px); overflow-y: auto; }

@@ -233,13 +233,17 @@ export const ko = {
   // 아일랜드 (docs/ISLAND.md): 계정의 연구 전체를 한 지도로
   "world.title": "{user}의 연구",
   "world.researchCount": "연구 {count}개",
-  "world.portal": "{name} 안으로",
+  "world.portal": "{name}로 건너가기",
+  "world.portalSub": "포탈",
   "world.back": "지도로 돌아가기",
   "world.empty": "지도에 올린 연구가 없어요. `researchtree island add`로 올릴 수 있어요.",
   "world.noSettings": "{user} 계정에 .researchisland 레포가 없어요.",
   "world.noSettingsBody": "그 레포의 README에 어떤 연구를 어디에 놓을지 적으면 이 지도가 만들어져요.",
   "world.failed": "지도를 읽지 못했어요: {error}",
   "world.land": "아일랜드",
+  "world.lockedName": "아직 열리지 않은 섬",
+  "world.lockedSub": "권한이 있는 계정으로 로그인하면 열려요",
+  "world.lockedTitle": "{repo}: 접근 권한이 필요해요",
   "world.locked": "{repo}는 열 수 없어요. 비공개 레포라면 접근 권한이 있는 계정으로 로그인해야 보여요.",
 
   // 연구자 소개와 이력서

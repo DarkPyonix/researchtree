@@ -235,13 +235,17 @@ export const en: Record<MessageKey, string> = {
   // Island (docs/ISLAND.md): one map for everything an account researches
   "world.title": "{user}'s research",
   "world.researchCount": "{count} research",
-  "world.portal": "Into {name}",
+  "world.portal": "Sail to {name}",
+  "world.portalSub": "portal",
   "world.back": "Back to the map",
   "world.empty": "No research on the map yet. `researchtree island add` puts some there.",
   "world.noSettings": "{user} has no .researchisland repository.",
   "world.noSettingsBody": "Say which research goes where in that repository's README and this map appears.",
   "world.failed": "Couldn't read the map: {error}",
   "world.land": "Island",
+  "world.lockedName": "Locked island",
+  "world.lockedSub": "Sign in with an account that has access",
+  "world.lockedTitle": "{repo}: you need access to this one",
   "world.locked": "Can't open {repo}. A private repository needs an account with access to it.",
 
   // The researcher: their introduction and résumé
