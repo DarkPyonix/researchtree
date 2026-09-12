@@ -1,4 +1,4 @@
-import { assertApiPath, buildQuery, HttpError, t, type GitHubRequest, type GitHubResponse, type GitHubUser, type Host } from "@researchtree/core";
+import { assertApiPath, buildQuery, HttpError, isTokenRejected, t, type GitHubRequest, type GitHubResponse, type GitHubUser, type Host } from "@researchtree/core";
 import { localStore, openInNewTab, repoFromUrl } from "../host-utils";
 
 const API = "https://api.github.com";
@@ -37,8 +37,10 @@ async function fetchUser(token: string): Promise<GitHubUser> {
     headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
     cache: "no-store",
   });
-  if (!res.ok) throw new HttpError(res.status, `GitHub API ${res.status}`);
-  return (await res.json()) as GitHubUser;
+  const data: unknown = await res.json().catch(() => null);
+  // The body says why (e.g. "Bad credentials"); isTokenRejected reads it.
+  if (!res.ok) throw new HttpError(res.status, `GitHub API ${res.status}`, data);
+  return data as GitHubUser;
 }
 
 /**
@@ -93,8 +95,8 @@ export function createWebHost(): Host {
         try {
           return await fetchUser(t);
         } catch (e) {
-          if (e instanceof HttpError && e.status === 401) storage.set(TOKEN_KEY, undefined);
-          else throw e;
+          if (!isTokenRejected(e)) throw e;
+          storage.set(TOKEN_KEY, undefined);
           return null;
         }
       },

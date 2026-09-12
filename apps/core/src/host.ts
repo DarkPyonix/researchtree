@@ -54,6 +54,17 @@ export interface Host {
   capabilities: HostCapabilities;
 }
 
+/**
+ * True when GitHub says the token itself is no good, rather than a request failing once. Only then
+ * may a host throw the saved token away: a stray 401 (a captive portal, a proxy error page, a blip)
+ * must not sign the user out, because a GitHub OAuth token has no expiry of its own.
+ */
+export function isTokenRejected(e: unknown): boolean {
+  if (!(e instanceof HttpError) || e.status !== 401) return false;
+  const message = (e.data as { message?: string } | undefined)?.message ?? e.message;
+  return /bad credentials|token expired|token has expired|revoked|requires authentication/i.test(message);
+}
+
 export class HttpError extends Error {
   constructor(
     public readonly status: number,
