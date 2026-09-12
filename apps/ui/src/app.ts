@@ -6,6 +6,7 @@ import {
   DEFAULT_TREE_CONFIG,
   GitHubClient,
   HttpError,
+  isTokenRejected,
   LOCALE_KEY,
   normalizeTreeConfig,
   parseRepoConfig,
@@ -31,6 +32,7 @@ import { append, clear, h, icon } from "./dom";
 import { Panel } from "./panel/panel";
 import { applyLocale, localePreference } from "./locale";
 import { loadingScreen, loginScreen, messageScreen, repoPicker, settingsDialog } from "./screens";
+import { mergeConfig, parseSettings, SETTING_PARAM, settingParam, type UrlSettings } from "./settings-url";
 import { statusLabel } from "./theme";
 import { islandIds, islandMetricKeys, rootVersion, seasonLabel } from "./views/layout";
 import { Tree3D, type Heading } from "./views/tree3d";
@@ -67,9 +69,12 @@ const hint = (mode: ViewMode) => t(isFlatMode(mode) ? "hint.2d" : "hint.3d");
 /** Start the viewer on the given host (web / extension / local). */
 export async function startApp(host: Host, root: HTMLElement): Promise<void> {
   document.body.classList.add(`host-${host.kind}`);
+  // A link may carry settings (`?setting=lang:en,…`); the language has to be in place before any screen.
+  const urlSettings = parseSettings(urlParam(SETTING_PARAM));
+  if (urlSettings.locale) host.storage.set(LOCALE_KEY, urlSettings.locale);
   applyLocale(host);
   followColorScheme();
-  await new App(host, root).boot();
+  await new App(host, root, urlSettings).boot();
 }
 
 function urlParam(name: string): string | null {
@@ -108,6 +113,8 @@ class App {
   constructor(
     private readonly host: Host,
     private readonly root: HTMLElement,
+    /** Settings asked for by the link that opened the viewer; used once, for the repo it opens. */
+    private urlSettings: UrlSettings = { ignored: [] },
   ) {
     this.gh = new GitHubClient(host);
     this.mode = savedMode(host.storage.get<string>(MODE_KEY));
@@ -172,7 +179,7 @@ class App {
   }
 
   private handleError(e: unknown, repo: string): void {
-    if (e instanceof HttpError && e.status === 401) {
+    if (isTokenRejected(e)) {
       void this.host.auth.signOut().then(() => this.showLogin(t("app.sessionExpired")));
       return;
     }
@@ -195,6 +202,7 @@ class App {
   private async openRepo(repo: string): Promise<void> {
     if (!parseRepo(repo)) return this.showPicker(t("app.invalidRepo"));
     this.mount(loadingScreen(t("app.loadingRepo", { repo })));
+    this.applyUrlSettings(repo);
     this.config = this.repoConfig(repo);
     const { root, prefix } = this.config;
     try {
@@ -254,6 +262,14 @@ class App {
     return text === null ? { config: {}, warnings: [] } : parseRepoConfig(text);
   }
 
+  /** Branch settings from the link that opened the viewer, saved for this repo. Applies once. */
+  private applyUrlSettings(repo: string): void {
+    const wanted = this.urlSettings.config;
+    this.urlSettings = { ignored: this.urlSettings.ignored };
+    const config = mergeConfig(this.repoConfig(repo), wanted);
+    if (config) this.host.storage.set(configKey(repo), config);
+  }
+
   /** Branch names for a repo: saved settings, or the defaults (research / experiment/). */
   private repoConfig(repo: string): TreeConfig {
     const saved = this.host.storage.get<Partial<TreeConfig>>(configKey(repo));
@@ -281,6 +297,7 @@ class App {
       onSave: ({ config, locale }) => {
         this.host.storage.set(configKey(repo), config);
         this.host.storage.set(LOCALE_KEY, locale);
+        this.setUrl({ repo, node: this.selected });
         // Reloading the repo re-renders every screen in the new language.
         applyLocale(this.host);
         dialog.remove();
@@ -673,11 +690,14 @@ class App {
     if (this.host.kind === "extension") return;
     try {
       const params = new URLSearchParams(location.search);
-      for (const k of ["code", "state"]) params.delete(k);
+      for (const k of ["code", "state", SETTING_PARAM]) params.delete(k);
       if (p.repo) params.set("repo", p.repo);
       else params.delete("repo");
       if (p.node) params.set("node", p.node);
       else params.delete("node");
+      // Settings go last, so the link reads "what to open" first and "how to show it" after.
+      const setting = p.repo && settingParam({ locale: localePreference(this.host), config: this.repoConfig(p.repo), defaults: DEFAULT_TREE_CONFIG });
+      if (setting) params.set(SETTING_PARAM, setting);
       const q = params.toString().replace(/=(&|$)/g, "$1");
       history.replaceState(null, "", location.pathname + (q ? `?${q}` : ""));
     } catch {
