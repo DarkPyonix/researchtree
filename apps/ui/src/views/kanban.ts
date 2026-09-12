@@ -45,12 +45,19 @@ export class Kanban {
     window.addEventListener("resize", this.onResize);
   }
 
-  /** The repo card and the detail panel float above the board; keep the columns out from under them. */
+  /** The repo card and the detail panel sit over the board; the columns keep clear of both. */
+  layout(): void {
+    this.applyInsets();
+    this.scrollToSelected();
+  }
+
   private applyInsets(): void {
     const { top, right, bottom } = this.options.insets();
+    // The board's own box shrinks to the free area, so the panel takes space instead of covering
+    // cards, and what is left still scrolls on its own.
     this.root.style.paddingTop = `${Math.round(top)}px`;
-    this.root.style.paddingRight = `${Math.round(Math.max(16, right))}px`;
-    this.root.style.paddingBottom = `${Math.round(Math.max(28, bottom))}px`;
+    this.root.style.right = `${Math.round(Math.max(0, right - 16))}px`;
+    this.root.style.bottom = `${Math.round(Math.max(0, bottom - 16))}px`;
   }
 
   render(tree: ResearchTree, filter: ViewFilter): void {
@@ -58,6 +65,8 @@ export class Kanban {
     this.cards.clear();
     clear(this.root);
 
+    // Half a board of empty space at each end, so the first and last column can centre too.
+    this.root.append(h("div", { class: "board-spacer" }));
     const nodes = [...tree.nodes.values()];
     const byColumn = new Map<Column, TreeNode[]>(COLUMNS.map((c) => [c, []]));
     for (const node of nodes) byColumn.get(columnOf(node))!.push(node);
@@ -75,6 +84,7 @@ export class Kanban {
         ),
       );
     }
+    this.root.append(h("div", { class: "board-spacer" }));
     this.applyInsets();
     this.select(this.selected, false);
   }
@@ -118,13 +128,44 @@ export class Kanban {
       const on = nodeId === id;
       card.classList.toggle("selected", on);
       card.setAttribute("aria-pressed", String(on));
-      if (on && focus) card.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
     }
+    this.applyInsets();
+    if (focus) this.scrollToSelected();
+  }
+
+  /**
+   * Put the chosen card in the middle of what is still visible, so the next one is a glance away
+   * instead of behind the panel. On a phone the panel is a sheet along the bottom, so the middle is
+   * the middle of the strip above it.
+   */
+  private scrollToSelected(): void {
+    // One frame later: the board has just been resized around the panel, and the scroll has to be
+    // measured against the box it ends up with, not the one it had.
+    requestAnimationFrame(() => this.scrollNow());
+  }
+
+  private scrollNow(): void {
+    const card = this.selected ? this.cards.get(this.selected) : null;
+    const box = this.root;
+    if (!card) return;
+    const { top } = this.options.insets();
+    const view = box.getBoundingClientRect();
+    const cardBox = card.getBoundingClientRect();
+    const left = cardBox.left - view.left + box.scrollLeft + cardBox.width / 2;
+    const up = cardBox.top - view.top + box.scrollTop + cardBox.height / 2;
+    box.scrollTo({
+      left: left - box.clientWidth / 2,
+      // The heading row sits above the columns, so the middle of the strip is below it.
+      top: up - (top + (box.clientHeight - top) / 2),
+      behavior: "smooth",
+    });
   }
 
   destroy(): void {
     window.removeEventListener("resize", this.onResize);
-    this.root.removeAttribute("style");
+    this.root.style.right = "";
+    this.root.style.bottom = "";
+    this.root.style.paddingTop = "";
     clear(this.root);
     this.root.classList.remove("board");
     this.cards.clear();
