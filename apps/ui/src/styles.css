@@ -750,3 +750,13 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .brand.collapsed .eyebrow, .brand.collapsed .brand-sub, .brand.collapsed .layers { display: none; }
 .brand.collapsed .brand-title { margin: 0; padding-right: 34px; }
 .brand.collapsed .brand-toggle { top: 50%; margin-top: -13px; }
+
+/*
+ * PowerPoint add-in (apps/office). The viewer sits in a small frame on a slide, so the chrome gets
+ * out of the way: the brand card starts collapsed-sized, and the top-right corner stays clear of
+ * PowerPoint's own add-in menu.
+ */
+.office-embed .toolbar { top: 10px; right: 40px; }
+.office-embed .brand { padding: 12px 14px; }
+.office-embed .gens { bottom: 10px; }
+.office-embed .hint { display: none; }

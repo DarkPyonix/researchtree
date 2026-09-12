@@ -32,7 +32,7 @@ export interface HostCapabilities {
 }
 
 export interface Host {
-  kind: "web" | "extension" | "local";
+  kind: "web" | "extension" | "local" | "office";
   /** Environment languages for the automatic locale. Defaults to `navigator.languages` when absent. */
   languages?: readonly string[];
   auth: {

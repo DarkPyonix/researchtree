@@ -218,6 +218,11 @@ export const ko = {
   "web.noToken": "토큰을 받지 못했습니다.",
   "web.noClientId": "OAuth App client ID가 설정되지 않았습니다 (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "OAuth App client ID가 설정되지 않았습니다.",
+
+  // PowerPoint 애드인
+  "office.signingIn": "GitHub 로그인 중이에요…",
+  "office.dialogFailed": "로그인 창을 열지 못했습니다.",
+  "office.dialogClosed": "로그인 창이 닫혔습니다.",
   "local.serverError": "로컬 서버 오류 ({status})",
   "local.userFailed": "로그인은 끝났지만 사용자 정보를 불러오지 못했습니다.",
   "local.codeExpired": "로그인 코드가 만료되었습니다. 다시 시도해 주세요.",

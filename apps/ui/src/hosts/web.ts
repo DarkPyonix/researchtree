@@ -1,13 +1,10 @@
 import { assertApiPath, buildQuery, HttpError, isTokenRejected, t, type GitHubRequest, type GitHubResponse, type GitHubUser, type Host } from "@researchtree/core";
 import { localStore, openInNewTab, repoFromUrl } from "../host-utils";
+import { authorizeUrl, CLIENT_ID, exchangeCode, newVerifier, randomString } from "./github-oauth";
 
 const API = "https://api.github.com";
-const TOKEN_KEY = "token";
+export const TOKEN_KEY = "token";
 const PENDING_KEY = "researchtree.oauth";
-
-const CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID ?? "";
-const PROXY_URL = import.meta.env.VITE_AUTH_PROXY_URL || "https://researchtree.thisisthepy.workers.dev";
-const USE_PKCE = import.meta.env.VITE_OAUTH_PKCE === "true";
 
 interface Pending {
   state: string;
@@ -16,23 +13,12 @@ interface Pending {
   returnTo: string;
 }
 
-function randomString(bytes = 32): string {
-  const buf = new Uint8Array(bytes);
-  crypto.getRandomValues(buf);
-  return btoa(String.fromCharCode(...buf)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-async function sha256Base64Url(input: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
 /** Current page URL without query. The OAuth App callback URL must equal it or be a parent of it. */
 function redirectUri(): string {
   return location.origin + location.pathname;
 }
 
-async function fetchUser(token: string): Promise<GitHubUser> {
+export async function fetchUser(token: string): Promise<GitHubUser> {
   const res = await fetch(`${API}/user`, {
     headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
     cache: "no-store",
@@ -66,19 +52,43 @@ export async function completeOAuthRedirect(): Promise<{ error?: string } | null
 
   if (ghError) return { error: params.get("error_description") ?? ghError };
   if (!pending || pending.state !== state) return { error: t("web.stateMismatch") };
+  if (!code) return { error: t("web.noToken") };
 
-  const res = await fetch(`${PROXY_URL}/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code, code_verifier: pending.verifier }),
-  }).catch(() => null);
-  if (!res) return { error: t("web.proxyUnreachable") };
-  const data = (await res.json().catch(() => ({}))) as { access_token?: string; error?: string; error_description?: string };
-  if (!res.ok || !data.access_token) {
-    return { error: data.error_description ?? data.error ?? t("web.noToken") };
-  }
-  localStore().set(TOKEN_KEY, data.access_token);
+  const result = await exchangeCode(code, pending.verifier);
+  if ("error" in result) return result;
+  localStore().set(TOKEN_KEY, result.token);
   return {};
+}
+
+/** One GitHub call, straight from the browser. The token is only ever sent to api.github.com. */
+export async function githubRequest(token: string | undefined, req: GitHubRequest): Promise<GitHubResponse> {
+  assertApiPath(req.path);
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (req.etag) headers["If-None-Match"] = req.etag;
+  if (req.body !== undefined) headers["Content-Type"] = "application/json";
+
+  const res = await fetch(API + req.path + buildQuery(req.query), {
+    method: req.method,
+    headers,
+    body: req.body === undefined ? undefined : JSON.stringify(req.body),
+    cache: "no-store",
+  });
+  const out: Record<string, string> = {};
+  res.headers.forEach((v, k) => (out[k.toLowerCase()] = v));
+  const text = res.status === 204 || res.status === 304 ? "" : await res.text();
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
+  }
+  return { status: res.status, headers: out, data };
 }
 
 export function createWebHost(): Host {
@@ -105,56 +115,17 @@ export function createWebHost(): Host {
       },
       async signIn() {
         if (!CLIENT_ID) throw new Error(t("web.noClientIdShort"));
-        const pending: Pending = { state: randomString(), returnTo: location.search };
-        const url = new URL("https://github.com/login/oauth/authorize");
-        url.searchParams.set("client_id", CLIENT_ID);
-        url.searchParams.set("redirect_uri", redirectUri());
-        url.searchParams.set("scope", "repo");
-        url.searchParams.set("state", pending.state);
-        url.searchParams.set("allow_signup", "true");
-        if (USE_PKCE) {
-          pending.verifier = randomString(48);
-          url.searchParams.set("code_challenge", await sha256Base64Url(pending.verifier));
-          url.searchParams.set("code_challenge_method", "S256");
-        }
+        const pending: Pending = { state: randomString(), verifier: newVerifier(), returnTo: location.search };
+        const url = await authorizeUrl({ redirectUri: redirectUri(), state: pending.state, verifier: pending.verifier });
         sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
-        location.assign(url.toString());
+        location.assign(url);
         return new Promise<never>(() => {});
       },
       async signOut() {
         storage.set(TOKEN_KEY, undefined);
       },
     },
-    async request(req: GitHubRequest): Promise<GitHubResponse> {
-      assertApiPath(req.path);
-      const t = token();
-      const headers: Record<string, string> = {
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-      };
-      if (t) headers.Authorization = `Bearer ${t}`;
-      if (req.etag) headers["If-None-Match"] = req.etag;
-      if (req.body !== undefined) headers["Content-Type"] = "application/json";
-
-      const res = await fetch(API + req.path + buildQuery(req.query), {
-        method: req.method,
-        headers,
-        body: req.body === undefined ? undefined : JSON.stringify(req.body),
-        cache: "no-store",
-      });
-      const out: Record<string, string> = {};
-      res.headers.forEach((v, k) => (out[k.toLowerCase()] = v));
-      const text = res.status === 204 || res.status === 304 ? "" : await res.text();
-      let data: unknown = null;
-      if (text) {
-        try {
-          data = JSON.parse(text);
-        } catch {
-          data = text;
-        }
-      }
-      return { status: res.status, headers: out, data };
-    },
+    request: (req) => githubRequest(token(), req),
     async initialRepo() {
       return repoFromUrl();
     },

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ResearchTree as a PowerPoint content add-in: the experiment tree lives on a slide and stays live
+  during the talk. The pages it points at are built with the web app (apps/ui/office.html) and
+  published on GitHub Pages, so the add-in and its sign-in dialog share one origin.
+
+  Version must match apps/extension/package.json and the Python package (see .github/workflows/release.yml).
+-->
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xsi:type="ContentApp">
+  <Id>3f31a724-1201-40ee-b804-3f5624aac6cb</Id>
+  <Version>1.1.2.0</Version>
+  <ProviderName>DarkPyonix</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="ResearchTree">
+    <Override Locale="ko-KR" Value="ResearchTree" />
+  </DisplayName>
+  <Description DefaultValue="Show your research as a living tree of Git branches and pull requests, right on the slide.">
+    <Override Locale="ko-KR" Value="Git 브랜치와 PR로 자란 연구 트리를 슬라이드 위에서 그대로 보여줍니다." />
+  </Description>
+  <IconUrl DefaultValue="https://darkpyonix.github.io/researchtree/office/icon-64.png" />
+  <HighResolutionIconUrl DefaultValue="https://darkpyonix.github.io/researchtree/office/icon-128.png" />
+  <SupportUrl DefaultValue="https://github.com/DarkPyonix/researchtree/issues" />
+
+  <!-- Everything the add-in talks to: its own pages, GitHub sign-in, and the token exchange proxy. -->
+  <AppDomains>
+    <AppDomain>https://github.com</AppDomain>
+    <AppDomain>https://researchtree.thisisthepy.workers.dev</AppDomain>
+  </AppDomains>
+
+  <Hosts>
+    <Host Name="Presentation" />
+  </Hosts>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://darkpyonix.github.io/researchtree/office.html" />
+    <RequestedWidth>720</RequestedWidth>
+    <RequestedHeight>460</RequestedHeight>
+  </DefaultSettings>
+
+  <!-- The viewer reads and writes pull requests with the reader's own GitHub token, never with ours. -->
+  <Permissions>ReadWriteDocument</Permissions>
+</OfficeApp>

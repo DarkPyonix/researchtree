@@ -220,6 +220,11 @@ export const en: Record<MessageKey, string> = {
   "web.noToken": "No token was received.",
   "web.noClientId": "The OAuth App client ID is not configured (VITE_GITHUB_CLIENT_ID).",
   "web.noClientIdShort": "The OAuth App client ID is not configured.",
+
+  // PowerPoint add-in
+  "office.signingIn": "Signing in to GitHub…",
+  "office.dialogFailed": "Couldn't open the sign-in window.",
+  "office.dialogClosed": "The sign-in window was closed.",
   "local.serverError": "Local server error ({status})",
   "local.userFailed": "Signed in, but couldn't load your user info.",
   "local.codeExpired": "The sign-in code has expired. Please try again.",
