@@ -172,6 +172,7 @@ export class Panel {
       this.el.append(
         this.head(t("intro.title"), null),
         h("div", { class: "panel-body" }, h("p", { class: "muted" }, docs.error ? t("intro.failed", { error: docs.error }) : t("intro.empty"))),
+        this.resizer,
       );
       return;
     }
@@ -189,6 +190,8 @@ export class Panel {
         this.showIntro(tree, docs);
       }, true),
       body,
+      // Every render clears the panel, so the drag handle has to go back on with the rest of it.
+      this.resizer,
     );
   }
 
