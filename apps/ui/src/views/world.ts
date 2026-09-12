@@ -1,8 +1,10 @@
 /**
  * The world map: an open sea you drag across, with one island per research (docs/ISLAND.md).
  *
- * Two words, two things. A *land* is a project you reach through a portal; a *research island* is
+ * Two words, two things. A *land* is a project, a stretch of sea of its own; a *research island* is
  * one repository, and its own versions are the connected islands you see once you sail into it.
+ * Nothing teleports: you get from one land to the next by dragging or scrolling across the water,
+ * and the minimap in the corner says where you are.
  *
  * It is drawn to match the viewer it leads into: the same sea and sand and grass as the 3D island,
  * the same chip under each island as the labels over its plants, and no boxes around anything.
@@ -158,6 +160,7 @@ export class World {
     this.root.addEventListener("pointermove", this.onMove);
     this.root.addEventListener("pointerup", this.onUp);
     this.root.addEventListener("pointercancel", this.onUp);
+    this.root.addEventListener("wheel", this.onWheel, { passive: false });
   }
 
   render(map: IslandMap): void {
@@ -173,8 +176,6 @@ export class World {
         ),
       );
       for (const island of spot.islands) this.surface.append(this.island(island));
-      const next = this.nextSpot(spot);
-      if (next) this.surface.append(this.portal(spot, next));
     }
     this.measure();
     this.centerOn(this.spots[0]);
@@ -208,31 +209,14 @@ export class World {
     );
   }
 
-  /** A stone gate on the shore, pointing at the next land. */
-  private portal(from: Spot, to: Spot): HTMLElement {
-    const angle = Math.atan2(to.y - from.y, to.x - from.x);
-    const spread = (from.islands.length - 1) * (ISLAND_STEP_X / 2);
-    return h(
-      "button",
-      {
-        class: "portal",
-        type: "button",
-        style: `left:${from.x + spread + Math.cos(angle) * 330}px; top:${from.y + Math.sin(angle) * 240 + 30}px`,
-        title: t("world.portal", { name: to.land.name }),
-        onclick: () => this.centerOn(to),
-      },
-      h("span", { class: "portal-arch" }, h("span", { class: "portal-glow" })),
-      h("span", { class: "label3d portal-chip" }, h("span", { class: "label3d-name" }, to.land.name), h("span", { class: "label3d-sub" }, t("world.portalSub"))),
-    );
-  }
-
-  private nextSpot(spot: Spot): Spot | null {
-    if (this.spots.length < 2) return null;
-    const i = this.spots.indexOf(spot);
-    return this.spots[(i + 1) % this.spots.length] ?? null;
-  }
-
   // ---------------------------------------------------------------- sailing
+
+  /** The wheel sails too: down and up move the sea, and a sideways wheel (or shift) moves it across. */
+  private onWheel = (e: WheelEvent) => {
+    e.preventDefault();
+    this.pan = { x: this.pan.x - (e.shiftKey ? e.deltaY : e.deltaX), y: this.pan.y - (e.shiftKey ? 0 : e.deltaY) };
+    this.apply();
+  };
 
   private onDown = (e: PointerEvent) => {
     if ((e.target as HTMLElement).closest("button")) return;
@@ -301,6 +285,16 @@ export class World {
     const { minX, minY } = this.bounds;
     const scale = this.scale();
     for (const spot of this.spots) {
+      // The land's name, so the corner map says which way the next one lies.
+      const xs = spot.islands.map((i) => i.x);
+      const ys = spot.islands.map((i) => i.y);
+      if (xs.length) {
+        const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+        const top = Math.min(...ys);
+        this.minimap.append(
+          h("span", { class: "world-map-name", style: `left:${(cx - minX) * scale}px; top:${Math.max(2, (top - minY) * scale - 12)}px` }, spot.land.name),
+        );
+      }
       for (const island of spot.islands) {
         this.minimap.append(
           h("i", {
@@ -320,10 +314,13 @@ export class World {
     if (!r.width) return;
     const { minX, minY } = this.bounds;
     const scale = this.scale();
-    this.here.style.left = `${(-this.pan.x - minX) * scale}px`;
-    this.here.style.top = `${(-this.pan.y - minY) * scale}px`;
-    this.here.style.width = `${r.width * scale}px`;
-    this.here.style.height = `${r.height * scale}px`;
+    // Kept inside the frame: a viewport wider than the whole map would otherwise draw outside it.
+    const w = Math.min(MINIMAP, r.width * scale);
+    const h2 = Math.min(MINIMAP, r.height * scale);
+    this.here.style.width = `${w}px`;
+    this.here.style.height = `${h2}px`;
+    this.here.style.left = `${Math.max(0, Math.min(MINIMAP - w, (-this.pan.x - minX) * scale))}px`;
+    this.here.style.top = `${Math.max(0, Math.min(MINIMAP - h2, (-this.pan.y - minY) * scale))}px`;
   }
 
   destroy(): void {
@@ -331,6 +328,7 @@ export class World {
     this.root.removeEventListener("pointermove", this.onMove);
     this.root.removeEventListener("pointerup", this.onUp);
     this.root.removeEventListener("pointercancel", this.onUp);
+    this.root.removeEventListener("wheel", this.onWheel);
     this.root.classList.remove("sea", "dragging");
     clear(this.root);
   }

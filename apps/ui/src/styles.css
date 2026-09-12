@@ -901,7 +901,7 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .portal-chip { position: static; transform: none; }
 .portal-chip::after { display: none; }
 
-/* Minimap: the islands as dots, and the stretch of sea on screen. */
+/* Minimap: the same sea in the corner, with the islands on it and a box around what is on screen. */
 .world-minimap-frame {
   position: absolute;
   right: 16px;
@@ -909,16 +909,34 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   width: 148px;
   height: 148px;
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--card) 82%, transparent);
+  background: linear-gradient(180deg, #a5dddb 0%, #8fd3e3 100%);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
   overflow: hidden;
   z-index: 3;
   pointer-events: none;
 }
+:root[data-theme="dark"] .world-minimap-frame { background: linear-gradient(180deg, #24484b 0%, #1a3739 100%); }
 .world-minimap { position: absolute; inset: 0; }
-.world-dot { position: absolute; width: 8px; height: 6px; margin: -3px 0 0 -4px; border-radius: 50%; background: #9fcc84; box-shadow: 0 1px 0 #c79b6d; }
-.world-here { position: absolute; border: 1.5px solid var(--accent-2); border-radius: 6px; }
+.world-map-name {
+  position: absolute;
+  transform: translateX(-50%);
+  font: 700 9px/1 var(--font);
+  letter-spacing: 0.04em;
+  color: rgba(31, 59, 70, 0.7);
+  white-space: nowrap;
+}
+:root[data-theme="dark"] .world-map-name { color: rgba(226, 236, 235, 0.75); }
+.world-dot {
+  position: absolute;
+  width: 13px;
+  height: 9px;
+  margin: -4px 0 0 -6px;
+  border-radius: 50%;
+  background: #a7d38b;
+  box-shadow: 0 0 0 2px #efdcae, 0 2px 0 rgba(37, 86, 96, 0.18);
+}
+.world-here { position: absolute; border: 2px solid var(--accent-2); border-radius: 6px; box-shadow: 0 0 0 200px rgba(20, 40, 45, 0.12) inset; }
 
 /*
  * Scroll banner (scroll-banner.ts): the name of the place you just entered, unrolled at the top of
@@ -988,3 +1006,12 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   .scroll-paper { padding: 10px 20px; }
   .scroll-title { font-size: 17px; }
 }
+
+/* A sea of islands: only each research's own name is shown, not every plant's chip. */
+.labels3d.world .label3d { display: none; }
+.labels3d.world .label3d.island-name { display: grid; }
+
+/* The research's name over its island, when several share one sea. */
+.label3d.island-name { padding: 7px 14px; border-radius: 14px; }
+.label3d.island-name .label3d-name { font: 700 15px/1.2 var(--display); }
+.label3d.island-name::after { display: none; }
