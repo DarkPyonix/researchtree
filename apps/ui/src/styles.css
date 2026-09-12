@@ -736,7 +736,7 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   :root { --radius: 30px; }
   .card, .btn, .icon-btn, .select, .input, .gen-btn, .tab, .tabs, .label3d, .menu, .menu-item, .chip, .pill, .branch,
   .panel, .gens, .toast, .dialog, .comment, .file, .file-status, .commit, .prose pre, .warn-box, .island-metric, .year3d,
-  .board-col, .board-card, .scroll-paper {
+  .board-col, .board-card {
     corner-shape: squircle;
   }
   .card { border-radius: 30px; }
@@ -747,8 +747,6 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
   .icon-btn, .gen-btn, .tab, .menu-item, .commit { border-radius: 14px; }
   .tabs { border-radius: 20px; }
   .label3d, .comment, .file { border-radius: 18px; }
-  /* Between the map's chips and a full card: the banner is card-sized but sits over the scene. */
-  .scroll-paper { border-radius: 24px; }
   .chip, .pill { border-radius: 14px; }
   .branch, .file-status { border-radius: 10px; }
   /* The board reads as cards on a board: the column like a card, the cards a size down. */
@@ -958,90 +956,82 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .world-here { position: absolute; border: 2px solid var(--accent-2); border-radius: 6px; box-shadow: 0 0 0 200px rgba(20, 40, 45, 0.12) inset; }
 
 /*
- * Scroll banner (scroll-banner.ts): the name of the place you just entered, unrolled at the top of
- * the screen. The paper is the same surface as every card on the map (--card, one --line border,
- * var(--shadow)), so arriving somewhere does not look like another application; what says "scroll"
- * is the way it opens: a rod rolls down the screen and the paper follows it out, then back up.
- * It never takes a click away from the scene behind it.
+ * Scroll banner (scroll-banner.ts): the name of the place you just entered, on a scroll that unrolls
+ * at the top of the screen. The drawing is in banner-art.ts; here it only has to open — the two coils
+ * slide out to the ends while the sheet is revealed between them. The reveal never runs ahead of the
+ * coils, so a cut edge of paper is never on screen. It takes no click away from the scene behind it.
  */
 .scroll-banner {
   position: absolute;
-  top: calc(66px + env(safe-area-inset-top, 0px));
+  top: calc(62px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
-  width: min(520px, calc(100% - 32px));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  width: min(620px, calc(100% - 32px));
+  aspect-ratio: 720 / 200;
+  /* The writing is sized against the scroll, not the window, so it fits the paper at any width. */
+  container-type: inline-size;
   z-index: 7;
   cursor: pointer;
 }
-/* The clipper: its height is the length of paper that has been unrolled so far. */
-.scroll-sheet {
-  width: 100%;
-  height: 0;
-  overflow: hidden;
-  transition: height 620ms cubic-bezier(0.22, 1, 0.36, 1);
+.scroll-banner svg { display: block; width: 100%; height: auto; }
+/* The coils travel with `translate`, not `transform`: a drawing may carry a transform of its own
+   (one has its right coil nudged onto the sheet) and the two properties compose instead of fighting. */
+.scroll-banner [data-part="left"] { translate: 295px 0; }
+.scroll-banner [data-part="right"] { translate: -295px 0; }
+.scroll-banner [data-part="sheet"], .scroll-banner [data-part="shadow"] { clip-path: inset(0 49% 0 49%); }
+.scroll-banner [data-part] {
+  transition: translate 460ms cubic-bezier(0.6, 0, 0.75, 0.3), clip-path 460ms cubic-bezier(0.6, 0, 0.75, 0.3);
 }
-.scroll-banner.open .scroll-sheet { height: var(--sheet-h, auto); }
-.scroll-banner.closing .scroll-sheet { height: 0; transition-duration: 460ms; }
-.scroll-banner.instant .scroll-sheet { transition: none; }
+.scroll-banner.open [data-part] {
+  transition: translate 620ms cubic-bezier(0.34, 0.02, 0.2, 1), clip-path 620ms cubic-bezier(0.34, 0.02, 0.2, 1);
+}
+.scroll-banner.open [data-part="left"], .scroll-banner.open [data-part="right"] { translate: 0 0; }
+.scroll-banner.open [data-part="sheet"], .scroll-banner.open [data-part="shadow"] { clip-path: inset(0 0 0 0); }
+.scroll-banner.instant [data-part] { transition: none; }
+
+/* The writing sits in the clear middle of the sheet, which each drawing marks for itself. */
 .scroll-paper {
-  padding: 15px 26px 17px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  text-align: center;
-  color: var(--ink);
-}
-/* The paper is solid from the first millimetre; what waits for it to open is the writing on it. */
-.scroll-paper > * {
-  opacity: 0;
-  transform: translateY(-8px);
-  transition: opacity 300ms ease, transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.scroll-banner.open .scroll-paper > * { opacity: 1; transform: none; transition-delay: 200ms; }
-.scroll-banner.instant .scroll-paper > * { transition: none; }
-/* The rod the paper hangs from: it sits under the paper's bottom edge, so unrolling carries it down. */
-.scroll-rod {
-  position: relative;
-  width: calc(100% + 26px);
-  height: 9px;
-  margin-top: -4px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--wood) 80%, #fff) 0%, var(--wood) 45%, var(--wood-dark) 100%);
-  box-shadow: 0 3px 10px rgba(40, 30, 20, 0.22);
-}
-/* Knobs at both ends, the way a rolled scroll is held. */
-.scroll-rod::before, .scroll-rod::after {
-  content: "";
   position: absolute;
-  top: -2.5px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--wood) 70%, #fff), var(--wood-dark) 75%);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  color: #43331f;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 260ms ease, transform 340ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-.scroll-rod::before { left: -7px; }
-.scroll-rod::after { right: -7px; }
-.scroll-eyebrow { margin: 0; font: 600 11px/1.2 var(--font); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
-.scroll-title { margin: 6px 0 0; font: 700 22px/1.25 var(--display); letter-spacing: -0.005em; }
+.scroll-banner.open .scroll-paper { opacity: 1; transform: none; transition-delay: 280ms; }
+.scroll-banner.instant .scroll-paper { transition: none; }
+.scroll-eyebrow {
+  margin: 0;
+  font: 600 clamp(8px, 1.4cqw, 10px)/1.2 var(--font);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #7c6742;
+}
+.scroll-title {
+  margin: 1px 0 0;
+  font: 700 clamp(14px, 3cqw, 20px)/1.2 var(--display);
+  letter-spacing: -0.005em;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .scroll-body {
-  margin: 6px 0 0;
-  font: 12.5px/1.5 var(--font);
-  color: var(--ink-soft);
+  margin: 1px 0 0;
+  font: clamp(9px, 1.7cqw, 12px)/1.35 var(--font);
+  color: #7c6742;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
 }
 @media (max-width: 640px) {
-  .scroll-banner { top: calc(58px + env(safe-area-inset-top, 0px)); }
-  .scroll-paper { padding: 12px 18px 14px; }
-  .scroll-title { font-size: 18px; }
-  .scroll-rod { height: 7px; }
+  .scroll-banner { top: calc(56px + env(safe-area-inset-top, 0px)); width: calc(100% - 24px); }
 }
 
 /* A sea of islands: only each research's own name is shown, not every plant's chip. */
