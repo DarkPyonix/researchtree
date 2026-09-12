@@ -3,7 +3,7 @@
 These are the branch rules your team follows when using ResearchTree.
 
 ::: tip You can rename them
-The root branch (`research`) and the experiment branch prefix (`experiment/`) are just defaults. To change them, put a `.researchtree.yml` on the repository's default branch (usually `main`) with `root` and `prefix`. One file per repository, so the viewer, the CLI and your training script all read the same names. Wherever the docs say `research` and `experiment/`, read them as whatever names you picked.
+The root branch (`research`) and the experiment branch prefix (`experiment/`) are just defaults. To change them, put a `.researchtree` on the repository's default branch (usually `main`) with `root` and `prefix`. One file per repository, so the viewer, the CLI and your training script all read the same names. Wherever the docs say `research` and `experiment/`, read them as whatever names you picked.
 :::
 
 ## What each branch is for

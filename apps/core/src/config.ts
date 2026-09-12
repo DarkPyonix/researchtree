@@ -16,7 +16,7 @@ export const DEFAULT_TREE_CONFIG: TreeConfig = {
 
 const BRANCH_RE = /^(?!\/)(?!.*\/\/)(?!.*\.\.)[A-Za-z0-9._\-/]+$/;
 
-/** The tree settings a repository's `.researchtree.yml` asks for, filled in with the defaults. */
+/** The tree settings a repository's `.researchtree` asks for, filled in with the defaults. */
 export function repoFileConfig(file: { root?: string; prefix?: string }): TreeConfig {
   return normalizeTreeConfig({ root: file.root, prefix: file.prefix }) ?? DEFAULT_TREE_CONFIG;
 }

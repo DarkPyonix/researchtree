@@ -25,7 +25,7 @@ Details: [docs/CONVENTIONS.md](docs/CONVENTIONS.md). Do not change these without
 - PR-body rewriting must be lossless: only the YAML block changes, comments and key order are preserved, unknown fields are kept, and a broken YAML block is never overwritten.
 - TypeScript (`apps/core/src/prbody.ts`) and Python (`apps/researchtree/experiment/body.py`) implement the same rules. Both must pass `tests/fixtures/prbody-cases.json`. Change the fixture first, then both implementations.
 - The tree rules likewise live in TypeScript (`apps/core/src/tree.ts`) and Python (`apps/researchtree/memory/build.py`). Both must turn `tests/fixtures/tree-sample.json` into `tree-expected.json`. After an intended rule change, regenerate with `RT_UPDATE_FIXTURES=1 npm test`, then update the Python port.
-- The intent/spec rules (sections, includes, section changes, `.researchtree.yml`) live in `apps/core/src/spec.ts` and `apps/researchtree/memory/spec.py`, checked the same way against `tests/fixtures/spec-cases.json` → `spec-expected.json`.
+- The intent/spec rules (sections, includes, section changes, `.researchtree`) live in `apps/core/src/spec.ts` and `apps/researchtree/memory/spec.py`, checked the same way against `tests/fixtures/spec-cases.json` → `spec-expected.json`.
 
 ## Security rules
 

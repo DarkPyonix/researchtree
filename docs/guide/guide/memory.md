@@ -23,7 +23,7 @@ print(research.manifest())                   # 여기서 시작
 ```
 
 - 토큰은 `researchtree login`으로 저장한 것이나 `RESEARCHTREE_TOKEN`을 써요. 공개 레포는 토큰 없이도 읽혀요.
-- 루트 브랜치와 접두사는 레포의 `.researchtree.yml`에서 읽어요. 한 번만 다르게 읽고 싶으면 `rt.load(root="trunk", prefix="exp/")`처럼 넘기면 됩니다.
+- 루트 브랜치와 접두사는 레포의 `.researchtree`에서 읽어요. 한 번만 다르게 읽고 싶으면 `rt.load(root="trunk", prefix="exp/")`처럼 넘기면 됩니다.
 - 트리는 뷰어와 같은 규칙으로 만들어요([트리 결정 규칙](/rules/tree-rules)). 두 구현이 같은 테스트 픽스처로 결과를 맞춰요.
 
 ## 위에서 아래로 내려가기

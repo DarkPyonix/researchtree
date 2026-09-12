@@ -3,7 +3,7 @@
 ResearchTree를 쓸 때 팀에서 지켜야 할 브랜치 규칙이에요.
 
 ::: tip 이름은 바꿀 수 있습니다
-루트 브랜치(`research`)와 실험 브랜치 접두사(`experiment/`)는 기본값입니다. 바꾸려면 레포의 기본 브랜치(보통 `main`)에 `.researchtree.yml`을 두고 `root`와 `prefix`를 적으세요. 레포 하나에 설정 하나라서 뷰어도, CLI도, 학습 스크립트도 같은 값을 읽어요. 문서에 나오는 `research`와 `experiment/`는 각자 설정한 이름에 맞춰 읽어주세요.
+루트 브랜치(`research`)와 실험 브랜치 접두사(`experiment/`)는 기본값입니다. 바꾸려면 레포의 기본 브랜치(보통 `main`)에 `.researchtree`을 두고 `root`와 `prefix`를 적으세요. 레포 하나에 설정 하나라서 뷰어도, CLI도, 학습 스크립트도 같은 값을 읽어요. 문서에 나오는 `research`와 `experiment/`는 각자 설정한 이름에 맞춰 읽어주세요.
 :::
 
 ## 브랜치 역할

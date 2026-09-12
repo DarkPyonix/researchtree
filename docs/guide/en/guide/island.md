@@ -59,7 +59,7 @@ islands:
         at: [0, 0]
 ```
 
-Branch names come from each repository's own `.researchtree.yml`, so the map does not repeat them.
+Branch names come from each repository's own `.researchtree`, so the map does not repeat them.
 
 One bad line never empties the map: whatever could be read is shown, and
 `researchtree island check` tells you about the rest.

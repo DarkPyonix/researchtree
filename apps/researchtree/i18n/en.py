@@ -82,7 +82,7 @@ EN = {
     "spec.experimentChanges": "{name}: spec changes since it forked ({path})",
     "spec.noSection": "No version has a section '{key}'.",
     "spec.mergedIn": "merged: {names}",
-    "spec.missingDoc": "{version} has no {path}. (Set another path with spec / intent in .researchtree.yml.)",
+    "spec.missingDoc": "{version} has no {path}. (Set another path with spec / intent in .researchtree.)",
     "spec.issue.missing-include": "Include can't be read",
     "spec.issue.no-summary": "No summary line (>)",
     "spec.issue.too-long": "Too long",

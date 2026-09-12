@@ -117,7 +117,7 @@ gitGraph
 
 > [!TIP]
 > The root branch name (`research`) and the experiment prefix (`experiment/`) are only defaults.
-> To change either, put a `.researchtree.yml` on the repository's default branch with `root` and `prefix`. The viewer, the CLI and the training-script API all read it.
+> To change either, put a `.researchtree` on the repository's default branch with `root` and `prefix`. The viewer, the CLI and the training-script API all read it.
 
 ### The PR body is the lab note
 
@@ -359,7 +359,7 @@ researchtree spec --diff        # what changed since the previous version
 researchtree spec --claims      # each claim with the experiments that tested it
 ```
 
-In the viewer, the version panel's **Spec** tab shows each version's spec in full, as a summary, or as changes since the previous version, with a history per section, and the experiment panel's **Spec** tab shows what that branch changed. Set other paths in `.researchtree.yml` on the root branch (`spec:`, `intent:`, `prefix:`). See the [guide](https://darkpyonix.github.io/researchtree/guide/rules/spec).
+In the viewer, the version panel's **Spec** tab shows each version's spec in full, as a summary, or as changes since the previous version, with a history per section, and the experiment panel's **Spec** tab shows what that branch changed. Set other paths in `.researchtree` on the root branch (`spec:`, `intent:`, `prefix:`). See the [guide](https://darkpyonix.github.io/researchtree/guide/rules/spec).
 
 ## 📦 Install
 

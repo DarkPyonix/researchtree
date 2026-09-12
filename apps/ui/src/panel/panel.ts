@@ -25,7 +25,7 @@ export interface PanelDeps {
   /** Label metric choices for an island (root or version id) and the current pick. */
   islandMetric(island: string): { keys: string[]; current: string | null };
   onIslandMetric(island: string, metric: string | null): void;
-  /** Path of the spec document in this repo (from .researchtree.yml, else SPEC.md). */
+  /** Path of the spec document in this repo (from .researchtree, else SPEC.md). */
   specPath(): string;
   /** False for a guest reading a public repo: writing to GitHub needs a sign-in. */
   signedIn(): boolean;

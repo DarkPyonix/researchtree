@@ -565,7 +565,7 @@ class Research:
         for v in tree.versions.values():
             self._versions[v.id] = Version(self, v.id, v.name, v.sha, v.date)
         self._experiments = {i: Experiment(self, i) for i in tree.nodes}
-        # `.researchtree.yml` on the root branch (set by load(); empty when offline or absent)
+        # `.researchtree` on the root branch (set by load(); empty when offline or absent)
         self.config: dict[str, str] = {}
         self.config_warnings: list[dict[str, str]] = []
 

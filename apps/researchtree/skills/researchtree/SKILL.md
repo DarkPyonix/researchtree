@@ -72,7 +72,7 @@ Keep three kinds of writing apart. Mixing them is what makes research documents 
 
 Plans and to-do lists are not documents: each open item is a draft experiment PR.
 
-Some repositories keep the same content under other names (for example `PROJECT.md` and `MOTIVATION.md` for intent, `PHASE.md` and `IMPLEMENTATION.md` for spec). Use what the repository has; do not create a parallel set of files unless the user asks for it. The paths are set in `.researchtree.yml` at the root of `research`, which the viewer, the CLI and the Python API all read:
+Some repositories keep the same content under other names (for example `PROJECT.md` and `MOTIVATION.md` for intent, `PHASE.md` and `IMPLEMENTATION.md` for spec). Use what the repository has; do not create a parallel set of files unless the user asks for it. The paths are set in `.researchtree` at the root of `research`, which the viewer, the CLI and the Python API all read:
 
 ```yaml
 spec: docs/PHASE.md
@@ -133,7 +133,7 @@ researchtree memory                                # prints the manifest; fails 
 
 - Authentication: `researchtree login` (GitHub Device Flow, token stored in the OS keyring or a `0600` file), or the `RESEARCHTREE_TOKEN` environment variable. Public repositories can be read without a token.
 - The repository comes from the `origin` remote; override with `RESEARCHTREE_REPO=owner/name`.
-- The root branch (`research`) and experiment prefix (`experiment/`) are defaults. A repository changes them in `.researchtree.yml` on its default branch (`root: trunk`, `prefix: exp/`); everything reads that file, so there is nothing to set per machine. Read every `research` / `experiment/` below as whatever that file says.
+- The root branch (`research`) and experiment prefix (`experiment/`) are defaults. A repository changes them in `.researchtree` on its default branch (`root: trunk`, `prefix: exp/`); everything reads that file, so there is nothing to set per machine. Read every `research` / `experiment/` below as whatever that file says.
 - `main`, `develop` and every other branch are ignored by the tree. Never open experiment PRs against them.
 
 ## Before you propose an experiment: read the memory

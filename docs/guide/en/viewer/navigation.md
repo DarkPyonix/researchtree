@@ -86,5 +86,5 @@ Under **Branch settings** in the settings window (or the **Branch settings** but
 - For the detailed input rules, see [Branch setting rules](/rules/branches).
 
 ::: tip Match your training script
-Branch names come from the repository's `.researchtree.yml`, so there is nothing to set in the viewer or in your training environment ([Research rules](/rules/branches)).
+Branch names come from the repository's `.researchtree`, so there is nothing to set in the viewer or in your training environment ([Research rules](/rules/branches)).
 :::

@@ -118,7 +118,7 @@ gitGraph
 
 > [!TIP]
 > 루트 브랜치 이름(`research`)과 실험 브랜치 접두사(`experiment/`)는 기본값일 뿐입니다.
-> 레포의 기본 브랜치에 `.researchtree.yml`을 두고 `root`와 `prefix`를 적으면 뷰어와 CLI, 학습 스크립트가 모두 그 이름을 씁니다.
+> 레포의 기본 브랜치에 `.researchtree`을 두고 `root`와 `prefix`를 적으면 뷰어와 CLI, 학습 스크립트가 모두 그 이름을 씁니다.
 
 ### PR 본문이 실험 일지다
 
@@ -359,7 +359,7 @@ researchtree spec --diff        # 직전 버전 대비 바뀐 섹션
 researchtree spec --claims      # 주장별로 검증한 실험
 ```
 
-뷰어에서는 버전 패널의 **스펙** 탭이 그 버전의 스펙을 전체, 요약, 직전 버전 대비 변경으로 보여주고 섹션마다 이력을 펼칠 수 있습니다. 실험 패널의 **스펙** 탭은 그 브랜치가 바꾼 섹션을 보여줍니다. 다른 경로는 루트 브랜치의 `.researchtree.yml`에 적습니다(`spec:`, `intent:`, `prefix:`). 자세한 내용은 [가이드](https://darkpyonix.github.io/researchtree/guide/rules/spec)에 있습니다.
+뷰어에서는 버전 패널의 **스펙** 탭이 그 버전의 스펙을 전체, 요약, 직전 버전 대비 변경으로 보여주고 섹션마다 이력을 펼칠 수 있습니다. 실험 패널의 **스펙** 탭은 그 브랜치가 바꾼 섹션을 보여줍니다. 다른 경로는 루트 브랜치의 `.researchtree`에 적습니다(`spec:`, `intent:`, `prefix:`). 자세한 내용은 [가이드](https://darkpyonix.github.io/researchtree/guide/rules/spec)에 있습니다.
 
 ## 📦 설치
 

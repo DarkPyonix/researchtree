@@ -40,7 +40,7 @@ github.com/<user>/.researchisland
 └─ RESUME.pdf   이력서 (있으면 "이력서 보기" 버튼이 생긴다)
 ```
 
-설정은 README.md 안의 첫 ```` ```yaml ```` 블록에 적는다. PR 본문과 `.researchtree.yml`이 이미 쓰는
+설정은 README.md 안의 첫 ```` ```yaml ```` 블록에 적는다. PR 본문과 `.researchtree`이 이미 쓰는
 방식이라 이 프로젝트 안에서 일관된다. 블록 밖의 글은 사람이 읽는 소개이고 뷰어는 건드리지 않는다.
 
 ```yaml
@@ -62,7 +62,7 @@ islands:
         at: [0, 0]
 ```
 
-- 레포의 `.researchtree.yml`이 있으면 그쪽 값이 우선한다. 팀이 정한 것을 개인 지도가 덮지 않는다.
+- 레포의 `.researchtree`이 있으면 그쪽 값이 우선한다. 팀이 정한 것을 개인 지도가 덮지 않는다.
 - 모르는 키는 무시한다. 설정이 깨져 있으면 아일랜드를 비우지 말고, 읽어낸 것만 보여주고 경고를 남긴다.
 - `at`은 격자 좌표다. 겹치면 뷰어가 빈 칸으로 밀어낸다.
 
@@ -88,7 +88,7 @@ islands:
 | 의도 | `INTENT.md` | 최신 research 버전 |
 | 스펙 | `SPEC.md` | 최신 research 버전 |
 
-의도와 스펙의 경로는 `.researchtree.yml`의 `intent` / `spec`을 따른다. 없는 문서는 자리를 만들지 않는다.
+의도와 스펙의 경로는 `.researchtree`의 `intent` / `spec`을 따른다. 없는 문서는 자리를 만들지 않는다.
 
 ## 5. 연구자
 

@@ -82,7 +82,7 @@ KO = {
     "spec.experimentChanges": "{name}: 갈라진 지점 대비 스펙 변경 ({path})",
     "spec.noSection": "'{key}' 섹션을 어느 버전에서도 찾지 못했습니다.",
     "spec.mergedIn": "합쳐진 실험: {names}",
-    "spec.missingDoc": "{version}에 {path} 파일이 없습니다. (.researchtree.yml의 spec / intent로 경로를 바꿀 수 있습니다)",
+    "spec.missingDoc": "{version}에 {path} 파일이 없습니다. (.researchtree의 spec / intent로 경로를 바꿀 수 있습니다)",
     "spec.issue.missing-include": "include를 읽지 못함",
     "spec.issue.no-summary": "요약 줄(>) 없음",
     "spec.issue.too-long": "너무 김",

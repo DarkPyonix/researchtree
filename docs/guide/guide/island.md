@@ -59,7 +59,7 @@ islands:
         at: [0, 0]
 ```
 
-브랜치 이름은 각 레포의 `.researchtree.yml`에서 읽어요. 지도에는 적지 않아도 됩니다.
+브랜치 이름은 각 레포의 `.researchtree`에서 읽어요. 지도에는 적지 않아도 됩니다.
 
 잘못 적힌 줄이 있어도 지도가 통째로 비지 않아요. 읽어낸 것만 보여주고 나머지는 `researchtree island check`가
 알려줍니다.

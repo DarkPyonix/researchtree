@@ -2,7 +2,7 @@
  * Settings carried in the URL, so a link opens the viewer the way the sender sees it: `?lang=en`.
  *
  * Only what belongs to the reader lives here. Branch names do not: they belong to the repository,
- * in its `.researchtree.yml` (docs/CONVENTIONS.md), so everyone who opens it sees the same tree.
+ * in its `.researchtree` (docs/CONVENTIONS.md), so everyone who opens it sees the same tree.
  */
 import { isLocalePreference, type LocalePreference } from "@researchtree/core";
 

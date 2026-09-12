@@ -18,7 +18,7 @@ _prefix_cache: dict[str, str] = {}
 
 
 def experiment_prefix(repo: str | None = None, token: str | None = None) -> str:
-    """The repository's experiment branch prefix, from its own `.researchtree.yml` (docs/CONVENTIONS.md).
+    """The repository's experiment branch prefix, from its own `.researchtree` (docs/CONVENTIONS.md).
 
     One reading per process: a training run asks for this on every log call.
     """
@@ -26,13 +26,13 @@ def experiment_prefix(repo: str | None = None, token: str | None = None) -> str:
         return DEFAULT_PREFIX
     if repo not in _prefix_cache:
         from ..memory.source import Source
-        from ..memory.spec import parse_repo_config
+        from ..memory.spec import REPO_CONFIG_PATHS, parse_repo_config
 
         prefix = DEFAULT_PREFIX
         try:
             src = Source(repo, token)
-            for ref in (src.default_branch(), "research"):
-                text = src.file_text(".researchtree.yml", ref) if ref else None
+            for ref, path in ((ref, path) for ref in (src.default_branch(), "research") if ref for path in REPO_CONFIG_PATHS):
+                text = src.file_text(path, ref)
                 if text is not None:
                     prefix = parse_repo_config(text)[0].get("prefix") or DEFAULT_PREFIX
                     break

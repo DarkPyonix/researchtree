@@ -7,7 +7,11 @@ import { isMap, parseDocument } from "yaml";
  */
 
 /** Repository settings shared by the whole team, read from the root branch. */
-export const REPO_CONFIG_PATH = ".researchtree.yml";
+export const REPO_CONFIG_PATH = ".researchtree";
+/** What the file used to be called. Repositories that still use it are read the same way. */
+export const REPO_CONFIG_PATH_OLD = ".researchtree.yml";
+/** Where to look for the repository's settings, in the order they win. */
+export const REPO_CONFIG_PATHS = [REPO_CONFIG_PATH, REPO_CONFIG_PATH_OLD] as const;
 export const DEFAULT_SPEC_PATH = "SPEC.md";
 export const DEFAULT_INTENT_PATH = "INTENT.md";
 
@@ -292,7 +296,7 @@ export function specSummary(spec: Pick<Spec, "sections">): string {
 const PREFIX_RE = /^(?!\/)(?!.*\/\/)(?!.*\.\.)[A-Za-z0-9._\-/]+\/$/;
 const BRANCH_RE = /^(?!\/)(?!.*\/\/)(?!.*\.\.)(?!.*\/$)[A-Za-z0-9._\-/]+$/;
 
-/** Parse `.researchtree.yml`. Unknown keys are reported but otherwise ignored; bad values are dropped. */
+/** Parse `.researchtree`. Unknown keys are reported but otherwise ignored; bad values are dropped. */
 export function parseRepoConfig(text: string): { config: RepoConfig; warnings: RepoConfigWarning[] } {
   const warnings: RepoConfigWarning[] = [];
   const config: RepoConfig = {};

@@ -112,7 +112,7 @@ export const en: Record<MessageKey, string> = {
   "settings.sourceVscode": "VS Code language",
   "settings.languageNote": "The language applies to every repository.",
   "settings.branchTitle": "Branches",
-  "settings.branchBody": "The root branch and the experiment prefix come from the repository's .researchtree.yml. One file per repository, so everyone who opens it sees the same tree.",
+  "settings.branchBody": "The root branch and the experiment prefix come from the repository's .researchtree. One file per repository, so everyone who opens it sees the same tree.",
   "settings.save": "Save and reload",
 
   // Detail panel
@@ -322,7 +322,7 @@ export const en: Record<MessageKey, string> = {
   "panel.claims": "Tests claims",
   "spec.loading": "Loading the spec…",
   "spec.failed": "Couldn't load the spec: {error}",
-  "spec.none": "This version has no spec file ({path}). Change the path with spec in the repo's .researchtree.yml.",
+  "spec.none": "This version has no spec file ({path}). Change the path with spec in the repo's .researchtree.",
   "spec.modeFull": "Full",
   "spec.modeSummary": "Summary",
   "spec.modeChanges": "Changes",
@@ -351,5 +351,5 @@ export const en: Record<MessageKey, string> = {
   "spec.expNoFile": "This repo has no spec file ({path}).",
   "config.branches": "This repository is read with root {root} and experiments {prefix}*.",
   "config.defaults": "The repository has no settings file, so the defaults are used.",
-  "config.repoWarnings": "Ignored in .researchtree.yml: {items}",
+  "config.repoWarnings": "Ignored in .researchtree: {items}",
 };
