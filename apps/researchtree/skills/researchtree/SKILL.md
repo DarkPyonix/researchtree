@@ -335,6 +335,23 @@ Always run the plan first and show it to the user before running `--yes`. Keep "
 - Base branch and `parent` must agree: an experiment that starts from `research/v3` has base `research` and `parent: research@v3`.
 - If `research.check()` or `researchtree memory --check` reports alerts (stale running experiments, missing metrics, closed without a conclusion), mention them to the user.
 
+## Several research repositories: the island map
+
+An account can show its research as one map of islands, read from a `.researchisland` repository on
+that account (its README says which research goes where). It is the researcher's own page, so create
+or change it only when the user asks:
+
+```bash
+researchtree island show                 # what the map holds now
+researchtree island init                 # create the .researchisland repository
+researchtree island add owner/name       # put one research on the map
+researchtree island remove owner/name
+researchtree island check                # settings that cannot be read, or research nobody can open
+```
+
+A link into the viewer always names the account: `?user=<owner>` opens the map, `?user=<owner>&repo=<name>`
+opens one research on it (`researchtree open` prints the right link for the current repository).
+
 ## Quick reference
 
 | Task | Command |
@@ -347,6 +364,7 @@ Always run the plan first and show it to the user before running `--yes`. Keep "
 | Work on an experiment | `git worktree add -b experiment/<name> ../<repo>-<name> <base>` |
 | Log from training | `rt.log(...)`, `rt.set(...)`, `rt.conclude(...)` |
 | Cut a version | `researchtree release`, then `researchtree release --yes` |
+| Show an account's research | `researchtree island show`, `researchtree island add owner/name` |
 | Update this skill | `researchtree skill install` |
 
 Guide: https://darkpyonix.github.io/researchtree/guide/

@@ -645,7 +645,23 @@ html:not(.dark) .vp-doc .vp-code span { filter: saturate(0.85); }
 }
 .rt-lang:hover { color: var(--vp-c-brand-1); border-color: var(--vp-c-brand-1); }
 .rt-lang svg { width: 16px; height: 16px; }
-.rt-lang.screen { margin: 16px 0 0; }
+/* The phone menu's own row, to the same measurements as the theme row VitePress puts above it. */
+.rt-lang-screen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0 0;
+  padding: 12px 14px 12px 16px;
+  border-radius: 8px;
+  background-color: var(--vp-c-bg-soft);
+}
+.rt-lang-screen-label { margin: 0; line-height: 24px; font-size: 12px; font-weight: 500; color: var(--vp-c-text-2); }
+/* The slot comes after the social links; language belongs with theme, so the links go last. */
+.VPNavScreen .container { display: flex; flex-direction: column; }
+.VPNavScreen .container > .VPNavScreenSocialLinks { order: 1; margin-top: 16px; }
+.rt-lang.screen { height: 28px; margin: 0; padding: 0 10px; gap: 5px; font-size: 12px; }
+.rt-lang.screen svg { width: 14px; height: 14px; }
 
 /* The nav bar puts the switch with the menu links, away from the theme and GitHub icons at the end. */
 .VPNavBar .content-body > * { order: 0; }
@@ -655,28 +671,31 @@ html:not(.dark) .vp-doc .vp-code span { filter: saturate(0.85); }
 .VPNavBar .content-body > .extra { order: 4; }
 .VPNavBar .content-body > .hamburger { order: 5; }
 
-/* Tablet: the nav bar has no room for it, so only the flyout copy (theme/LangFlyout.vue) shows. */
-@media (min-width: 768px) and (max-width: 1279px) {
+/* Narrower than the wide nav bar, the switch lives in the menus instead: the flyout at tablet width
+   (theme/LangFlyout.vue), the full-screen nav menu on a phone. */
+@media (max-width: 1279px) {
   .VPNavBar .content-body > .rt-lang { display: none; }
 }
-.rt-lang-group .item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  white-space: nowrap;
-}
-.rt-lang-group .label {
+
+/* The language row is built to the same measurements as the theme row it sits under. */
+.VPNavBarExtra .VPMenu .rt-lang-group .item { display: flex; align-items: center; padding: 0 12px; }
+.VPNavBarExtra .VPMenu .rt-lang-group .label {
+  flex-grow: 1;
+  margin: 0;
+  line-height: 28px;
   font-size: 12px;
   font-weight: 500;
-  line-height: 24px;
   color: var(--vp-c-text-2);
 }
-.rt-lang.menu { height: 28px; margin: 0; padding: 0 10px; font-size: 12px; }
-/* The flyout holds the theme switch first, the social links last; language sits between them. */
+.rt-lang.menu { height: 28px; margin: 0 -2px 0 0; padding: 0 10px; gap: 5px; font-size: 12px; }
+.rt-lang.menu svg { width: 14px; height: 14px; }
+/* Theme, then language, then the social links. The language group is teleported in last, so the order
+   is set here — and with it the dividers and padding, which can no longer follow the DOM order. */
 .VPNavBarExtra .VPMenu { display: flex; flex-direction: column; }
 .VPNavBarExtra .VPMenu > .group:has(.social-links) { order: 1; }
+.VPNavBarExtra .VPMenu > .group { border-top: 1px solid var(--vp-c-divider); padding: 11px 12px 12px; }
+.VPNavBarExtra .VPMenu > .group:first-child { border-top: 0; padding-top: 0; }
+.VPNavBarExtra .VPMenu > .group:has(.social-links) { padding-bottom: 0; }
 
 /* The hamburger is drawn in the same ink as the icons beside it, not in the darker body colour. */
 .VPNavBarHamburger .top,

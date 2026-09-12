@@ -142,6 +142,8 @@ class App {
   private keyHandler: ((e: KeyboardEvent) => void) | null = null;
   /** Registered once, for the browser's back and forward buttons. */
   private backListener: (() => void) | null = null;
+  /** Watches the repo card, whose height decides where the board starts. */
+  private brandWatch: ResizeObserver | null = null;
 
   constructor(
     private readonly host: Host,
@@ -163,6 +165,8 @@ class App {
     this.kanban = null;
     this.banner?.destroy();
     this.banner = null;
+    this.brandWatch?.disconnect();
+    this.brandWatch = null;
     this.stage = null;
     this.panel = null;
     this.shell = null;
@@ -742,6 +746,10 @@ class App {
       // Dragging the panel's edge changes how much board is left, so the columns re-fit as it moves.
       onResized: () => this.kanban?.reflow(),
     });
+    // Collapsing the repo card gives the board that height back, so the columns follow its size.
+    this.brandWatch?.disconnect();
+    this.brandWatch = new ResizeObserver(() => this.kanban?.reflow());
+    this.brandWatch.observe(brandStack);
     // The board is a wide row of columns, so it always starts below the repo card rather than beside it.
     const boardInsets = () => {
       const b = brandStack.getBoundingClientRect();
