@@ -235,7 +235,8 @@ export const en: Record<MessageKey, string> = {
   // Island (docs/ISLAND.md): one map for everything an account researches
   "world.title": "{user}'s research",
   "world.researchCount": "{count} research",
-  "world.portal": "Into {name}",
+  "world.portal": "Sail to {name}",
+  "world.portalSub": "portal",
   "world.back": "Back to the map",
   "world.empty": "No research on the map yet. `researchtree island add` puts some there.",
   "world.noSettings": "{user} has no .researchisland repository.",

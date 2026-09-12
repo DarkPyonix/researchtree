@@ -45,6 +45,13 @@ export function clear(el: Element): void {
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+/** One SVG element with attributes, for drawings built in code (the world map's islands). */
+export function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string> = {}): SVGElementTagNameMap[K] {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
+  return el;
+}
+
 /** Inline SVG icon (built from fixed path strings only). */
 export function icon(name: keyof typeof ICONS, size = 16): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, "svg");

@@ -375,7 +375,6 @@ class App {
     this.banner = new ScrollBanner(shellEl);
     const view = new World(canvas, {
       onOpen: (research) => void this.openRepo(research.repo),
-      onLand: (land) => view.goTo(land.name),
       locked: (repo) => this.locked.has(repo),
     });
     view.render(world.map);

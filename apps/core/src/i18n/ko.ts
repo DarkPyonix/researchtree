@@ -233,7 +233,8 @@ export const ko = {
   // 아일랜드 (docs/ISLAND.md): 계정의 연구 전체를 한 지도로
   "world.title": "{user}의 연구",
   "world.researchCount": "연구 {count}개",
-  "world.portal": "{name} 안으로",
+  "world.portal": "{name}로 건너가기",
+  "world.portalSub": "포탈",
   "world.back": "지도로 돌아가기",
   "world.empty": "지도에 올린 연구가 없어요. `researchtree island add`로 올릴 수 있어요.",
   "world.noSettings": "{user} 계정에 .researchisland 레포가 없어요.",
