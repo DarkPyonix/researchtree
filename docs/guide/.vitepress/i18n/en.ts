@@ -64,4 +64,5 @@ export const en: GuideText = {
   returnToTop: "Return to top",
   menu: "Menu",
   theme: "Theme",
+  language: "Language",
 };

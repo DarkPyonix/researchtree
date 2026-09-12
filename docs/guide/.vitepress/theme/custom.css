@@ -647,6 +647,48 @@ html:not(.dark) .vp-doc .vp-code span { filter: saturate(0.85); }
 .rt-lang svg { width: 16px; height: 16px; }
 .rt-lang.screen { margin: 16px 0 0; }
 
+/* The nav bar puts the switch with the menu links, away from the theme and GitHub icons at the end. */
+.VPNavBar .content-body > * { order: 0; }
+.VPNavBar .content-body > .rt-lang { order: 1; margin: 0 4px 0 12px; }
+.VPNavBar .content-body > .appearance { order: 2; }
+.VPNavBar .content-body > .social-links { order: 3; }
+.VPNavBar .content-body > .extra { order: 4; }
+.VPNavBar .content-body > .hamburger { order: 5; }
+
+/* Tablet: the nav bar has no room for it, so only the flyout copy (theme/LangFlyout.vue) shows. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .VPNavBar .content-body > .rt-lang { display: none; }
+}
+.rt-lang-group .item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  white-space: nowrap;
+}
+.rt-lang-group .label {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--vp-c-text-2);
+}
+.rt-lang.menu { height: 28px; margin: 0; padding: 0 10px; font-size: 12px; }
+/* The flyout holds the theme switch first, the social links last; language sits between them. */
+.VPNavBarExtra .VPMenu { display: flex; flex-direction: column; }
+.VPNavBarExtra .VPMenu > .group:has(.social-links) { order: 1; }
+
+/* The hamburger is drawn in the same ink as the icons beside it, not in the darker body colour. */
+.VPNavBarHamburger .top,
+.VPNavBarHamburger .middle,
+.VPNavBarHamburger .bottom { background-color: var(--vp-c-text-2); }
+.VPNavBarHamburger:hover .top,
+.VPNavBarHamburger:hover .middle,
+.VPNavBarHamburger:hover .bottom,
+.VPNavBarHamburger.active .top,
+.VPNavBarHamburger.active .middle,
+.VPNavBarHamburger.active .bottom { background-color: var(--vp-c-text-1); }
+
 .vp-doc td:first-child,
 .vp-doc th:first-child { min-width: 7em; }
 

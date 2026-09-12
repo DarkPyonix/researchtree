@@ -1,6 +1,7 @@
 import DefaultTheme from "vitepress/theme";
 import type { Theme } from "vitepress";
 import { defineComponent, h, onMounted } from "vue";
+import LangFlyout from "./LangFlyout.vue";
 import LangSwitch from "./LangSwitch.vue";
 import { setupLang, startLang } from "./lang";
 import "./custom.css";
@@ -14,7 +15,8 @@ export default {
       onMounted(startLang);
       return () =>
         h(DefaultTheme.Layout, null, {
-          "nav-bar-content-after": () => h(LangSwitch),
+          // The wide nav bar shows the switch itself; the tablet one takes it from the flyout instead.
+          "nav-bar-content-after": () => [h(LangSwitch), h(LangFlyout)],
           "nav-screen-content-after": () => h(LangSwitch, { screen: true }),
         });
     },

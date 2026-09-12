@@ -64,6 +64,7 @@ export const ko = {
   returnToTop: "맨 위로",
   menu: "메뉴",
   theme: "테마",
+  language: "언어",
 };
 
 export type GuideText = typeof ko;
