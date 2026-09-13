@@ -223,8 +223,10 @@ class App {
     this.listenForBack();
     const place = readPlace(location.search);
     if (place.user && !place.repo) return this.showWorld(place.user);
-    // An account and a research: the whole sea, with that island under the camera.
-    if (place.user && place.repo && this.user) return this.openPlace(place.user, place.repo);
+    // An account and a research: that account's island, with this research under the camera. The
+    // research may belong to someone else (an organization's repository on a personal island); the
+    // island is whose map it is, not who owns the repository.
+    if (place.user && place.repo) return this.openPlace(place.user, place.repo);
     if (place.user) this.world = { user: place.user, map: null };
     const saved = place.repo ? null : parseViewState(this.host.capabilities.viewState?.load());
     if (saved) this.applyViewState(saved);
@@ -1014,22 +1016,13 @@ class App {
       if (userEl.contains(document.activeElement)) (document.activeElement as HTMLElement).blur();
     });
 
-    if (this.isWorld) {
-      return h(
-        "div",
-        { class: "toolbar" },
-        btn(t("world.map"), "island", () => this.openMap()),
-        btn(t("toolbar.refresh"), "refresh", () => void this.showWorld(this.world!.user)),
-        userEl,
-      );
-    }
-
+    // One toolbar. The map is not a screen of its own: the same buttons stand there, and the ones
+    // that need a tree simply have nothing to act on until the reader sails to a research.
     return h(
       "div",
       { class: "toolbar" },
       this.world?.map ? btn(t("world.map"), "island", () => this.openMap()) : null,
-      this.world && !this.world.map ? btn(t("world.back"), "island", () => this.renderWorld()) : null,
-      btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
+      btn(t("toolbar.refresh"), "refresh", () => void (this.tree ? this.refresh() : this.world && this.showWorld(this.world.user))),
       this.board ? null : this.modeButton(),
       this.boardButton(btn),
       this.host.capabilities.viewState ? btn(t("office.saveView"), "pin", () => void this.saveViewState(), t("office.saveViewTitle")) : null,
@@ -1108,7 +1101,10 @@ class App {
   }
 
   private boardButton(btn: (label: string, iconName: Parameters<typeof icon>[0], onClick: () => void, title?: string) => HTMLElement): HTMLElement {
-    return btn(t(this.board ? "toolbar.boardOff" : "toolbar.board"), this.board ? "island" : "board", () => this.toggleBoard());
+    const button = btn(t(this.board ? "toolbar.boardOff" : "toolbar.board"), this.board ? "island" : "board", () => this.toggleBoard());
+    // Both views are about one research; out on the open sea there is not one yet.
+    (button as HTMLButtonElement).disabled = !this.tree;
+    return button;
   }
 
   private modeButton(): HTMLElement {
@@ -1120,7 +1116,7 @@ class App {
         class: "btn",
         title: t("toolbar.switchMode"),
         "aria-label": t("toolbar.switchMode"),
-        disabled: !Tree3D.supported(),
+        disabled: !Tree3D.supported() || !this.tree,
         onclick: async () => {
           button.disabled = true;
           try {
