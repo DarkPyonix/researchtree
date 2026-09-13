@@ -470,7 +470,7 @@ export class Tree3D implements TreeViewApi {
    * same islands the viewer sails into. Node ids are scoped by repository, because two repositories
    * may well both have an `experiment/warmup`.
    */
-  renderWorld(entries: WorldEntry[]): void {
+  renderWorld(entries: WorldEntry[], keepCamera = false): void {
     this.tree = entries.find((e) => e.tree)?.tree ?? null;
     this.clearWorld();
     this.scoped = true;
@@ -481,7 +481,8 @@ export class Tree3D implements TreeViewApi {
       if (entry.tree) this.buildTree(entry.tree, entry.filter ?? { hidden: new Set(), metrics: new Map() }, entry.offset);
       else if (entry.locked) this.buildLocked(entry.locked, entry.offset);
     }
-    this.finish(true);
+    // Swapping which islands are on the sea must not move the reader: only a first draw frames itself.
+    this.finish(!keepCamera);
   }
 
   /**
