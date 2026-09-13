@@ -487,8 +487,8 @@ class App {
       if (this.locked.has(research.repo)) continue;
       const info = await this.gh.repoInfo(research.repo).catch(() => null);
       if (info?.defaultBranch) continue;
+      // The scene already draws it locked; the map's pins read this set when it opens.
       this.locked.add(research.repo);
-      if (this.world?.user === user && this.tree === null) this.renderWorld();
     }
   }
 
@@ -511,22 +511,31 @@ class App {
       this.stage?.canvas.append(h("p", { class: "world-empty muted" }, t("world.empty")));
       return;
     }
-    void this.loadWorldTrees(world.map);
-    // On arrival the map opens by itself, once: the reader sees what this account has before sailing.
-    if (!this.mapShown) {
+    // On arrival the map opens by itself, once — after the islands are on the sea, because the map
+    // is a picture of them.
+    void this.loadWorldTrees(world.map).then(() => {
+      if (this.mapShown || !this.isWorld) return;
       this.mapShown = true;
-      this.timers.push(window.setTimeout(() => this.openMap(), 900));
-    }
+      this.openMap();
+    });
   }
 
   /** The travel map over the sea. Closing it leaves the islands exactly where they were. */
   private openMap(): void {
     const world = this.world;
     if (!world?.map || !this.shell) return;
+    const spacing = 150;
+    const places = world.map.islands.flatMap((land) =>
+      land.repos.map((entry) => {
+        const at = this.mapPlace(world.map!, entry, spacing);
+        return { repo: entry.repo, land: land.name, at: { x: at.x, z: at.z }, locked: this.locked.has(entry.repo) };
+      }),
+    );
+    const shot = this.view?.mapSnapshot() ?? null;
     const overlay = worldMapDialog({
-      map: world.map,
       user: world.user,
-      locked: this.locked,
+      shot,
+      places,
       here: this.tree?.repo ?? null,
       onSail: (repo) => this.view?.sailTo(repo),
       onOpen: (repo) => void this.openRepo(repo),
@@ -550,7 +559,7 @@ class App {
    * Read one research without leaving the account's sea: the camera sails to that island, the cards
    * and the panel become its own, and every other island stays where it was, a drag away.
    */
-  private async focusResearch(repo: string, node: string | null = null): Promise<void> {
+  private async focusResearch(repo: string, node: string | null = null, how: { sail?: boolean; push?: boolean } = {}): Promise<void> {
     const tree = this.worldTrees.get(repo) ?? (await this.loadTree(repo).catch(() => null));
     if (!tree) {
       this.locked.add(repo);
@@ -566,11 +575,22 @@ class App {
     this.config = repoFileConfig(this.repoFile.config);
     this.host.storage.set(LAST_KEY, repo);
     this.refreshChrome();
-    this.setUrl({ repo, node, push: true });
+    this.setUrl({ repo, node, push: how.push ?? true });
     this.announceRepo(repo);
     this.view?.scopeLabels(repo);
-    this.view?.sailTo(repo);
+    if (how.sail ?? true) this.view?.sailTo(repo);
     this.select(node && (tree.nodes.has(node) || tree.versions.has(node) || node === tree.root) ? node : null, false);
+  }
+
+  /**
+   * The camera drifted onto an island: reading follows the sailing, so the address and the cards
+   * become that research without anyone clicking. The camera is already there, so it is not moved,
+   * and the address is rewritten rather than pushed — a drag would otherwise fill the history.
+   */
+  private onSailedOver(repo: string | null): void {
+    if (!repo || !this.world?.map || repo === this.tree?.repo) return;
+    if (this.locked.has(repo)) return;
+    void this.focusResearch(repo, null, { sail: false, push: false });
   }
 
   /** Back out to the whole sea: the islands are already there, so only the chrome changes. */
@@ -1082,7 +1102,12 @@ class App {
     stage.hint.textContent = t("hint.world");
     this.view = new Tree3D(
       stage.canvas,
-      { onSelect: (id) => this.onWorldSelect(id), insets: () => stage.options.insets(), onTime: stage.options.onTime },
+      {
+        onSelect: (id) => this.onWorldSelect(id),
+        insets: () => stage.options.insets(),
+        onTime: stage.options.onTime,
+        onIsland: (repo) => this.onSailedOver(repo),
+      },
       false,
       "island",
     );
