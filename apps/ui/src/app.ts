@@ -164,7 +164,7 @@ class App {
    * about a single tree, so those drop back to one island.
    */
   private get worldScene(): boolean {
-    return Boolean(this.world?.map) && !isFlatMode(this.mode) && !this.board;
+    return Boolean(this.world?.map) && this.mode === "island" && !this.board;
   }
 
   /** Node ids are scoped by repository while the whole account is on screen. */
@@ -1143,10 +1143,18 @@ class App {
     const stage = this.stage;
     const view = this.view;
     if (!stage || !view) return;
+    const wasWorld = this.worldScene;
     const next = NEXT_MODE[this.mode];
     this.mode = next;
     this.host.storage.set(MODE_KEY, next);
     stage.hint.textContent = hint(next);
+    // Every view but the island one is about the research being read, so leaving the island builds
+    // the scene again around that one tree — and coming back puts the whole sea there again.
+    if (this.worldScene !== wasWorld) {
+      this.createView();
+      this.refreshChrome();
+      return;
+    }
     if (next === "flat") {
       await view.lower();
       stage.canvas.classList.remove("is-3d");
