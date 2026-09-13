@@ -250,6 +250,8 @@ export class Tree3D implements TreeViewApi {
   private rootVisual: NodeVisual | null = null;
   /** True while several research islands share the sea: node ids carry their repository. */
   private scoped = false;
+  /** The research being read on a sea of several, if any: what a morph frames and what stays labelled. */
+  private scope: string | null = null;
   /** Island bounds accumulate across every tree in the scene. */
   private islandFresh = true;
   /** The research intro rock beside the first version, and its label. */
@@ -1439,6 +1441,7 @@ export class Tree3D implements TreeViewApi {
    * their name, so the sea stays readable while the tree in front of you does not.
    */
   scopeLabels(repo: string | null): void {
+    this.scope = repo;
     this.labels.classList.toggle("world", repo === null);
     for (const [id, visual] of this.visuals) {
       visual.label.classList.toggle("off-scope", repo !== null && !id.startsWith(`${repo}\u0000`));
@@ -1451,8 +1454,22 @@ export class Tree3D implements TreeViewApi {
    * Ids are scoped by repository here, so the island is everything the repository put on the sea.
    */
   sailTo(repo: string): void {
-    const ids = [...this.visuals.keys()].filter((id) => id.startsWith(`${repo}\u0000`));
+    const ids = this.idsOf(repo);
     if (ids.length) this.fit(ids, true);
+  }
+
+  private idsOf(repo: string): string[] {
+    return [...this.visuals.keys()].filter((id) => id.startsWith(`${repo}\u0000`));
+  }
+
+  /**
+   * What a morph frames. On a sea of islands that is the research being read, not the whole
+   * account: framing every island mid-turn flies the camera out and back, and the morph then reads
+   * as one screen swapped for another instead of the same island turning in place.
+   */
+  private inScope(): string[] | undefined {
+    const ids = this.scope ? this.idsOf(this.scope) : [];
+    return ids.length ? ids : undefined;
   }
 
   get element(): Element {
@@ -1639,7 +1656,7 @@ export class Tree3D implements TreeViewApi {
     if (!this.flatMode) return;
     this.setFlatMode(false);
     const sph = this.isoSph();
-    const goal = this.computeFit(undefined, new THREE.Vector3().setFromSpherical(sph).normalize());
+    const goal = this.computeFit(this.inScope(), new THREE.Vector3().setFromSpherical(sph).normalize());
     if (!goal) return;
     await this.runMorph({ sph, target: goal.target, zoom: goal.zoom, flat: 0 }, 950, (t) => 1 - easeOutBack(t));
     this.controls.enabled = true;
@@ -1653,7 +1670,7 @@ export class Tree3D implements TreeViewApi {
     this.heading = heading;
     const flat = this.flatMode;
     const sph = flat ? this.topDown() : this.isoSph();
-    const goal = this.computeFit(undefined, new THREE.Vector3().setFromSpherical(sph).normalize());
+    const goal = this.computeFit(this.inScope(), new THREE.Vector3().setFromSpherical(sph).normalize());
     if (!goal) return;
     const level = this.flat;
     await this.runMorph({ sph, target: goal.target, zoom: goal.zoom, flat: level }, 900, () => level);
