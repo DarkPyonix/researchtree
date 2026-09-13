@@ -593,18 +593,6 @@ class App {
     void this.focusResearch(repo, null, { sail: false, push: false });
   }
 
-  /** Back out to the whole sea: the islands are already there, so only the chrome changes. */
-  private showMapView(): void {
-    if (!this.world) return;
-    this.tree = null;
-    this.selected = null;
-    this.panel?.hide();
-    this.refreshChrome();
-    this.setUrl({ user: this.world.user, repo: null, node: null, push: true });
-    this.view?.scopeLabels(null);
-    this.view?.fit(undefined, true);
-  }
-
   /** Redraw the parts around the scene — the toolbar, the card, the generation bar — in place. */
   private refreshChrome(): void {
     const shellEl = this.stage?.canvas.parentElement;
@@ -1032,7 +1020,6 @@ class App {
         { class: "toolbar" },
         btn(t("world.map"), "island", () => this.openMap()),
         btn(t("toolbar.refresh"), "refresh", () => void this.showWorld(this.world!.user)),
-        btn(t("toolbar.fit"), "fit", () => this.view?.fit()),
         userEl,
       );
     }
@@ -1041,7 +1028,7 @@ class App {
       "div",
       { class: "toolbar" },
       this.world?.map ? btn(t("world.map"), "island", () => this.openMap()) : null,
-      this.world ? btn(t("world.back"), "fit", () => (this.world?.map ? this.showMapView() : this.renderWorld())) : null,
+      this.world && !this.world.map ? btn(t("world.back"), "island", () => this.renderWorld()) : null,
       btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
       this.board ? null : this.modeButton(),
       this.boardButton(btn),
