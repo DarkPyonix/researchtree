@@ -1179,9 +1179,12 @@ class App {
     } else {
       await view.turn("island");
     }
-    if (next === "flat") swap(this.sceneEntries());
-    // Whatever the view, it ends framed on the research being read — a mode change is not a journey.
-    if (this.tree && this.worldScene) view.sailTo(this.tree.repo);
+    if (next === "flat") {
+      swap(this.sceneEntries());
+      // The neighbours just left the sea; reframe on what is still there. The turning modes already
+      // morphed around the research being read, so they need nothing here.
+      if (this.tree && this.worldScene) view.sailTo(this.tree.repo);
+    }
   }
 
   private renderBrand(): void {
