@@ -164,7 +164,18 @@ class App {
    * about a single tree, so those drop back to one island.
    */
   private get worldScene(): boolean {
-    return Boolean(this.world?.map) && this.mode === "island" && !this.board;
+    return Boolean(this.world?.map) && !this.board;
+  }
+
+  /**
+   * What the sea holds right now: every island in the island view, and only the research being read
+   * in the flat, tree and 3D views — those are about one tree. The scene is never rebuilt to change
+   * this, so the press-down and the turns keep playing across it.
+   */
+  private sceneEntries(): WorldEntry[] {
+    if (this.mode === "island" || !this.tree) return this.worldEntries;
+    const mine = this.worldEntries.find((e) => e.tree?.repo === this.tree!.repo);
+    return mine ? [mine] : this.worldEntries;
   }
 
   /** Node ids are scoped by repository while the whole account is on screen. */
@@ -1078,8 +1089,8 @@ class App {
     this.kanban?.destroy();
     this.kanban = null;
     stage.canvas.classList.remove("is-board");
-    stage.canvas.classList.add("is-3d");
-    stage.hint.textContent = t("hint.world");
+    stage.canvas.classList.toggle("is-3d", !isFlatMode(this.mode));
+    stage.hint.textContent = this.tree ? hint(this.mode) : t("hint.world");
     this.view = new Tree3D(
       stage.canvas,
       {
@@ -1088,12 +1099,12 @@ class App {
         onTime: stage.options.onTime,
         onIsland: (repo) => this.onSailedOver(repo),
       },
-      false,
-      "island",
+      isFlatMode(this.mode),
+      headingOf(this.mode),
     );
-    paintSystemBars(true);
+    paintSystemBars(!isFlatMode(this.mode));
     if (this.worldEntries.length) {
-      this.view.renderWorld(this.worldEntries);
+      this.view.renderWorld(this.sceneEntries());
       this.view.scopeLabels(this.tree?.repo ?? null);
       if (this.tree) this.view.sailTo(this.tree.repo);
       else this.view.fit(undefined, false);
@@ -1143,18 +1154,19 @@ class App {
     const stage = this.stage;
     const view = this.view;
     if (!stage || !view) return;
-    const wasWorld = this.worldScene;
     const next = NEXT_MODE[this.mode];
     this.mode = next;
     this.host.storage.set(MODE_KEY, next);
     stage.hint.textContent = hint(next);
-    // Every view but the island one is about the research being read, so leaving the island builds
-    // the scene again around that one tree — and coming back puts the whole sea there again.
-    if (this.worldScene !== wasWorld) {
-      this.createView();
-      this.refreshChrome();
-      return;
-    }
+    // The sea comes back before the view rises out of the flat, and the neighbours leave only after
+    // it has been pressed down — the swap happens at the flat end of the morph, where it barely
+    // shows, and the press-down itself still plays over the whole scene.
+    const swap = (entries: WorldEntry[]) => {
+      if (!this.worldScene || !this.tree) return;
+      view.renderWorld(entries);
+      view.scopeLabels(this.tree.repo);
+    };
+    if (next === "island") swap(this.worldEntries);
     if (next === "flat") {
       await view.lower();
       stage.canvas.classList.remove("is-3d");
@@ -1168,6 +1180,7 @@ class App {
     } else {
       await view.turn("island");
     }
+    if (next === "flat") swap(this.sceneEntries());
   }
 
   private renderBrand(): void {
