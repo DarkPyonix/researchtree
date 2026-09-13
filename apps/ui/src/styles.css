@@ -653,53 +653,49 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .field { display: grid; gap: 6px; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
 
 /*
- * The travel map (views/worldmap.ts): a chart of the account's research, drawn on paper over the sea
- * it sails on. It is a tool, not the world — the islands stay behind it, so the sheet keeps the
- * viewer's own card look rather than pretending to be a game screen.
+ * The travel map (views/worldmap.ts): a chart of the account's research, drawn over the sea it sails
+ * on. It is a tool, not the world — the islands stay behind it — so the sheet keeps the viewer's own
+ * card look while the chart inside it is drawn the way a game map is: water, shallows, sand, grass.
  */
-.map-dialog { width: min(760px, 100%); max-height: min(84vh, 720px); overflow: auto; padding: 20px 20px 16px; }
+.map-dialog { width: min(880px, 100%); max-height: min(88vh, 760px); overflow: auto; padding: 18px 18px 14px; }
 .map-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .map-title { margin: 4px 0 0; font: 700 22px/1.25 var(--display); }
-.map-board {
-  display: grid;
-  gap: 14px;
-  margin-top: 16px;
-  padding: 16px;
-  border-radius: 18px;
-  /* Open water with a paler shallows around each land, the way the sea reads in the 3D view. */
-  background: radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--sea, #a5dddb) 70%, var(--card)), color-mix(in srgb, var(--sea, #a5dddb) 92%, #4a8f95));
+.map-board { margin-top: 14px; border-radius: 18px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.map-chart { display: block; width: 100%; height: auto; }
+.map-sea { fill: #a9dde0; }
+.map-shallows { fill: #c4e9e6; }
+.map-sand { fill: #f0dfb0; }
+.map-grass { fill: #a7d38b; }
+.map-island-name {
+  font: 700 15px var(--display);
+  fill: #2c4a4f;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.75);
+  stroke-width: 3px;
 }
-.map-land {
-  padding: 12px 12px 10px;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--card) 88%, transparent);
-  border: 1px solid var(--line);
+.map-place { cursor: pointer; }
+.map-pin { fill: #fffdf9; stroke: var(--st-adopted); stroke-width: 2.5; }
+.map-pin-dot { fill: var(--st-adopted); }
+.map-place-name {
+  font: 600 12px var(--font);
+  fill: #2c4a4f;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 3px;
 }
-.map-land-name { margin: 0 0 8px; font: 700 13px/1.2 var(--font); letter-spacing: 0.01em; color: var(--ink-soft); }
-.map-places { display: flex; flex-wrap: wrap; gap: 6px; }
-.map-place {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 11px 6px 8px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--card);
-  font: 600 12.5px var(--font);
-  color: var(--ink);
-  cursor: pointer;
-}
-.map-place:hover { border-color: var(--accent-2); color: var(--accent-2); }
-.map-place.here { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
-.map-place.locked { color: var(--muted); border-style: dashed; background: var(--card-sunken); }
-.map-pin { display: inline-grid; place-items: center; color: var(--st-adopted); }
-.map-place.locked .map-pin { color: var(--muted); }
+.map-place:hover .map-pin, .map-place:focus-visible .map-pin { stroke: var(--accent-2); }
+.map-place:hover .map-pin-dot, .map-place:focus-visible .map-pin-dot { fill: var(--accent-2); }
+.map-place.here .map-pin { stroke: var(--accent-2); stroke-width: 3.5; }
+.map-place.here .map-place-name { fill: var(--accent-2); }
+/* Not unlocked: the pin is empty and the name says so. */
+.map-place.locked .map-pin { stroke: #8a9aa0; stroke-dasharray: 3 3; }
+.map-place.locked .map-pin-dot { fill: none; }
+.map-place.locked .map-place-name { fill: #6f7f85; }
+.map-compass-ring { fill: rgba(255, 253, 249, 0.6); stroke: #2c4a4f; stroke-width: 1.5; }
+.map-compass-n { fill: #c8553d; }
+.map-compass-s { fill: #2c4a4f; }
+.map-compass-label { font: 700 11px var(--font); fill: #2c4a4f; }
 .map-hint { margin: 10px 2px 0; }
-@media (max-width: 640px) {
-  .map-board { grid-template-columns: 1fr !important; }
-}
-.field .input { font: 13px var(--mono); }
-.field select.input { font: inherit; font-weight: 500; color: var(--ink); }
 
 /* ---------- time axis ---------- */
 /* Label metric picker in the version panel. */
@@ -1080,6 +1076,9 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 @media (max-width: 640px) {
   .scroll-banner { top: calc(56px + env(safe-area-inset-top, 0px)); width: calc(100% - 24px); }
 }
+
+/* Reading one island: the others keep their name and drop their chips (Tree3D.scopeLabels). */
+.labels3d .label3d.off-scope { display: none; }
 
 /* A sea of islands: only each research's own name is shown, not every plant's chip. */
 .labels3d.world .label3d { display: none; }

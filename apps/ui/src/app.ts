@@ -146,6 +146,9 @@ class App {
   private backListener: (() => void) | null = null;
   /** Watches the repo card and the panel, the two edges the board is fitted between. */
   private chromeWatch: ResizeObserver | null = null;
+  /** Every research of the account, built once and kept: the scene holds all of them at all times. */
+  private worldTrees = new Map<string, ResearchTree>();
+  private worldEntries: WorldEntry[] = [];
   /** The travel map opens by itself once per visit to an account, not on every redraw. */
   private mapShown = false;
   private timers: number[] = [];
@@ -153,6 +156,21 @@ class App {
   /** True while the screen is showing an account's map of islands rather than one research. */
   private get isWorld(): boolean {
     return this.world !== null && this.tree === null;
+  }
+
+  /**
+   * True while the scene holds every island of the account. Reading one research does not empty the
+   * sea around it: the reader can drag straight on to the next one. The flat views and the board are
+   * about a single tree, so those drop back to one island.
+   */
+  private get worldScene(): boolean {
+    return Boolean(this.world?.map) && !isFlatMode(this.mode) && !this.board;
+  }
+
+  /** Node ids are scoped by repository while the whole account is on screen. */
+  private viewId(id: string | null): string | null {
+    if (!id || !this.worldScene || !this.tree) return id;
+    return `${this.tree.repo}\u0000${id}`;
   }
 
   constructor(
@@ -205,7 +223,8 @@ class App {
     this.listenForBack();
     const place = readPlace(location.search);
     if (place.user && !place.repo) return this.showWorld(place.user);
-    // An island around the research: opening it keeps the way back to the map.
+    // An account and a research: the whole sea, with that island under the camera.
+    if (place.user && place.repo && this.user) return this.openPlace(place.user, place.repo);
     if (place.user) this.world = { user: place.user, map: null };
     const saved = place.repo ? null : parseViewState(this.host.capabilities.viewState?.load());
     if (saved) this.applyViewState(saved);
@@ -229,8 +248,9 @@ class App {
 
   private async goto(place: { user: string | null; repo: string | null }): Promise<void> {
     if (place.repo) {
-      // Keep the map behind the research, so the way back to the island is still there.
-      this.world = place.user ? (this.world?.user === place.user ? this.world : { user: place.user, map: null }) : null;
+      if (place.user && this.world?.user === place.user && this.worldEntries.length) return void this.focusResearch(place.repo);
+      if (place.user) return void this.openPlace(place.user, place.repo);
+      this.world = null;
       await this.openRepo(place.repo);
     } else if (place.user) {
       await this.showWorld(place.user);
@@ -303,6 +323,8 @@ class App {
 
   private async openRepo(repo: string): Promise<void> {
     if (!parseRepo(repo)) return this.showPicker(t("app.invalidRepo"));
+    // Already on the account's sea: sail to the island instead of building a screen for it alone.
+    if (this.worldEntries.length && this.stage && this.world?.map) return this.focusResearch(repo);
     this.mount(loadingScreen(t("app.loadingRepo", { repo })));
     // The repository's own file decides the branches, so it is read before anything else.
     const info = await this.gh.repoInfo(repo).catch(() => ({ description: null, defaultBranch: null }));
@@ -389,16 +411,47 @@ class App {
       return;
     }
     const map = parseIslandMap(text);
-    this.world = { user, map };
-    this.profile = null;
+    this.enterWorld(user, map);
     this.renderWorld();
+  }
+
+  /** Take up an account's map: its trees are read fresh, and its profile follows on its own. */
+  private enterWorld(user: string, map: IslandMap): void {
+    this.world = { user, map };
+    this.worldTrees = new Map();
+    this.worldEntries = [];
+    this.profile = null;
     void this.findLocked(user, map);
     // The researcher's own introduction is worth one more call, after the map is on screen.
     void loadProfile(this.gh, user).then((profile) => {
       if (this.world?.user !== user) return;
       this.profile = profile;
-      if (this.shell === null) this.renderWorld();
+      if (this.isWorld && this.shell) this.renderBrand();
     });
+  }
+
+  /**
+   * A link that names both an account and a research: the sea is drawn first and the research opened
+   * on it, so dragging away from what you came to read shows everything else the account has.
+   */
+  private async openPlace(user: string, repo: string): Promise<void> {
+    let map: IslandMap | null = null;
+    try {
+      const text = await this.gh.getFileText(`${user}/${ISLAND_CONFIG_REPO}`, ISLAND_CONFIG_PATH, "HEAD");
+      map = text === null ? null : parseIslandMap(text);
+    } catch {
+      // No map, or it cannot be read: the research still opens, on its own.
+    }
+    if (!map || !islandResearch(map).some((r) => r.repo === repo)) {
+      this.world = { user, map };
+      return this.openRepo(repo);
+    }
+    this.enterWorld(user, map);
+    this.mapShown = true; // arriving at a research: the map waits until it is asked for
+    this.tree = null;
+    this.renderMain();
+    void this.loadWorldTrees(map);
+    await this.focusResearch(repo);
   }
 
   /** The account's own island. Already standing on it, the map is simply drawn again. */
@@ -481,10 +534,64 @@ class App {
     this.root.append(overlay);
   }
 
-  /** Sail into whatever was clicked: any plant or stone opens the research it grows on. */
+  /**
+   * A click on the sea: a plant or a stone of another island moves the reader there, one of the
+   * island they are already reading selects that node. Nothing is rebuilt either way.
+   */
   private onWorldSelect(id: string | null): void {
-    const repo = id?.split("\u0000")[0];
-    if (repo?.includes("/")) void this.openRepo(repo);
+    if (!id) return this.select(null);
+    const [repo, node] = id.split("\u0000");
+    if (!repo?.includes("/")) return;
+    if (this.tree?.repo === repo) return this.select(node || null);
+    void this.focusResearch(repo, node || null);
+  }
+
+  /**
+   * Read one research without leaving the account's sea: the camera sails to that island, the cards
+   * and the panel become its own, and every other island stays where it was, a drag away.
+   */
+  private async focusResearch(repo: string, node: string | null = null): Promise<void> {
+    const tree = this.worldTrees.get(repo) ?? (await this.loadTree(repo).catch(() => null));
+    if (!tree) {
+      this.locked.add(repo);
+      this.toast(t("world.locked", { repo }));
+      return;
+    }
+    this.worldTrees.set(repo, tree);
+    this.tree = tree;
+    // The repository's own settings decide its branches and its documents.
+    const info = await this.gh.repoInfo(repo).catch(() => ({ description: null, defaultBranch: null }));
+    this.repoDescription = info.description;
+    this.repoFile = await this.readRepoFile(repo, info.defaultBranch).catch(() => ({ config: {}, warnings: [] }));
+    this.config = repoFileConfig(this.repoFile.config);
+    this.host.storage.set(LAST_KEY, repo);
+    this.refreshChrome();
+    this.setUrl({ repo, node, push: true });
+    this.announceRepo(repo);
+    this.view?.scopeLabels(repo);
+    this.view?.sailTo(repo);
+    this.select(node && (tree.nodes.has(node) || tree.versions.has(node) || node === tree.root) ? node : null, false);
+  }
+
+  /** Back out to the whole sea: the islands are already there, so only the chrome changes. */
+  private showMapView(): void {
+    if (!this.world) return;
+    this.tree = null;
+    this.selected = null;
+    this.panel?.hide();
+    this.refreshChrome();
+    this.setUrl({ user: this.world.user, repo: null, node: null, push: true });
+    this.view?.scopeLabels(null);
+    this.view?.fit(undefined, true);
+  }
+
+  /** Redraw the parts around the scene — the toolbar, the card, the generation bar — in place. */
+  private refreshChrome(): void {
+    const shellEl = this.stage?.canvas.parentElement;
+    shellEl?.querySelector(".toolbar")?.replaceWith(this.renderToolbar());
+    this.shell?.brand.classList.remove("world-card");
+    this.renderBrand();
+    this.renderGenerations();
   }
 
   /**
@@ -512,12 +619,19 @@ class App {
         this.view?.renderWorld(entries);
         continue;
       }
+      this.worldTrees.set(item.repo, tree);
       entries.push({ tree, filter: { hidden: new Set(), metrics: new Map() }, offset: at });
+      this.worldEntries = entries;
       if (!this.view || this.world === null) return;
       this.view.renderWorld(entries);
-      if (i === 0) this.view.fit(undefined, false);
+      this.view.scopeLabels(this.tree?.repo ?? null);
+      // Reading a research already: hold the camera on its island while the others arrive.
+      if (this.tree) this.view.sailTo(this.tree.repo);
+      else if (i === 0) this.view.fit(undefined, false);
     }
-    this.view?.fit(undefined, false);
+    this.worldEntries = entries;
+    if (this.tree) this.view?.sailTo(this.tree.repo);
+    else this.view?.fit(undefined, false);
   }
 
   /** Where one research's island sits on the sea: its place in its land, and the land's on the map. */
@@ -906,7 +1020,8 @@ class App {
     return h(
       "div",
       { class: "toolbar" },
-      this.world ? btn(t("world.back"), "island", () => this.renderWorld()) : null,
+      this.world?.map ? btn(t("world.map"), "island", () => this.openMap()) : null,
+      this.world ? btn(t("world.back"), "fit", () => (this.world?.map ? this.showMapView() : this.renderWorld())) : null,
       btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
       this.board ? null : this.modeButton(),
       this.boardButton(btn),
@@ -926,7 +1041,7 @@ class App {
   private createView(): void {
     const stage = this.stage;
     if (!stage) return;
-    if (this.isWorld) return this.createWorldView(stage);
+    if (this.worldScene) return this.createWorldView(stage);
     if (!this.tree) return;
     this.view?.destroy();
     this.view = null;
@@ -958,7 +1073,7 @@ class App {
   }
 
   /** The map of islands: one scene, every research the account shows, and no tree to walk yet. */
-  private createWorldView(stage: { canvas: HTMLElement; hint: HTMLElement }): void {
+  private createWorldView(stage: { canvas: HTMLElement; hint: HTMLElement; options: ViewOptions }): void {
     this.view?.destroy();
     this.kanban?.destroy();
     this.kanban = null;
@@ -967,11 +1082,17 @@ class App {
     stage.hint.textContent = t("hint.world");
     this.view = new Tree3D(
       stage.canvas,
-      { onSelect: (id) => this.onWorldSelect(id), insets: () => ({ top: 150, left: 16, right: 16, bottom: 96 }), onTime: () => {} },
+      { onSelect: (id) => this.onWorldSelect(id), insets: () => stage.options.insets(), onTime: stage.options.onTime },
       false,
       "island",
     );
     paintSystemBars(true);
+    if (this.worldEntries.length) {
+      this.view.renderWorld(this.worldEntries);
+      this.view.scopeLabels(this.tree?.repo ?? null);
+      if (this.tree) this.view.sailTo(this.tree.repo);
+      else this.view.fit(undefined, false);
+    }
   }
 
   private boardButton(btn: (label: string, iconName: Parameters<typeof icon>[0], onClick: () => void, title?: string) => HTMLElement): HTMLElement {
@@ -1169,7 +1290,7 @@ class App {
     else if (isRoot) this.panel.showVersion(rootVersion(tree), tree);
     else this.panel.hide();
     this.shell?.brand.closest(".shell")?.classList.toggle("panel-open", Boolean(this.selected));
-    this.current.select(this.selected, focus);
+    this.current.select(this.worldScene && this.current === this.view ? this.viewId(this.selected) : this.selected, focus);
     // The panel takes room on the board rather than covering it, so the columns re-measure.
     this.kanban?.layout();
     this.setUrl({ repo: tree.repo, node: this.selected });

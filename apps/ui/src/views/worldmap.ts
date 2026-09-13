@@ -5,10 +5,11 @@
  * it, and this only says where they are and sails you to one. It opens on arrival, the way a game
  * shows you the world map when you first walk in, and the toolbar reopens it at any time.
  *
- * Each land on the map is a group of research (an "island" in the settings file); each research is a
- * place on that land. What the reader cannot open is drawn as an area that is not unlocked yet.
+ * Drawn as a chart rather than a list: each land in the settings file becomes an island whose shape
+ * is its own (seeded by its name), each research a place on that land. What the reader cannot open
+ * is an area that is not unlocked yet.
  */
-import { islandResearch, t, type IslandMap } from "@researchtree/core";
+import { islandResearch, t, type IslandLand, type IslandMap } from "@researchtree/core";
 import { h, icon } from "../dom";
 
 export interface WorldMapOptions {
@@ -25,59 +26,154 @@ export interface WorldMapOptions {
   onOpen(repo: string): void;
 }
 
-/** Where each land sits on the map, laid out from the grid the settings file gives. */
-function bounds(map: IslandMap): { minX: number; minY: number; cols: number; rows: number } {
+const SVG = "http://www.w3.org/2000/svg";
+const VIEW_W = 900;
+const VIEW_H = 560;
+
+function el<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number> = {}): SVGElementTagNameMap[K] {
+  const node = document.createElementNS(SVG, tag);
+  for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
+  return node;
+}
+
+/** A repeatable number from a name, so a land keeps the same shape every time the map opens. */
+function seeded(text: string): () => number {
+  let h = 2166136261;
+  for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+
+/** An island outline: a closed curve wobbling around a circle, never the same twice. */
+function blob(cx: number, cy: number, rx: number, ry: number, seed: string): string {
+  const rand = seeded(seed);
+  const steps = 11;
+  const points: [number, number][] = [];
+  for (let i = 0; i < steps; i++) {
+    const angle = (i / steps) * Math.PI * 2;
+    const wobble = 0.74 + rand() * 0.42;
+    points.push([cx + Math.cos(angle) * rx * wobble, cy + Math.sin(angle) * ry * wobble]);
+  }
+  // Through the points with a smooth closed spline: the midpoints are anchors, the points handles.
+  const at = (i: number): [number, number] => points[((i % steps) + steps) % steps]!;
+  const mid = (i: number): [number, number] => {
+    const [x, y] = at(i);
+    const [nx, ny] = at(i + 1);
+    return [(x + nx) / 2, (y + ny) / 2];
+  };
+  const start = mid(0);
+  let d = `M${start[0].toFixed(1)},${start[1].toFixed(1)}`;
+  for (let i = 0; i < steps; i++) {
+    const [hx, hy] = at(i + 1);
+    const [ex, ey] = mid(i + 1);
+    d += `Q${hx.toFixed(1)},${hy.toFixed(1)} ${ex.toFixed(1)},${ey.toFixed(1)}`;
+  }
+  return `${d}Z`;
+}
+
+/** Where each land sits, from the grid the settings file gives. */
+function places(map: IslandMap): { land: IslandLand; cx: number; cy: number; rx: number; ry: number }[] {
   const xs = map.islands.map((i) => i.at[0]);
   const ys = map.islands.map((i) => i.at[1]);
   const minX = Math.min(0, ...xs);
   const minY = Math.min(0, ...ys);
-  return { minX, minY, cols: Math.max(...xs, 0) - minX + 1, rows: Math.max(...ys, 0) - minY + 1 };
+  const cols = Math.max(...xs, 0) - minX + 1;
+  const rows = Math.max(...ys, 0) - minY + 1;
+  const cellW = VIEW_W / cols;
+  const cellH = VIEW_H / rows;
+  return map.islands.map((land) => {
+    // Bigger lands for more research, but never so big that two of them touch.
+    const size = Math.min(1, 0.5 + land.repos.length * 0.16);
+    return {
+      land,
+      cx: (land.at[0] - minX + 0.5) * cellW,
+      cy: (land.at[1] - minY + 0.5) * cellH,
+      rx: Math.min(cellW * 0.42, 210) * size,
+      ry: Math.min(cellH * 0.42, 150) * size,
+    };
+  });
+}
+
+function compass(): SVGGElement {
+  const g = el("g", { class: "map-compass", "aria-hidden": "true", transform: "translate(56 58)" });
+  g.append(
+    el("circle", { r: 26, class: "map-compass-ring" }),
+    el("path", { d: "M0,-24 L6,-4 L0,0 L-6,-4 Z", class: "map-compass-n" }),
+    el("path", { d: "M0,24 L6,4 L0,0 L-6,4 Z", class: "map-compass-s" }),
+    el("path", { d: "M-24,0 L-4,6 L0,0 L-4,-6 Z", class: "map-compass-s" }),
+    el("path", { d: "M24,0 L4,6 L0,0 L4,-6 Z", class: "map-compass-s" }),
+  );
+  const n = el("text", { x: 0, y: -32, class: "map-compass-label", "text-anchor": "middle" });
+  n.textContent = "N";
+  g.append(n);
+  return g;
 }
 
 export function worldMapDialog(opts: WorldMapOptions): HTMLElement {
   const { map } = opts;
-  const grid = bounds(map);
   const overlay = h("div", { class: "overlay map-overlay" });
   const close = () => overlay.remove();
 
-  const board = h("div", { class: "map-board" });
-  board.style.gridTemplateColumns = `repeat(${grid.cols}, minmax(0, 1fr))`;
+  const svg = el("svg", { class: "map-chart", viewBox: `0 0 ${VIEW_W} ${VIEW_H}`, role: "group", "aria-label": t("world.mapTitle") });
+  svg.append(el("rect", { class: "map-sea", x: 0, y: 0, width: VIEW_W, height: VIEW_H, rx: 18 }));
 
-  for (const land of map.islands) {
-    const places = land.repos.map((entry) => {
-      const locked = opts.locked.has(entry.repo);
-      const name = entry.repo.split("/")[1] ?? entry.repo;
-      const here = opts.here === entry.repo;
-      const place = h(
-        "button",
-        {
-          class: `map-place${locked ? " locked" : ""}${here ? " here" : ""}`,
-          type: "button",
-          title: locked ? t("world.lockedSub") : entry.repo,
-          onclick: () => {
-            close();
-            opts.onSail(entry.repo);
-          },
-          ondblclick: () => {
-            close();
-            opts.onOpen(entry.repo);
-          },
-        },
-        h("span", { class: "map-pin" }, locked ? icon("warn", 11) : icon("island", 11)),
-        h("span", { class: "map-place-name" }, locked ? t("world.lockedName") : name),
-      );
-      return place;
-    });
-    const cell = h(
-      "section",
-      { class: "map-land", "aria-label": land.name },
-      h("h3", { class: "map-land-name" }, land.name),
-      h("div", { class: "map-places" }, places.length ? places : h("p", { class: "muted small" }, t("world.empty"))),
+  for (const { land, cx, cy, rx, ry } of places(map)) {
+    const group = el("g", { class: "map-island" });
+    group.append(
+      el("path", { class: "map-shallows", d: blob(cx, cy + 4, rx + 16, ry + 13, `${land.name}-sea`) }),
+      el("path", { class: "map-sand", d: blob(cx, cy, rx + 7, ry + 6, `${land.name}-sand`) }),
+      el("path", { class: "map-grass", d: blob(cx, cy - 2, rx, ry, land.name) }),
     );
-    cell.style.gridColumn = String(land.at[0] - grid.minX + 1);
-    cell.style.gridRow = String(land.at[1] - grid.minY + 1);
-    board.append(cell);
+    const name = el("text", { class: "map-island-name", x: cx, y: cy - ry - 14, "text-anchor": "middle" });
+    name.textContent = land.name;
+    group.append(name);
+
+    // The research on this land, laid out around its middle by the places the settings file gives.
+    const cols = Math.max(1, ...land.repos.map((r) => r.at[0] + 1));
+    const rows = Math.max(1, ...land.repos.map((r) => r.at[1] + 1));
+    for (const entry of land.repos) {
+      const locked = opts.locked.has(entry.repo);
+      const here = opts.here === entry.repo;
+      const px = cx + ((entry.at[0] + 0.5) / cols - 0.5) * rx * 1.25;
+      const py = cy + ((entry.at[1] + 0.5) / rows - 0.5) * ry * 1.1;
+      const pin = el("g", {
+        class: `map-place${locked ? " locked" : ""}${here ? " here" : ""}`,
+        role: "button",
+        tabindex: "0",
+        "aria-label": locked ? `${t("world.lockedName")} — ${entry.repo}` : entry.repo,
+        transform: `translate(${px.toFixed(1)} ${py.toFixed(1)})`,
+      });
+      const sail = () => {
+        close();
+        opts.onSail(entry.repo);
+      };
+      pin.addEventListener("click", sail);
+      pin.addEventListener("dblclick", () => {
+        close();
+        opts.onOpen(entry.repo);
+      });
+      pin.addEventListener("keydown", (e) => {
+        const key = (e as KeyboardEvent).key;
+        if (key === "Enter" || key === " ") {
+          e.preventDefault();
+          sail();
+        }
+      });
+      pin.append(el("circle", { class: "map-pin", r: 7 }), el("circle", { class: "map-pin-dot", r: 2.5 }));
+      const label = el("text", { class: "map-place-name", x: 0, y: 22, "text-anchor": "middle" });
+      label.textContent = locked ? t("world.lockedName") : (entry.repo.split("/")[1] ?? entry.repo);
+      pin.append(label);
+      group.append(pin);
+    }
+    svg.append(group);
   }
+  svg.append(compass());
+
+  const board = h("div", { class: "map-board" });
+  board.append(svg);
 
   const count = islandResearch(map).length;
   const dialog = h(
@@ -86,12 +182,7 @@ export function worldMapDialog(opts: WorldMapOptions): HTMLElement {
     h(
       "div",
       { class: "map-head" },
-      h(
-        "div",
-        null,
-        h("div", { class: "eyebrow" }, t("world.land")),
-        h("h2", { class: "map-title" }, t("world.title", { user: opts.user })),
-      ),
+      h("div", null, h("div", { class: "eyebrow" }, t("world.land")), h("h2", { class: "map-title" }, t("world.title", { user: opts.user }))),
       h("button", { class: "icon-btn", type: "button", "aria-label": t("common.close"), onclick: close }, icon("close", 16)),
     ),
     board,
@@ -106,6 +197,6 @@ export function worldMapDialog(opts: WorldMapOptions): HTMLElement {
     if (e.key === "Escape") close();
   });
   // The map takes the keyboard when it opens, so Escape reaches it and Tab walks the places.
-  requestAnimationFrame(() => overlay.querySelector<HTMLElement>(".map-place")?.focus({ preventScroll: true }));
+  requestAnimationFrame(() => overlay.querySelector<SVGGElement>(".map-place")?.focus({ preventScroll: true }));
   return overlay;
 }
