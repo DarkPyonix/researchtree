@@ -1366,11 +1366,23 @@ export class Tree3D implements TreeViewApi {
   }
 
   /**
+   * Reading one research on a map of many: that island shows every chip it has, the rest keep only
+   * their name, so the sea stays readable while the tree in front of you does not.
+   */
+  scopeLabels(repo: string | null): void {
+    this.labels.classList.toggle("world", repo === null);
+    for (const [id, visual] of this.visuals) {
+      visual.label.classList.toggle("off-scope", repo !== null && !id.startsWith(`${repo}\u0000`));
+    }
+    for (const name of this.islandNames) name.label.classList.toggle("off-scope", repo !== null && name.label.dataset.id === `${repo}\u0000`);
+  }
+
+  /**
    * Sail to one research on a map of several: the camera flies until that island fills the view.
    * Ids are scoped by repository here, so the island is everything the repository put on the sea.
    */
   sailTo(repo: string): void {
-    const ids = [...this.visuals.keys()].filter((id) => id.startsWith(`${repo} `));
+    const ids = [...this.visuals.keys()].filter((id) => id.startsWith(`${repo}\u0000`));
     if (ids.length) this.fit(ids, true);
   }
 
