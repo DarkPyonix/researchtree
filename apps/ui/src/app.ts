@@ -966,23 +966,19 @@ class App {
     const btn = (label: string, iconName: Parameters<typeof icon>[0], onClick: () => void, title?: string) =>
       h("button", { class: "btn", onclick: onClick, title: title ?? label, "aria-label": title ?? label }, icon(iconName, 15), h("span", { class: "btn-label" }, label));
 
-    if (!this.user) {
-      return h(
-        "div",
-        { class: "toolbar" },
-        btn(t("toolbar.refresh"), "refresh", () => void this.refresh()),
-        this.board ? null : this.modeButton(),
-        this.boardButton(btn),
-        this.host.capabilities.viewState ? btn(t("office.saveView"), "pin", () => void this.saveViewState(), t("office.saveViewTitle")) : null,
-        btn(t("toolbar.settings"), "gear", () => this.tree && this.openSettings(this.tree.repo)),
-        h(
-          "button",
-          { class: "btn primary", onclick: () => this.showLogin(), title: t("guest.signInTitle") },
-          icon("github", 15),
-          h("span", { class: "btn-label" }, t("login.withGitHub")),
-        ),
-      );
-    }
+    // A guest sees the same toolbar; only its last two items differ, because there is no account to
+    // hang a menu off. Settings still need a button of their own there.
+    const guestTail = !this.user
+      ? [
+          btn(t("toolbar.settings"), "gear", () => this.tree && this.openSettings(this.tree.repo)),
+          h(
+            "button",
+            { class: "btn primary", onclick: () => this.showLogin(), title: t("guest.signInTitle") },
+            icon("github", 15),
+            h("span", { class: "btn-label" }, t("login.withGitHub")),
+          ),
+        ]
+      : null;
 
     // The menu hangs off the account button on hover, so with a pointer the button itself is free to
     // do the obvious thing: go to the account's island. A touch screen has no hover, so there the tap
@@ -1042,9 +1038,11 @@ class App {
         : btn(t("toolbar.fit"), "fit", () => {
             this.activeDepth = null;
             this.renderGenerations();
-            this.view?.fit();
+            // On the sea, "fit" means the research being read, not every island at once.
+            if (this.tree && this.worldScene) this.view?.sailTo(this.tree.repo);
+            else this.view?.fit();
           }),
-      userEl,
+      guestTail ?? userEl,
     );
   }
 
