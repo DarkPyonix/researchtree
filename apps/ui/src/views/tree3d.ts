@@ -1689,7 +1689,9 @@ export class Tree3D implements TreeViewApi {
     );
     this.setCamera(sph, m.from.target.clone().lerp(m.to.target, k), THREE.MathUtils.lerp(m.from.zoom, m.to.zoom, k));
     this.flat = m.flatAt(t);
-    this.renderer.domElement.style.filter = t < 1 ? `blur(${(Math.sin(Math.PI * t) * 1.6).toFixed(2)}px)` : "";
+    // No blur over the whole canvas: it was the one part of the morph that acted on the screen rather
+    // than on the scene, and it made a camera move read as one picture dissolving into another.
+
     if (t >= 1) {
       this.morph = null;
       this.flat = m.to.flat;
