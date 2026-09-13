@@ -12,6 +12,11 @@ export interface ViewOptions {
   insets(): { top: number; right: number; bottom: number; left: number };
   /** Date (ms) on the time axis under the middle of the viewport; null without a time axis. */
   onTime?(ms: number | null): void;
+  /**
+   * On a map of several islands: which research the camera has drifted over, or null out at sea.
+   * Sailing across the water is how a reader moves between them, so this is what changes the page.
+   */
+  onIsland?(repo: string | null): void;
 }
 
 /** Common surface of the 2D and 3D tree views, so the app can swap them freely. */

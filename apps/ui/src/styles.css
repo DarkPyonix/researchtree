@@ -653,48 +653,60 @@ button.crumb:hover { color: var(--accent-2); text-decoration: underline; }
 .field { display: grid; gap: 6px; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
 
 /*
- * The travel map (views/worldmap.ts): a chart of the account's research, drawn over the sea it sails
- * on. It is a tool, not the world — the islands stay behind it — so the sheet keeps the viewer's own
- * card look while the chart inside it is drawn the way a game map is: water, shallows, sand, grass.
+ * The travel map (views/worldmap.ts): the sea itself, photographed from straight above by the view,
+ * with a pin on each research. Card chrome around it, because it is a tool over the world rather
+ * than a world of its own.
  */
-.map-dialog { width: min(880px, 100%); max-height: min(88vh, 760px); overflow: auto; padding: 18px 18px 14px; }
+.map-dialog { width: min(880px, 100%); max-height: min(88vh, 780px); overflow: auto; padding: 18px 18px 14px; }
 .map-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .map-title { margin: 4px 0 0; font: 700 22px/1.25 var(--display); }
-.map-board { margin-top: 14px; border-radius: 18px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
-.map-chart { display: block; width: 100%; height: auto; }
-.map-sea { fill: #a9dde0; }
-.map-shallows { fill: #c4e9e6; }
-.map-sand { fill: #f0dfb0; }
-.map-grass { fill: #a7d38b; }
-.map-island-name {
-  font: 700 15px var(--display);
-  fill: #2c4a4f;
-  paint-order: stroke;
-  stroke: rgba(255, 255, 255, 0.75);
-  stroke-width: 3px;
+.map-chart {
+  position: relative;
+  margin-top: 14px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #a9dde0;
+  box-shadow: inset 0 0 0 1px var(--line);
 }
-.map-place { cursor: pointer; }
-.map-pin { fill: #fffdf9; stroke: var(--st-adopted); stroke-width: 2.5; }
-.map-pin-dot { fill: var(--st-adopted); }
-.map-place-name {
+.map-photo { position: absolute; display: block; max-width: none; }
+.map-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: center;
+}
+.map-pin-dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--st-adopted);
+  background: var(--card);
+  color: var(--st-adopted);
+  box-shadow: 0 2px 6px rgba(30, 45, 50, 0.35);
+}
+.map-pin-name {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
   font: 600 12px var(--font);
-  fill: #2c4a4f;
-  paint-order: stroke;
-  stroke: rgba(255, 255, 255, 0.85);
-  stroke-width: 3px;
+  color: var(--ink);
+  white-space: nowrap;
 }
-.map-place:hover .map-pin, .map-place:focus-visible .map-pin { stroke: var(--accent-2); }
-.map-place:hover .map-pin-dot, .map-place:focus-visible .map-pin-dot { fill: var(--accent-2); }
-.map-place.here .map-pin { stroke: var(--accent-2); stroke-width: 3.5; }
-.map-place.here .map-place-name { fill: var(--accent-2); }
-/* Not unlocked: the pin is empty and the name says so. */
-.map-place.locked .map-pin { stroke: #8a9aa0; stroke-dasharray: 3 3; }
-.map-place.locked .map-pin-dot { fill: none; }
-.map-place.locked .map-place-name { fill: #6f7f85; }
-.map-compass-ring { fill: rgba(255, 253, 249, 0.6); stroke: #2c4a4f; stroke-width: 1.5; }
-.map-compass-n { fill: #c8553d; }
-.map-compass-s { fill: #2c4a4f; }
-.map-compass-label { font: 700 11px var(--font); fill: #2c4a4f; }
+.map-pin-land { font: 600 10px var(--font); letter-spacing: 0.08em; text-transform: uppercase; color: #35606a; text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8); }
+.map-pin:hover .map-pin-dot, .map-pin:focus-visible .map-pin-dot { border-color: var(--accent-2); color: var(--accent-2); }
+.map-pin.here .map-pin-dot { border-color: var(--accent-2); color: var(--accent-2); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-2) 28%, transparent); }
+.map-pin.here .map-pin-name { color: var(--accent-2); }
+/* Not unlocked: an empty pin, and the name says so instead of naming the repository. */
+.map-pin.locked .map-pin-dot { border-style: dashed; border-color: #8a9aa0; color: #8a9aa0; }
+.map-pin.locked .map-pin-name { color: var(--muted); }
 .map-hint { margin: 10px 2px 0; }
 
 /* ---------- time axis ---------- */

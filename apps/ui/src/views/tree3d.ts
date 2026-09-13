@@ -260,6 +260,11 @@ export class Tree3D implements TreeViewApi {
   private islandNames: { label: HTMLElement; at: THREE.Vector3 }[] = [];
   /** Middle of each locked island: they have no plants to fit the camera around. */
   private lockedSpots: THREE.Vector3[] = [];
+  /** Where each research sits on a map of many, and which one the camera is over. */
+  private islandSpots: { repo: string; at: THREE.Vector3 }[] = [];
+  private overIsland: string | null = null;
+  /** Set the first time the reader drags or zooms: until then the camera is only being framed. */
+  private sailed = false;
   private reefPos: THREE.Vector3 | null = null;
   private reefLabel: HTMLElement | null = null;
   private paths: PathVisual[] = [];
@@ -346,7 +351,11 @@ export class Tree3D implements TreeViewApi {
     this.controls.maxPolarAngle = 1.2;
     this.controls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
     this.controls.touches = { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE };
-    this.controls.addEventListener("start", () => (this.tween = null));
+    this.controls.addEventListener("start", () => {
+      this.tween = null;
+      // From here on, where the camera ends up is where the reader chose to sail.
+      this.sailed = true;
+    });
 
     const el = this.renderer.domElement;
     el.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -426,6 +435,8 @@ export class Tree3D implements TreeViewApi {
     this.reefs = [];
     this.islandNames = [];
     this.lockedSpots = [];
+    this.islandSpots = [];
+    this.overIsland = null;
     this.islandFresh = true;
     this.paths = [];
     this.clouds = [];
@@ -493,6 +504,7 @@ export class Tree3D implements TreeViewApi {
     const label = this.makeLabel(g.userData.nodeId as string, t("world.lockedName"), t("world.lockedSub"), "island-name locked");
     this.islandNames.push({ label, at: offset.clone() });
     this.lockedSpots.push(offset.clone());
+    this.islandSpots.push({ repo, at: offset.clone() });
     // The map is framed around everything on it, this island included.
     const half = 26;
     this.island = this.islandFresh
@@ -569,6 +581,7 @@ export class Tree3D implements TreeViewApi {
   private nameIsland(tree: ResearchTree, offset: THREE.Vector3): void {
     const label = this.makeLabel(`${tree.repo}\u0000`, tree.repo.split("/")[1] ?? tree.repo, tree.repo, "island-name");
     this.islandNames.push({ label, at: offset.clone() });
+    this.islandSpots.push({ repo: tree.repo, at: offset.clone() });
   }
 
   /** A visual and its group answer to the scoped id, so a click says which research it was. */
@@ -1366,6 +1379,61 @@ export class Tree3D implements TreeViewApi {
   }
 
   /**
+   * A picture of the whole sea, straight down: the travel map is the world itself, seen from above,
+   * so it can never drift out of step with what the reader is looking at. Returns the image and the
+   * way back from world coordinates to pixels in it, for the pins drawn on top.
+   */
+  mapSnapshot(): { url: string; width: number; height: number; crop: { x: number; y: number; w: number; h: number }; place(x: number, z: number): [number, number] } | null {
+    if (!this.islandSpots.length) return null;
+    const { w, h } = this.size();
+    const pad = 30;
+    // Every island has to be in the picture, so the frame is the ground the scene drew *and* the
+    // place of each research: bounds alone have been known to hold only the last island built.
+    let minX = this.island.minX;
+    let maxX = this.island.maxX;
+    let minZ = this.island.minZ;
+    let maxZ = this.island.maxZ;
+    for (const spot of this.islandSpots) {
+      minX = Math.min(minX, spot.at.x - 120);
+      maxX = Math.max(maxX, spot.at.x + 120);
+      minZ = Math.min(minZ, spot.at.z - 100);
+      maxZ = Math.max(maxZ, spot.at.z + 100);
+    }
+    minX -= pad;
+    maxX += pad;
+    minZ -= pad;
+    maxZ += pad;
+    // One scale for both axes, so the islands keep their shape; the shorter side gets the slack.
+    const scale = Math.min(w / (maxX - minX), h / (maxZ - minZ));
+    const cx = (minX + maxX) / 2;
+    const cz = (minZ + maxZ) / 2;
+    const cam = new THREE.OrthographicCamera((-w / scale) / 2, (w / scale) / 2, (h / scale) / 2, (-h / scale) / 2, 1, 4000);
+    cam.position.set(cx, 900, cz);
+    cam.up.set(0, 0, -1);
+    cam.lookAt(cx, 0, cz);
+    cam.updateProjectionMatrix();
+
+    const flatWas = this.flat;
+    this.flat = 0;
+    this.renderer.render(this.scene, cam);
+    const url = this.renderer.domElement.toDataURL("image/png");
+    this.flat = flatWas;
+    this.renderer.render(this.scene, this.camera);
+    const place = (x: number, z: number): [number, number] => [(x - cx) * scale + w / 2, (z - cz) * scale + h / 2];
+    // The islands rarely fill a screen-shaped frame, so the map says which part of the picture holds
+    // them and the dialog shows only that.
+    const [x0, y0] = place(minX, minZ);
+    const [x1, y1] = place(maxX, maxZ);
+    const crop = {
+      x: Math.max(0, Math.min(x0, x1)),
+      y: Math.max(0, Math.min(y0, y1)),
+      w: Math.min(w, Math.abs(x1 - x0)),
+      h: Math.min(h, Math.abs(y1 - y0)),
+    };
+    return { url, width: w, height: h, crop, place };
+  }
+
+  /**
    * Reading one research on a map of many: that island shows every chip it has, the rest keep only
    * their name, so the sea stays readable while the tree in front of you does not.
    */
@@ -1633,6 +1701,31 @@ export class Tree3D implements TreeViewApi {
     this.camera.updateProjectionMatrix();
   }
 
+  /**
+   * Sailing between islands is how a reader moves on a map, so the page follows the camera: whatever
+   * island the middle of the view has drifted onto becomes the research being read. Open water keeps
+   * the last one, so crossing a channel does not blank the screen.
+   */
+  private checkIsland(): void {
+    // Only once the reader has moved the camera themselves: framing the whole map on arrival is not
+    // sailing anywhere, and it should not drop them into the nearest research.
+    if (!this.sailed || !this.opts.onIsland || this.islandSpots.length < 2) return;
+    const target = this.controls.target;
+    let near: string | null = null;
+    let best = Infinity;
+    for (const spot of this.islandSpots) {
+      const d = Math.hypot(spot.at.x - target.x, spot.at.z - target.z);
+      if (d < best) {
+        best = d;
+        near = spot.repo;
+      }
+    }
+    // Half the gap the map leaves between two islands: near enough that this one fills the view.
+    if (best > 170 || near === null || near === this.overIsland) return;
+    this.overIsland = near;
+    this.opts.onIsland(near);
+  }
+
   private loop = (): void => {
     this.raf = requestAnimationFrame(this.loop);
     if (document.hidden) return;
@@ -1653,6 +1746,7 @@ export class Tree3D implements TreeViewApi {
       if (t >= 1) this.tween = null;
     }
     if (this.controls.enabled) this.controls.update();
+    this.checkIsland();
     const flat = this.flat;
     const squash = Math.max(0.03, 1 - flat);
     for (const o of this.ground) o.visible = flat < 0.92;
