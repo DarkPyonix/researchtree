@@ -1163,7 +1163,8 @@ class App {
     // shows, and the press-down itself still plays over the whole scene.
     const swap = (entries: WorldEntry[]) => {
       if (!this.worldScene || !this.tree) return;
-      view.renderWorld(entries);
+      // The camera stays exactly where the reader left it; only the islands around it change.
+      view.renderWorld(entries, true);
       view.scopeLabels(this.tree.repo);
     };
     if (next === "island") swap(this.worldEntries);
@@ -1181,6 +1182,8 @@ class App {
       await view.turn("island");
     }
     if (next === "flat") swap(this.sceneEntries());
+    // Whatever the view, it ends framed on the research being read — a mode change is not a journey.
+    if (this.tree && this.worldScene) view.sailTo(this.tree.repo);
   }
 
   private renderBrand(): void {
